@@ -41,9 +41,25 @@ const PublicGallery: React.FC<PublicGalleryProps> = ({ galleryId }) => {
             const search = window.location.search;
             const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
             const params = new URLSearchParams(hashQuery || search);
-            return params.get('leadId') || null;
+            // lid = short ID (8 char), leadName = slug fallback, leadId = legacy full UUID
+            return params.get('lid') || params.get('leadName') || params.get('leadId') || null;
         } catch {
             return null;
+        }
+    }, []);
+
+    // Track whether the identifier is a short ID or a name slug
+    const urlLeadParamKey = useMemo(() => {
+        try {
+            const hash = window.location.hash;
+            const search = window.location.search;
+            const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
+            const params = new URLSearchParams(hashQuery || search);
+            if (params.get('lid')) return 'lid';
+            if (params.get('leadName')) return 'leadName';
+            return 'leadId';
+        } catch {
+            return 'leadName';
         }
     }, []);
 
@@ -57,8 +73,8 @@ const PublicGallery: React.FC<PublicGalleryProps> = ({ galleryId }) => {
         if (!baseBookingHref) return '';
         if (!urlLeadId) return baseBookingHref;
         const separator = baseBookingHref.includes('?') ? '&' : '?';
-        return `${baseBookingHref}${separator}leadId=${encodeURIComponent(urlLeadId)}`;
-    }, [baseBookingHref, urlLeadId]);
+        return `${baseBookingHref}${separator}${urlLeadParamKey}=${encodeURIComponent(urlLeadId)}`;
+    }, [baseBookingHref, urlLeadId, urlLeadParamKey]);
 
     const opensExternalBooking = useMemo(() => bookingHref.startsWith('http'), [bookingHref]);
 

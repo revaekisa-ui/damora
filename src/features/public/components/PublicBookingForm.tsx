@@ -209,7 +209,8 @@ const PublicBookingForm: React.FC<PublicBookingFormProps> = ({
             const hash = window.location.hash;
             const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
             const urlParams = new URLSearchParams(hashQuery || window.location.search);
-            const id = urlParams.get('leadId') || urlParams.get('leadName');
+            // lid = short ID (8 char prefix of UUID), leadName = name slug fallback, leadId = legacy full UUID
+            const id = urlParams.get('lid') || urlParams.get('leadId') || urlParams.get('leadName');
             if (id) {
                 setLeadId(id);
             }
@@ -222,7 +223,12 @@ const PublicBookingForm: React.FC<PublicBookingFormProps> = ({
     useEffect(() => {
         if (isLeadDataLoaded || !leadId || (leads?.length || 0) === 0) return;
 
-        const lead = leads.find(l => l.id === leadId || toPublicNameSlug(l.name) === leadId);
+        // Match by: short ID prefix (lid), full UUID (leadId legacy), or name slug (leadName legacy)
+        const lead = leads.find(l =>
+            l.id.startsWith(leadId) ||
+            l.id === leadId ||
+            toPublicNameSlug(l.name) === leadId
+        );
         if (lead) {
             setFormData(prev => ({
                 ...prev,
@@ -496,7 +502,11 @@ const PublicBookingForm: React.FC<PublicBookingFormProps> = ({
             if (leadId) {
                 try {
                     const leadNote = `Dikonversi dari formulir booking. Pengantin ID: ${createdClient.id}`;
-                    const lead = leads.find(l => l.id === leadId || toPublicNameSlug(l.name) === leadId);
+                    const lead = leads.find(l =>
+                        l.id.startsWith(leadId) ||
+                        l.id === leadId ||
+                        toPublicNameSlug(l.name) === leadId
+                    );
                     if (lead) {
                         const updatedLead = await updateLeadRow(lead.id, { status: LeadStatus.CONVERTED, notes: leadNote });
                         setLeads(prev => prev.map(l => l.id === lead.id ? updatedLead : l));

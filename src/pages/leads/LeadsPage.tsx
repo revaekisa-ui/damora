@@ -2044,17 +2044,22 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
 
     const selectedGallery = useMemo(() => galleries.find(g => g.id === selectedGalleryId) || null, [galleries, selectedGalleryId]);
 
-        // Tautan Pricelist langsung dari Pricelist Upload dengan query leadName
+        // Tautan Pricelist langsung dari Pricelist Upload — pakai short ID (8 char) untuk identifikasi akurat
+        // tanpa UUID panjang, plus leadName untuk autofill nama di form
     const selectedGalleryLink = useMemo(() => {
         const slug = toPublicNameSlug(lead.name);
+        const shortId = lead.id.slice(0, 8);
         if (!selectedGallery) {
-            return `${publicPackagesUrl}?leadName=${encodeURIComponent(slug)}`;
+            return `${publicPackagesUrl}?lid=${encodeURIComponent(shortId)}&leadName=${encodeURIComponent(slug)}`;
         }
         const routeId = getGalleryPublicRouteId(selectedGallery, galleries);
-        return buildPublicShareUrl('gallery', routeId, { query: { leadName: slug } });
-    }, [selectedGallery, galleries, lead.name, publicPackagesUrl]);
+        return buildPublicShareUrl('gallery', routeId, { query: { lid: shortId, leadName: slug } });
+    }, [selectedGallery, galleries, lead.id, lead.name, publicPackagesUrl]);
 
-    const bookingUrlWithName = useMemo(() => `${publicBookingFormUrl}?leadName=${encodeURIComponent(toPublicNameSlug(lead.name))}`, [publicBookingFormUrl, lead.name]);
+    const bookingUrlWithName = useMemo(() => {
+        const shortId = lead.id.slice(0, 8);
+        return `${publicBookingFormUrl}?lid=${encodeURIComponent(shortId)}&leadName=${encodeURIComponent(toPublicNameSlug(lead.name))}`;
+    }, [publicBookingFormUrl, lead.id, lead.name]);
 
     useEffect(() => {
         let template = '';
@@ -2080,7 +2085,7 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
         const newGallery = galleries.find(g => g.id === newGalleryId);
         if (newGallery) {
             const newRouteId = getGalleryPublicRouteId(newGallery, galleries);
-            const newLink = buildPublicShareUrl('gallery', newRouteId, { query: { leadName: toPublicNameSlug(lead.name) } });
+            const newLink = buildPublicShareUrl('gallery', newRouteId, { query: { lid: lead.id.slice(0, 8), leadName: toPublicNameSlug(lead.name) } });
             if (previousLink && message.includes(previousLink)) {
                 setMessage(prev => prev.replace(previousLink, newLink));
             } else if (message.includes('{packageLink}')) {
