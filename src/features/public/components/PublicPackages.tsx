@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { Package, AddOn, Profile, Client, Project, Transaction, Lead, Notification, Card, ClientStatus, PaymentStatus, TransactionType, LeadStatus, ContactChannel, ClientType, BookingStatus, ViewType, PromoCode } from '../../../types';
+import { Package, AddOn, Profile, Client, Project, Transaction, Lead, Notification, Card, ClientStatus, PaymentStatus, TransactionType, LeadStatus, ContactChannel, ClientType, BookingStatus, ViewType, PromoCode, REGIONS, WorkflowItem, PackageTermItem } from '../../../types';
 import Modal from '../../../shared/ui/Modal';
 import { CheckIcon, CameraIcon, WhatsappIcon, cleanPhoneNumber } from '../../../constants';
 import { listPackages } from '../../../services/packages';
@@ -11,7 +11,7 @@ import { createLead as createLeadRow, updateLead as updateLeadRow } from '../../
 import { uploadDpProof } from '../../../services/storage';
 import { createTransaction } from '../../../services/transactions';
 import RupiahInput from '../../../shared/form/RupiahInput';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, MapPin, CheckCircle2, ListOrdered, Sparkles, ShieldCheck, Plus, Trash2 } from 'lucide-react';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -76,12 +76,27 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
     const [error, setError] = useState<string | null>(null);
     const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
 
+    // Extract region and lead identifiers from URL (?region=... & lid=... or leadId=...)
+    useEffect(() => {
+        try {
+            const hash = window.location.hash;
+            const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
+            const params = new URLSearchParams(hashQuery || window.location.search);
+            const reg = params.get('region');
+            if (reg && reg.trim() !== '') {
+                setSelectedRegion(reg.toLowerCase().trim());
+            }
+        } catch (e) {
+            console.warn('Failed to parse region from URL:', e);
+        }
+    }, []);
+
     const urlLeadId = useMemo(() => {
         try {
             const hash = window.location.hash;
             const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?') + 1) : '';
             const params = new URLSearchParams(hashQuery || window.location.search);
-            return params.get('leadId') || null;
+            return params.get('lid') || params.get('leadId') || params.get('leadName') || null;
         } catch {
             return null;
         }
@@ -130,12 +145,29 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
         loadData();
     }, [loadData]);
     const template = publicPageConfig?.template ?? 'modern';
+
+    // Strict region filtering for packages
     const visiblePackages = useMemo(() => {
+        if (!Array.isArray(packages)) return [];
         if (!selectedRegion) return packages;
-        return packages.filter(p => (p.region ? p.region === selectedRegion : false));
+        return packages.filter(p => {
+            const pkgRegion = p.region ? String(p.region).toLowerCase().trim() : '';
+            return pkgRegion === selectedRegion.toLowerCase().trim();
+        });
     }, [packages, selectedRegion]);
 
+    // Strict region filtering for add-ons
+    const visibleAddOns = useMemo(() => {
+        if (!Array.isArray(addOns)) return [];
+        if (!selectedRegion) return addOns;
+        return addOns.filter(a => {
+            const addonRegion = a.region ? String(a.region).toLowerCase().trim() : '';
+            return addonRegion === selectedRegion.toLowerCase().trim();
+        });
+    }, [addOns, selectedRegion]);
+
     const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; pkg: Package | null }>({ isOpen: false, pkg: null });
+    const [optionalPackages, setOptionalPackages] = useState<{ id: string; name: string; price: number }[]>([]);
     const [formData, setFormData] = useState(initialForm);
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,21 +176,20 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
     const [isWorkflowOpen, setIsWorkflowOpen] = useState(false);
     const [isTermsOpen, setIsTermsOpen] = useState(false);
-    const [isWeddingTimelineOpen, setIsWeddingTimelineOpen] = useState(false);
-    const [isSmallEventTimelineOpen, setIsSmallEventTimelineOpen] = useState(false);
+    const [openWorkflowId, setOpenWorkflowId] = useState<string | null>(null);
 
     // Note: We avoid early returns before all hooks to keep hook order stable across renders.
 
-    // Group packages by category
+    // Group visiblePackages by category
     const packagesByCategory = useMemo(() => {
         const grouped: Record<string, Package[]> = {};
 
-        if (!Array.isArray(packages)) {
-            console.error('Packages is not an array:', packages);
+        if (!Array.isArray(visiblePackages)) {
+            console.error('visiblePackages is not an array:', visiblePackages);
             return {};
         }
 
-        for (const pkg of packages) {
+        for (const pkg of visiblePackages) {
             if (!pkg) continue;
 
             const category = pkg.category || 'Lainnya';
@@ -185,7 +216,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
         });
 
         return orderedGrouped;
-    }, [packages, userProfile?.packageCategories]);
+    }, [visiblePackages, userProfile?.packageCategories]);
 
     const mostPopularPackageId = useMemo(() => {
         if (projects.length === 0) return null;
@@ -210,6 +241,95 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
         'Wisuda': "Rayakan pencapaian akademik Anda dengan layanan spesial dari kami.",
         'Keluarga': "Menciptakan momen berharga dan layanan terbaik untuk kebahagiaan keluarga Anda."
     };
+
+    const activeWorkflows = useMemo<WorkflowItem[]>(() => {
+        if (userProfile?.publicPageConfig?.workflows && userProfile.publicPageConfig.workflows.length > 0) {
+            return userProfile.publicPageConfig.workflows;
+        }
+        const list: WorkflowItem[] = [];
+        if (userProfile?.publicPageConfig?.weddingWorkflow?.title) {
+            list.push({
+                id: 'wf-wedding',
+                title: userProfile.publicPageConfig.weddingWorkflow.title,
+                timeline: userProfile.publicPageConfig.weddingWorkflow.timeline || []
+            });
+        }
+        if (userProfile?.publicPageConfig?.smallEventWorkflow?.title) {
+            list.push({
+                id: 'wf-small-event',
+                title: userProfile.publicPageConfig.smallEventWorkflow.title,
+                timeline: userProfile.publicPageConfig.smallEventWorkflow.timeline || []
+            });
+        }
+        return list.length > 0 ? list : [
+            {
+                id: 'wf-wedding',
+                title: 'Wedding Timeline',
+                timeline: [
+                    'Konsep Acara Pernikahan / Awal → H-90',
+                    'Pemilihan Vendor / Detail → H-60',
+                    'Persiapan Final (Technical Meeting) → H-14',
+                    'Pelaksanaan Acara Pernikahan → Hari H',
+                    'Penyelesaian / Review Akhir → H+7',
+                    'Serah Terima Dokumentasi / Laporan → H+30'
+                ]
+            },
+            {
+                id: 'wf-small-event',
+                title: 'Event / Acara Pernikahan Kecil Timeline',
+                timeline: [
+                    'Konsep / Kesepakatan Awal → H-30',
+                    'Persiapan Final → H-7',
+                    'Pelaksanaan Acara Pernikahan → Hari H',
+                    'Penyelesaian Layanan / Laporan → H+14'
+                ]
+            }
+        ];
+    }, [userProfile?.publicPageConfig]);
+
+    const activePackageTerms = useMemo<PackageTermItem[]>(() => {
+        if (userProfile?.publicPageConfig?.packageTerms && userProfile.publicPageConfig.packageTerms.length > 0) {
+            return userProfile.publicPageConfig.packageTerms;
+        }
+        return [
+            {
+                id: 'pt-booking',
+                title: 'Ketentuan Pemesanan & Pembayaran DP',
+                items: [
+                    'Booking paket dinyatakan sah setelah pembayaran Down Payment (DP) minimal 30%.',
+                    'Tanggal acara hanya akan di-lock setelah bukti transfer DP diverifikasi.',
+                    'Pelunasan total biaya paket dilakukan selambat-lambatnya H-7 sebelum hari pelaksanaan acara.',
+                    'Pembayaran hanya sah melalui rekening resmi vendor yang tertera di dokumen tagihan.'
+                ]
+            },
+            {
+                id: 'pt-reschedule',
+                title: 'Perubahan Jadwal & Penyesuaian Paket',
+                items: [
+                    'Permintaan penyesuaian jadwal (reschedule) wajib disampaikan minimal H-30 sebelum hari acara.',
+                    'Perubahan tanggal tunduk pada ketersediaan jadwal tim vendor pada tanggal yang baru.',
+                    'Upgrade paket atau penambahan add-on dapat dilakukan kapan saja sebelum hari H.'
+                ]
+            },
+            {
+                id: 'pt-execution',
+                title: 'Pelaksanaan & Penyerahan Hasil Layanan',
+                items: [
+                    'Tim vendor akan tiba di lokasi acara selambat-lambatnya 2 jam sebelum rundown dimulai.',
+                    'Preview hasil layanan (teaser / highlight foto & video) dikirimkan maksimal H+7 acara.',
+                    'Seluruh hasil final (full album / Google Drive / video edit) diserahkan maksimal H+30 acara.'
+                ]
+            },
+            {
+                id: 'pt-cancellation',
+                title: 'Pembatalan & Force Majeure',
+                items: [
+                    'Pembatalan sepihak dari pihak klien menyebabkan DP hangus dan tidak dapat dikembalikan.',
+                    'Keadaan force majeure (bencana alam, huru-hara, regulasi darurat) diselesaikan secara musyawarah mufakat.'
+                ]
+            }
+        ];
+    }, [userProfile?.publicPageConfig?.packageTerms]);
 
     const formattedTerms = useMemo(() => {
         if (!userProfile.termsAndConditions || userProfile.termsAndConditions.trim() === '') return null;
@@ -241,12 +361,17 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
             const selected = opts.find(o => o.label === formData.durationSelection) || opts.find(o => o.default) || opts[0];
             packagePrice = selected?.price ?? bookingModal.pkg.price;
         }
-        const addOnsPrice = addOns
+        const addOnsPrice = visibleAddOns
             .filter(addon => formData.selectedAddOnIds.includes(addon.id))
             .reduce((sum, addon) => sum + addon.price, 0);
 
+        const optionalPackagesPrice = optionalPackages.reduce((sum, opt) => {
+            const pkg = packages.find(p => p.id === opt.packageId);
+            return sum + (pkg?.price || 0);
+        }, 0);
+
         const transportFee = Number(formData.transportCost) || 0;
-        const totalBeforeDiscount = packagePrice + addOnsPrice;
+        const totalBeforeDiscount = packagePrice + addOnsPrice + optionalPackagesPrice;
         let discountAmount = 0;
         let discountText = '';
 
@@ -278,7 +403,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
 
         const totalProject = totalBeforeDiscount - discountAmount + transportFee;
         return { totalBeforeDiscount, discountAmount, totalProject, discountText };
-    }, [formData.selectedAddOnIds, formData.promoCode, formData.transportCost, formData.durationSelection, bookingModal.pkg, addOns, promoCodes]);
+    }, [formData.selectedAddOnIds, formData.promoCode, formData.transportCost, formData.durationSelection, bookingModal.pkg, addOns, promoCodes, optionalPackages, packages]);
 
     const handleOpenBookingModal = (pkg: Package) => {
         setBookingModal({ isOpen: true, pkg });
@@ -350,7 +475,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
             }
         }
 
-        const selectedAddOns = addOns.filter(addon => formData.selectedAddOnIds.includes(addon.id));
+        const selectedAddOns = visibleAddOns.filter(addon => formData.selectedAddOnIds.includes(addon.id));
         const remainingPayment = totalProject - dpAmount;
         const transportFee = Number(formData.transportCost) || 0;
 
@@ -597,105 +722,140 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                     )}
 
                     <section className="mb-12 md:mb-16 grid md:grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 widget-animate" style={{ animationDelay: '200ms' }}>
+                        {/* ── Workflow & Timeline Layanan ── */}
                         <div
                             className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border p-3 md:p-4 sm:p-6 cursor-pointer hover:border-brand-accent/50 transition-all"
                             onClick={() => {
-                                setIsWorkflowOpen(!isWorkflowOpen);
+                                const nextState = !isWorkflowOpen;
+                                setIsWorkflowOpen(nextState);
                                 setIsTermsOpen(false);
-                                // Otomatis buka kedua timeline saat workflow dibuka
-                                if (!isWorkflowOpen) {
-                                    setIsWeddingTimelineOpen(true);
-                                    setIsSmallEventTimelineOpen(true);
+                                if (nextState && !openWorkflowId && activeWorkflows.length > 0) {
+                                    setOpenWorkflowId(activeWorkflows[0].id);
                                 }
                             }}
                         >
                             <div className="flex justify-between items-center text-left">
-                                <h3 className="text-xl md:text-2xl font-bold text-gradient">{userProfile.publicPageConfig?.weddingWorkflow?.title || 'Wedding Workflow Weddfin'}</h3>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-brand-accent/15 flex items-center justify-center text-brand-accent">
+                                        <ListOrdered className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg md:text-xl font-bold text-gradient">
+                                            Workflow & Timeline Layanan
+                                        </h3>
+                                        <p className="text-xs text-brand-text-secondary">
+                                            {activeWorkflows.length} Alur Kerja Tersedia
+                                        </p>
+                                    </div>
+                                </div>
                                 <ChevronDownIcon className={`w-6 h-6 transition-transform text-brand-text-secondary ${isWorkflowOpen ? 'rotate-180' : ''}`} />
                             </div>
+
                             <div className={`transition-all duration-500 ease-in-out grid ${isWorkflowOpen ? 'grid-rows-[1fr] mt-4 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
-                                    <div className="space-y-4">
-                                        <div className="border border-brand-border rounded-xl overflow-hidden">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setIsWeddingTimelineOpen(!isWeddingTimelineOpen);
-                                                    setIsSmallEventTimelineOpen(false);
-                                                }}
-                                                className="w-full flex justify-between items-center text-left p-3 bg-brand-bg hover:bg-brand-bg/80 transition-colors"
-                                            >
-                                                <h4 className="font-semibold text-brand-text-light">Wedding Timeline</h4>
-                                                <ChevronDownIcon className={`w-5 h-5 transition-transform text-brand-text-secondary ${isWeddingTimelineOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            <div className={`transition-all duration-500 ease-in-out grid ${isWeddingTimelineOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                                                <div className="overflow-hidden">
-                                                    <ul className="p-3 space-y-1 text-sm text-brand-text-secondary list-disc list-inside">
-                                                        {(userProfile.publicPageConfig?.weddingWorkflow?.timeline || [
-                                                            'Konsep Acara Pernikahan / Awal → H-90',
-                                                            'Pemilihan Vendor / Detail → H-60',
-                                                            'Persiapan Final (Technical Meeting) → H-14',
-                                                            'Pelaksanaan Acara Pernikahan → Hari H',
-                                                            'Penyelesaian / Review Akhir → H+7',
-                                                            'Serah Terima Dokumentasi / Laporan → H+30'
-                                                        ]).map((item, index) => (
-                                                            <li key={index}>{item}</li>
-                                                        ))}
-                                                    </ul>
+                                    <div className="space-y-3">
+                                        {activeWorkflows.map((wf, wfIdx) => {
+                                            const isExpanded = openWorkflowId === wf.id || (openWorkflowId === null && wfIdx === 0);
+                                            return (
+                                                <div key={wf.id || wfIdx} className="border border-brand-border rounded-xl overflow-hidden bg-brand-bg/40">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setOpenWorkflowId(isExpanded ? '' : wf.id);
+                                                        }}
+                                                        className="w-full flex justify-between items-center text-left p-3 hover:bg-brand-bg/80 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-5 h-5 rounded-md bg-brand-accent/20 text-brand-accent flex items-center justify-center text-xs font-bold">
+                                                                {wfIdx + 1}
+                                                            </span>
+                                                            <h4 className="font-semibold text-brand-text-light text-sm">
+                                                                {wf.title}
+                                                            </h4>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] bg-brand-surface text-brand-text-secondary px-2 py-0.5 rounded-full border border-brand-border">
+                                                                {wf.timeline.length} Tahapan
+                                                            </span>
+                                                            <ChevronDownIcon className={`w-4 h-4 transition-transform text-brand-text-secondary ${isExpanded ? 'rotate-180' : ''}`} />
+                                                        </div>
+                                                    </button>
+                                                    <div className={`transition-all duration-300 ease-in-out grid ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                                                        <div className="overflow-hidden">
+                                                            <div className="p-3 pt-1 space-y-2 border-t border-brand-border/60">
+                                                                {wf.timeline.map((item, itemIdx) => (
+                                                                    <div key={itemIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-brand-text-secondary">
+                                                                        <span className="w-4 h-4 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center text-[10px] font-bold mt-0.5 shrink-0">
+                                                                            {itemIdx + 1}
+                                                                        </span>
+                                                                        <span className="leading-snug">{item}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="border border-brand-border rounded-xl overflow-hidden">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setIsSmallEventTimelineOpen(!isSmallEventTimelineOpen);
-                                                    setIsWeddingTimelineOpen(false);
-                                                }}
-                                                className="w-full flex justify-between items-center text-left p-3 bg-brand-bg hover:bg-brand-bg/80 transition-colors"
-                                            >
-                                                <h4 className="font-semibold text-brand-text-light">{userProfile.publicPageConfig?.smallEventWorkflow?.title || 'Event / Acara Pernikahan Kecil Timeline'}</h4>
-                                                <ChevronDownIcon className={`w-5 h-5 transition-transform text-brand-text-secondary ${isSmallEventTimelineOpen ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            <div className={`transition-all duration-500 ease-in-out grid ${isSmallEventTimelineOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                                                <div className="overflow-hidden">
-                                                    <ul className="p-3 space-y-1 text-sm text-brand-text-secondary list-disc list-inside">
-                                                        {(userProfile.publicPageConfig?.smallEventWorkflow?.timeline || [
-                                                            'Konsep / Kesepakatan Awal → H-30',
-                                                            'Persiapan Final → H-7',
-                                                            'Pelaksanaan Acara Pernikahan → Hari H',
-                                                            'Penyelesaian Layanan / Laporan → H+14'
-                                                        ]).map((item, index) => (
-                                                            <li key={index}>{item}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* ── Syarat & Ketentuan Paket ── */}
                         <div
                             className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border p-3 md:p-4 sm:p-6 cursor-pointer hover:border-brand-accent/50 transition-all"
                             onClick={() => {
                                 setIsTermsOpen(!isTermsOpen);
-                                setIsWorkflowOpen(false); // Tutup workflow saat syarat ketentuan dibuka
-                                setIsWeddingTimelineOpen(false); // Tutup timeline
-                                setIsSmallEventTimelineOpen(false); // Tutup timeline
+                                setIsWorkflowOpen(false);
                             }}
                         >
                             <div className="flex justify-between items-center text-left">
-                                <h3 className="text-xl md:text-2xl font-bold text-gradient">Syarat & Ketentuan</h3>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-xl bg-brand-accent/15 flex items-center justify-center text-brand-accent">
+                                        <ShieldCheck className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg md:text-xl font-bold text-gradient">
+                                            Syarat & Ketentuan Paket
+                                        </h3>
+                                        <p className="text-xs text-brand-text-secondary">
+                                            {activePackageTerms.length} Bagian Ketentuan Booking
+                                        </p>
+                                    </div>
+                                </div>
                                 <ChevronDownIcon className={`w-6 h-6 transition-transform text-brand-text-secondary ${isTermsOpen ? 'rotate-180' : ''}`} />
                             </div>
+
                             <div className={`transition-all duration-500 ease-in-out grid ${isTermsOpen ? 'grid-rows-[1fr] mt-4 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
-                                    <div className="max-h-80 overflow-y-auto pr-4 text-sm space-y-2">
-                                        {formattedTerms ? (
+                                    <div className="max-h-96 overflow-y-auto pr-1 space-y-3">
+                                        {activePackageTerms && activePackageTerms.length > 0 ? (
+                                            activePackageTerms.map((section, sIdx) => (
+                                                <div key={section.id || sIdx} className="border border-brand-border/80 bg-brand-bg/40 rounded-xl p-3.5 space-y-2.5">
+                                                    <h4 className="font-semibold text-brand-text-light text-sm flex items-center gap-2">
+                                                        <span className="w-5 h-5 rounded-md bg-brand-accent/20 text-brand-accent flex items-center justify-center text-xs font-bold">
+                                                            {sIdx + 1}
+                                                        </span>
+                                                        <span>{section.title}</span>
+                                                    </h4>
+                                                    <ul className="space-y-1.5 pl-7 text-xs sm:text-sm text-brand-text-secondary">
+                                                        {section.items.map((item, itemIdx) => (
+                                                            <li key={itemIdx} className="flex items-start gap-2">
+                                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                                                <span className="leading-snug">{item}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            ))
+                                        ) : formattedTerms ? (
                                             <div>{formattedTerms}</div>
                                         ) : (
-                                            <p className="text-brand-text-secondary text-center py-8">Syarat dan ketentuan belum diatur oleh vendor.</p>
+                                            <p className="text-brand-text-secondary text-center py-8">
+                                                Syarat dan ketentuan paket belum diatur oleh vendor.
+                                            </p>
                                         )}
                                     </div>
                                 </div>
@@ -703,8 +863,61 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                         </div>
                     </section>
 
+                    {/* Region Selector Bar */}
+                    <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-brand-surface rounded-2xl border border-brand-border">
+                        <div className="flex items-center gap-2 text-sm text-brand-text-secondary">
+                            <MapPin className="w-4 h-4 text-brand-accent shrink-0" />
+                            <span>
+                                Wilayah Katalog: <strong className="text-brand-text-light">{selectedRegion ? (REGIONS.find(r => r.value.toLowerCase() === selectedRegion.toLowerCase())?.label || selectedRegion.toUpperCase()) : 'Semua Wilayah'}</strong>
+                            </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedRegion(null)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                    !selectedRegion
+                                        ? 'bg-brand-accent text-white shadow-xs'
+                                        : 'bg-brand-bg text-brand-text-secondary hover:text-brand-text-light border border-brand-border'
+                                }`}
+                            >
+                                Semua
+                            </button>
+                            {REGIONS.map(r => (
+                                <button
+                                    key={r.value}
+                                    type="button"
+                                    onClick={() => setSelectedRegion(r.value.toLowerCase())}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                        selectedRegion?.toLowerCase() === r.value.toLowerCase()
+                                            ? 'bg-brand-accent text-white shadow-xs'
+                                            : 'bg-brand-bg text-brand-text-secondary hover:text-brand-text-light border border-brand-border'
+                                    }`}
+                                >
+                                    {r.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="grid lg:grid-cols-3 gap-6 md:gap-8 items-start">
                         <section className="lg:col-span-2 space-y-12 md:space-y-16">
+                            {Object.keys(packagesByCategory).length === 0 && (
+                                <div className="text-center py-16 bg-brand-surface rounded-2xl border border-brand-border p-6">
+                                    <MapPin className="w-12 h-12 mx-auto text-brand-text-secondary mb-3 opacity-40" />
+                                    <h4 className="text-lg font-bold text-brand-text-light">Belum Ada Paket untuk Wilayah Ini</h4>
+                                    <p className="text-sm text-brand-text-secondary mt-1 max-w-md mx-auto">
+                                        Saat ini belum ada paket yang terdaftar khusus untuk wilayah {selectedRegion ? (REGIONS.find(r => r.value.toLowerCase() === selectedRegion.toLowerCase())?.label || selectedRegion) : ''}.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedRegion(null)}
+                                        className="mt-4 px-4 py-2 rounded-xl bg-brand-accent text-white text-xs font-bold cursor-pointer"
+                                    >
+                                        Tampilkan Semua Wilayah
+                                    </button>
+                                </div>
+                            )}
                             {Object.entries(packagesByCategory as Record<string, Package[]>).map(([category, pkgs]) => (
                                 <div key={category}>
                                     <div className="mb-6 md:mb-8">
@@ -806,12 +1019,14 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                             ))}
                         </section>
 
-                        {addOns.length > 0 && (
+                        {visibleAddOns.length > 0 && (
                             <aside className="lg:col-span-1 lg:sticky lg:top-8 widget-animate" style={{ animationDelay: '500ms' }}>
                                 <div className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border">
-                                    <h3 className="text-lg md:text-xl font-bold text-brand-text-light p-4 md:p-6">Tambahan Opsional</h3>
+                                    <h3 className="text-lg md:text-xl font-bold text-brand-text-light p-4 md:p-6">
+                                        Tambahan Opsional {selectedRegion ? `(${selectedRegion.toUpperCase()})` : ''}
+                                    </h3>
                                     <div className="border-t border-brand-border">
-                                        {addOns.map(addOn => (
+                                        {visibleAddOns.map(addOn => (
                                             <AddOnItem key={addOn.id} addOn={addOn} />
                                         ))}
                                     </div>
@@ -931,25 +1146,37 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                     </footer>
 
                     {/* Pricelist PDF Download Button */}
-                    {userProfile.publicPageConfig?.pricelistPdfUrl && (
-                        <div className="fixed bottom-6 right-6 z-40">
-                            <button
-                                onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = userProfile.publicPageConfig.pricelistPdfUrl!;
-                                    link.download = 'pricelist.pdf';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                }}
-                                className="flex items-center gap-2 px-4 py-3 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
-                                title="Download Pricelist PDF"
-                            >
-                                <Download className="w-5 h-5" />
-                                <span className="font-semibold text-sm">Download Pricelist</span>
-                            </button>
-                        </div>
-                    )}
+                    {(() => {
+                        const regionPricelists = userProfile.publicPageConfig?.regionPricelists || [];
+                        const targetPricelist = selectedRegion
+                            ? regionPricelists.find(p => p.region.toLowerCase() === selectedRegion.toLowerCase())
+                            : regionPricelists.find(p => p.region.toLowerCase() === 'semua') || (regionPricelists.length > 0 ? regionPricelists[0] : null);
+
+                        if (!targetPricelist && !userProfile.publicPageConfig?.pricelistPdfUrl) return null;
+
+                        const pdfUrl = targetPricelist?.pdfUrl || userProfile.publicPageConfig?.pricelistPdfUrl;
+                        if (!pdfUrl) return null;
+
+                        return (
+                            <div className="fixed bottom-6 right-6 z-40">
+                                <button
+                                    onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = pdfUrl;
+                                        link.download = targetPricelist?.fileName || 'pricelist.pdf';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-3 bg-brand-accent hover:bg-brand-accent-hover text-white rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+                                    title={`Download Pricelist ${targetPricelist?.title || ''}`}
+                                >
+                                    <Download className="w-5 h-5" />
+                                    <span className="font-semibold text-sm">Download Pricelist</span>
+                                </button>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 <Modal isOpen={bookingModal.isOpen} onClose={handleCloseBookingModal} title={`Booking: ${bookingModal.pkg?.name}`} size="4xl">
@@ -1057,7 +1284,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                                 </div>
                                             </div>
                                         )}
-                                        {formData.selectedAddOnIds.length > 0 && addOns.filter(a => formData.selectedAddOnIds.includes(a.id)).map(a => (
+                                        {formData.selectedAddOnIds.length > 0 && visibleAddOns.filter(a => formData.selectedAddOnIds.includes(a.id)).map(a => (
                                             <div key={a.id} className="flex justify-between items-center text-sm"><span className="text-public-text-secondary pl-4">Add-on: {a.name}</span><span className="text-public-text-primary font-semibold">{formatCurrency(a.price)}</span></div>
                                         ))}
                                         {Number(formData.transportCost) > 0 && <div className="flex justify-between items-center text-sm"><span className="text-public-text-secondary">Fee Transport</span><span className="text-public-text-primary font-semibold">{formatCurrency(Number(formData.transportCost) || 0)}</span></div>}
@@ -1065,9 +1292,77 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                         <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-public-border"><span className="text-public-text-secondary">Total Biaya</span><span className="text-public-text-primary">{formatCurrency(totalProject)}</span></div>
                                     </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <h4 className="text-base font-semibold text-gradient border-b border-public-border pb-2">Tambahan</h4>
-                                    <div className="input-group"><label className="input-label !static !-top-4 text-public-accent">Add-On Lainnya (Opsional)</label><div className="p-3 border border-public-border bg-public-bg rounded-lg space-y-2 mt-2">{addOns.map(addon => (<label key={addon.id} className="flex items-center justify-between p-1.5 rounded-md hover:bg-public-surface cursor-pointer"><span className="text-sm text-public-text-primary">{addon.name}</span><div className="flex items-center gap-2"><span className="text-sm text-public-text-secondary">{formatCurrency(addon.price)}</span><input type="checkbox" id={addon.id} name="addOns" checked={formData.selectedAddOnIds.includes(addon.id)} onChange={handleFormChange} className="h-4 w-4 rounded flex-shrink-0 text-brand-accent focus:ring-brand-accent transition" /></div></label>))}</div></div>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between pt-4 border-t border-public-border">
+                                            <h4 className="text-sm font-semibold text-public-accent">Paket Tambahan (Opsional)</h4>
+                                        </div>
+                                            <div className="space-y-2">
+                                                {visiblePackages
+                                                    .filter(p => p.id !== bookingModal.pkg?.id)
+                                                    .map(pkg => {
+                                                        const isSelected = optionalPackages.some(op => op.id === pkg.id);
+                                                        return (
+                                                            <div key={pkg.id} className="flex items-center gap-2 p-2 border rounded text-xs hover:bg-public-bg">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={(e) => {
+                                                                        if (e.target.checked) {
+                                                                            setOptionalPackages([...optionalPackages, { id: pkg.id, name: pkg.name, price: pkg.price }]);
+                                                                        } else {
+                                                                            setOptionalPackages(optionalPackages.filter(op => op.id !== pkg.id));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <div className="flex-1">
+                                                                    <p className="font-semibold">{pkg.name}</p>
+                                                                    <p className="text-gray-500">{formatCurrency(pkg.price)}</p>
+                                                                    {isSelected && (
+                                                                        <div className="mt-2 pl-2 space-y-1 border-l-2 border-gray-200 text-xs text-gray-600">
+                                                                            <p className="font-medium text-gray-800">Detail Package: {pkg.name}</p>
+                                                                            {pkg.description && (
+                                                                                <div className="whitespace-pre-wrap">{pkg.description}</div>
+                                                                            )}
+                                                                            {pkg.durationOptions && pkg.durationOptions.length > 0 && (
+                                                                                <div className="mt-2">
+                                                                                    <p className="font-medium text-gray-800">Jam Kerja:</p>
+                                                                                    {pkg.durationOptions.map(opt => (
+                                                                                        <div key={opt.id} className="flex justify-between py-0.5">
+                                                                                            <span>{opt.label}</span>
+                                                                                            <span>{formatCurrency(opt.price)}</span>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </div>
+                                    </div>
+                                    <h4 className="text-base font-semibold text-gradient border-b border-public-border pb-2 pt-4">Tambahan</h4>
+                                    {visibleAddOns.length > 0 ? (
+                                        <div className="input-group">
+                                            <label className="input-label !static !-top-4 text-public-accent">
+                                                Add-On Lainnya (Opsional {selectedRegion ? `- Wilayah ${selectedRegion.toUpperCase()}` : ''})
+                                            </label>
+                                            <div className="p-3 border border-public-border bg-public-bg rounded-lg space-y-2 mt-2">
+                                                {visibleAddOns.map(addon => (
+                                                    <label key={addon.id} className="flex items-center justify-between p-1.5 rounded-md hover:bg-public-surface cursor-pointer">
+                                                        <span className="text-sm text-public-text-primary">{addon.name}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-public-text-secondary">{formatCurrency(addon.price)}</span>
+                                                            <input type="checkbox" id={addon.id} name="addOns" checked={formData.selectedAddOnIds.includes(addon.id)} onChange={handleFormChange} className="h-4 w-4 rounded flex-shrink-0 text-brand-accent focus:ring-brand-accent transition" />
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-brand-text-secondary italic">Tidak ada add-on khusus untuk wilayah ini.</p>
+                                    )}
                                     <div className="input-group">
                                         <input type="text" id="promoCode" name="promoCode" value={formData.promoCode} onChange={handleFormChange} className="input-field" placeholder=" " />
                                         <label htmlFor="promoCode" className="input-label">Kode Promo (Opsional)</label>
@@ -1116,19 +1411,12 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                                 </div>
                                                 <p className="text-xs leading-5 text-public-text-secondary">PNG, JPG, PDF hingga 10MB</p>
                                             </div>
-                                        </div>
-                                        {paymentProof && <div className="mt-2 text-sm text-public-text-primary bg-public-bg p-2 rounded-md">File terpilih: <span className="font-semibold">{paymentProof.name}</span></div>}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex justify-end gap-3 pt-4 border-t border-public-border">
                                 <button type="button" onClick={handleCloseBookingModal} className="button-secondary">Batal</button>
                                 <button type="submit" disabled={isSubmitting} className="button-primary">{isSubmitting ? 'Mengirim...' : 'Kirim Booking'}</button>
-                            </div>
-                            <div className="mt-6 flex justify-center items-center gap-4">
-                                <button type="button" onClick={() => setIsTermsModalOpen(true)} className="text-xs font-semibold text-public-accent hover:underline">
-                                    Lihat Syarat & Ketentuan Umum
-                                </button>
                             </div>
                         </form>
                     )}

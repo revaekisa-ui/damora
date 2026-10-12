@@ -2127,6 +2127,9 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
                                     </div>
                                 </div>
                                 <div className="p-4 bg-brand-accent/5 rounded-xl border border-brand-accent/20">
+                                    <div className="mb-2.5 p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700 leading-relaxed">
+                                        <span className="font-bold">Khusus Dokumen Invoice:</span> Syarat & ketentuan di bawah ini dicetak khusus pada lembar dokumen Invoice tagihan klien. Untuk syarat & ketentuan katalog pemesanan paket, dikelola di halaman <strong>Input Package → Syarat</strong>.
+                                    </div>
                                     <TemplateEditor
                                         id="termsAndConditions"
                                         label="Syarat & Ketentuan (u/ Invoice)"

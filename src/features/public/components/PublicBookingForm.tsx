@@ -1338,7 +1338,28 @@ Mohon konfirmasi untuk langkah selanjutnya. Terima kasih! 🙏`;
             </div>
             <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Syarat & Ketentuan Umum">
                 <div className="max-h-[70vh] overflow-y-auto pr-4">
-                    {formattedTerms ? (
+                    {userProfile.publicPageConfig?.packageTerms && userProfile.publicPageConfig.packageTerms.length > 0 ? (
+                        <div className="space-y-4">
+                            {userProfile.publicPageConfig.packageTerms.map((section, sIdx) => (
+                                <div key={section.id || sIdx} className="border border-brand-border/80 bg-brand-bg/40 rounded-xl p-3.5 space-y-2">
+                                    <h4 className="font-semibold text-brand-text-light text-sm flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded-md bg-brand-accent/20 text-brand-accent flex items-center justify-center text-xs font-bold">
+                                            {sIdx + 1}
+                                        </span>
+                                        <span>{section.title}</span>
+                                    </h4>
+                                    <ul className="space-y-1.5 pl-7 text-xs sm:text-sm text-brand-text-secondary">
+                                        {section.items.map((item, itemIdx) => (
+                                            <li key={itemIdx} className="flex items-start gap-2">
+                                                <span className="text-emerald-500 font-bold shrink-0">✓</span>
+                                                <span className="leading-snug">{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    ) : formattedTerms ? (
                         <div>{formattedTerms}</div>
                     ) : (
                         <p className="text-brand-text-secondary text-center py-8">Syarat dan ketentuan belum diatur oleh vendor.</p>

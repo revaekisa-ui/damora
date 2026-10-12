@@ -69,8 +69,11 @@ function fromRow(row: any): Profile {
       galleryImages: row.public_page_config.galleryImages || [],
       backgroundImages: row.public_page_config.backgroundImages || {},
       pricelistPdfUrl: row.public_page_config.pricelistPdfUrl || undefined,
+      regionPricelists: row.public_page_config.regionPricelists || undefined,
       weddingWorkflow: row.public_page_config.weddingWorkflow || undefined,
       smallEventWorkflow: row.public_page_config.smallEventWorkflow || undefined,
+      workflows: row.public_page_config.workflows || undefined,
+      packageTerms: row.public_page_config.packageTerms || undefined,
     } : {
       template: (row.public_page_template || 'classic') as any,
       title: row.public_page_title || 'Weddfin',
@@ -78,8 +81,11 @@ function fromRow(row: any): Profile {
       galleryImages: [],
       backgroundImages: {},
       pricelistPdfUrl: undefined,
+      regionPricelists: undefined,
       weddingWorkflow: undefined,
       smallEventWorkflow: undefined,
+      workflows: undefined,
+      packageTerms: undefined,
     },
     packageShareTemplate: row.package_share_template || undefined,
     bookingFormTemplate: templateEnvelope

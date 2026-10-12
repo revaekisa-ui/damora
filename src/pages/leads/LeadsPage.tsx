@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Kanban, Table, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { Kanban, Table, SlidersHorizontal, ChevronDown, ChevronUp, X, Copy, ExternalLink, Check, Package as PackageIconLucide, MapPin } from 'lucide-react';
 import { MobileCollapsibleSection } from '../../components/ui/MobileProgressiveDisclosure';
 
 // Helper function to escape special regex characters
 const escapeRegExp = (string: string) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 };
-import { Lead, LeadStatus, Client, ClientStatus, Project, Package, AddOn, Transaction, TransactionType, PaymentStatus, Profile, Card, FinancialPocket, ContactChannel, PromoCode, ClientType, ViewType, NavigationAction, Gallery } from '../../types';
+import { Lead, LeadStatus, Client, ClientStatus, Project, Package, AddOn, Transaction, TransactionType, PaymentStatus, Profile, Card, FinancialPocket, ContactChannel, PromoCode, ClientType, ViewType, NavigationAction, Gallery, REGIONS } from '../../types';
 
 import Modal from '../../shared/ui/Modal';
 import RupiahInput from '../../shared/form/RupiahInput';
@@ -659,6 +659,7 @@ export const Leads: React.FC<LeadsProps> = ({
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
     const [formData, setFormData] = useState<any>({});
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isBookingLinksModalOpen, setIsBookingLinksModalOpen] = useState(false);
     const [activeStatModal, setActiveStatModal] = useState<string | null>(null);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [hiddenColumns, setHiddenColumns] = useState<Set<LeadStatus>>(new Set());
@@ -1217,37 +1218,47 @@ export const Leads: React.FC<LeadsProps> = ({
                     </p>
                 </div>
 
-                <div className="flex items-center gap-1 bg-[#EEF2F7] p-1 rounded-xl self-start sm:self-auto border border-[#E0E6ED]">
+                <div className="flex items-center gap-2">
                     <button
                         type="button"
-                        onClick={() => setStatCardView('insights')}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                            statCardView === 'insights'
-                                ? 'bg-white text-[#3563E9] shadow-xs'
-                                : 'text-[#5A6A85] hover:text-[#2A3547]'
-                        }`}
+                        onClick={() => setIsBookingLinksModalOpen(true)}
+                        className="px-3 py-1.5 rounded-lg bg-[#5D87FF]/10 text-[#5D87FF] text-xs font-semibold hover:bg-[#5D87FF]/20 transition-all flex items-center gap-1.5"
                     >
-                        Wawasan Wilayah &amp; Acara
+                        <LinkIcon className="w-3.5 h-3.5" />
+                        Tautan Booking Publik
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setStatCardView('pipeline')}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                            statCardView === 'pipeline'
-                                ? 'bg-white text-[#3563E9] shadow-xs'
-                                : 'text-[#5A6A85] hover:text-[#2A3547]'
-                        }`}
-                    >
-                        Tahapan Pipeline
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleStatCardClick('location')}
-                        className="px-2 py-1.5 text-xs font-semibold text-[#5A6A85] hover:text-[#3563E9] hover:bg-white/60 rounded-lg transition-all cursor-pointer"
-                        title="Lihat Peringkat Kota Lengkap"
-                    >
-                        Rincian
-                    </button>
+                    <div className="flex items-center gap-1 bg-[#EEF2F7] p-1 rounded-xl self-start sm:self-auto border border-[#E0E6ED]">
+                        <button
+                            type="button"
+                            onClick={() => setStatCardView('insights')}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                                statCardView === 'insights'
+                                    ? 'bg-white text-[#3563E9] shadow-xs'
+                                    : 'text-[#5A6A85] hover:text-[#2A3547]'
+                            }`}
+                        >
+                            Wawasan Wilayah &amp; Acara
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setStatCardView('pipeline')}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                                statCardView === 'pipeline'
+                                    ? 'bg-white text-[#3563E9] shadow-xs'
+                                    : 'text-[#5A6A85] hover:text-[#2A3547]'
+                            }`}
+                        >
+                            Tahapan Pipeline
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleStatCardClick('location')}
+                            className="px-2 py-1.5 text-xs font-semibold text-[#5A6A85] hover:text-[#3563E9] hover:bg-white/60 rounded-lg transition-all cursor-pointer"
+                            title="Lihat Peringkat Kota Lengkap"
+                        >
+                            Rincian
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1488,6 +1499,16 @@ export const Leads: React.FC<LeadsProps> = ({
                                         <span className="inline sm:hidden lg:inline">{hiddenColumns.has(LeadStatus.CONVERTED) ? 'Tampil' : 'Kolom'}</span>
                                     </button>
                                 )}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsBookingLinksModalOpen(true)}
+                                    className="button-secondary min-h-[35px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-none text-xs sm:text-sm font-semibold text-[#5D87FF] bg-[#5D87FF]/10 hover:bg-[#5D87FF]/20 border border-[#5D87FF]/30 cursor-pointer"
+                                    title="Tautan Booking & Paket per Wilayah"
+                                >
+                                    <LinkIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                                    <span className="hidden md:inline">Tautan Booking & Paket</span>
+                                    <span className="inline md:hidden">Paket</span>
+                                </button>
                                 <button onClick={() => setIsShareModalOpen(true)} className="button-secondary min-h-[35px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 inline-flex items-center justify-center gap-1.5 flex-1 sm:flex-none text-xs sm:text-sm font-semibold" title="Bagikan Form Calon Pengantin">
                                     <Share2Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                                     <span className="inline sm:hidden">Share</span>
@@ -1994,9 +2015,137 @@ export const Leads: React.FC<LeadsProps> = ({
                     )}
                 </div>
             </Modal>
+
+            {/* ── Booking & Paket per Wilayah Modal ── */}
+            {isBookingLinksModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in overflow-y-auto">
+                    <div className="bg-white rounded-2xl border border-[#EAEFF4] shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 sm:space-y-5 animate-scale-up my-auto max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#EAEFF4]">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-xl bg-[#5D87FF]/10 flex items-center justify-center text-[#5D87FF]">
+                                    <LinkIcon className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-bold text-sm sm:text-base text-[#2A3547]">
+                                    Tautan Booking & Paket per Wilayah
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsBookingLinksModalOpen(false)}
+                                className="p-1.5 rounded-lg text-[#5A6A85] hover:text-[#2A3547] hover:bg-[#F4F6F9] cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 overflow-y-auto flex-1 pr-1 text-sm text-[#5A6A85]">
+                            <p className="text-xs sm:text-sm text-[#5A6A85] leading-relaxed">
+                                Bagikan tautan booking publik khusus ke calon pengantin. Setiap tautan akan menyaring paket & add-on sesuai dengan wilayah yang dipilih.
+                            </p>
+
+                            <div className="space-y-3">
+                                {/* Semua Wilayah */}
+                                <div className="border border-[#EAEFF4] rounded-xl p-3.5 bg-[#F9FBFC] hover:border-[#5D87FF]/40 transition-all space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-bold text-xs sm:text-sm text-[#2A3547]">
+                                            Semua Wilayah (Katalog Lengkap)
+                                        </p>
+                                        <span className="text-[10px] font-semibold bg-[#5D87FF]/10 text-[#5D87FF] px-2 py-0.5 rounded-md">
+                                            Lengkap
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-[#5A6A85] font-mono break-all bg-white px-2 py-1 rounded border border-[#EAEFF4]">
+                                        {typeof window !== 'undefined' ? `${window.location.origin}/#/public-packages` : '/#/public-packages'}
+                                    </p>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <a
+                                            href="/#/public-packages"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#5D87FF] hover:bg-[#4570EA] text-white text-xs font-bold transition-colors cursor-pointer"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            <span>Buka Halaman</span>
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const url = `${window.location.origin}/#/public-packages`;
+                                                navigator.clipboard.writeText(url);
+                                                showNotification('Tautan berhasil disalin!');
+                                            }}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#EAEFF4] bg-white hover:bg-[#F4F6F9] text-[#2A3547] text-xs font-semibold transition-colors cursor-pointer"
+                                        >
+                                            <Copy className="w-3.5 h-3.5 text-[#5A6A85]" />
+                                            <span>Salin Tautan</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Per Region */}
+                                {REGIONS.map((r) => {
+                                    const regionUrl = typeof window !== 'undefined'
+                                        ? `${window.location.origin}/#/public-packages?region=${r.value}`
+                                        : `/#/public-packages?region=${r.value}`;
+                                    return (
+                                        <div
+                                            key={r.value}
+                                            className="border border-[#EAEFF4] rounded-xl p-3.5 bg-[#F9FBFC] hover:border-[#5D87FF]/40 transition-all space-y-2"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-bold text-xs sm:text-sm text-[#2A3547]">
+                                                    Khusus Wilayah: {r.label}
+                                                </p>
+                                                <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                                    Wilayah {r.label}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-[#5A6A85] font-mono break-all bg-white px-2 py-1 rounded border border-[#EAEFF4]">
+                                                {regionUrl}
+                                            </p>
+                                            <div className="flex items-center gap-2 pt-1">
+                                                <a
+                                                    href={`/#/public-packages?region=${r.value}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#5D87FF] hover:bg-[#4570EA] text-white text-xs font-bold transition-colors cursor-pointer"
+                                                >
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    <span>Buka Halaman</span>
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(regionUrl);
+                                                        showNotification(`Tautan ${r.label} berhasil disalin!`);
+                                                    }}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#EAEFF4] bg-white hover:bg-[#F4F6F9] text-[#2A3547] text-xs font-semibold transition-colors cursor-pointer"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5 text-[#5A6A85]" />
+                                                    <span>Salin Tautan</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#EAEFF4]">
+                            <button
+                                type="button"
+                                onClick={() => setIsBookingLinksModalOpen(false)}
+                                className="w-full py-2.5 px-4 rounded-xl bg-[#5D87FF] hover:bg-[#4570EA] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
-}
+};
 
 // --- Share Modal Component (Internal to Leads) ---
 interface ShareMessageModalProps {
@@ -2014,6 +2163,22 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
     const [message, setMessage] = useState('');
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [selectedGalleryId, setSelectedGalleryId] = useState<string>('');
+    const [packageSource, setPackageSource] = useState<'public-packages' | 'gallery'>('public-packages');
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    const [selectedRegion, setSelectedRegion] = useState<string>(() => {
+        const loc = (lead.location || '').toLowerCase().trim();
+        if (!loc) return '';
+        const found = REGIONS.find(r => r.value.toLowerCase() === loc || r.label.toLowerCase() === loc || loc.includes(r.value.toLowerCase()));
+        return found ? found.value : '';
+    });
+
+    const handleCopy = (url: string, key: string, label: string) => {
+        navigator.clipboard.writeText(url);
+        setCopiedKey(key);
+        showNotification(`Tautan ${label} berhasil disalin!`);
+        setTimeout(() => setCopiedKey(null), 2000);
+    };
 
     // Load galleries from Pricelist Upload (ViewType.GALLERY)
     useEffect(() => {
@@ -2044,8 +2209,24 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
 
     const selectedGallery = useMemo(() => galleries.find(g => g.id === selectedGalleryId) || null, [galleries, selectedGalleryId]);
 
-        // Tautan Pricelist langsung dari Pricelist Upload — pakai short ID (8 char) untuk identifikasi akurat
-        // tanpa UUID panjang, plus leadName untuk autofill nama di form
+    // Build URL for public packages per region with lead tracking params
+    const buildPublicPackageLinkForRegion = (regValue?: string) => {
+        const slug = toPublicNameSlug(lead.name);
+        const shortId = lead.id.slice(0, 8);
+        const params = new URLSearchParams();
+        if (regValue) {
+            params.set('region', regValue);
+        }
+        params.set('lid', shortId);
+        params.set('leadName', slug);
+        return `${publicPackagesUrl}?${params.toString()}`;
+    };
+
+    const selectedPublicPackageLink = useMemo(() => {
+        return buildPublicPackageLinkForRegion(selectedRegion);
+    }, [publicPackagesUrl, selectedRegion, lead.id, lead.name]);
+
+    // Tautan Pricelist langsung dari Pricelist Upload — pakai short ID (8 char) untuk identifikasi akurat
     const selectedGalleryLink = useMemo(() => {
         const slug = toPublicNameSlug(lead.name);
         const shortId = lead.id.slice(0, 8);
@@ -2055,6 +2236,8 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
         const routeId = getGalleryPublicRouteId(selectedGallery, galleries);
         return buildPublicShareUrl('gallery', routeId, { query: { lid: shortId, leadName: slug } });
     }, [selectedGallery, galleries, lead.id, lead.name, publicPackagesUrl]);
+
+    const activePackageLink = packageSource === 'public-packages' ? selectedPublicPackageLink : selectedGalleryLink;
 
     const bookingUrlWithName = useMemo(() => {
         const shortId = lead.id.slice(0, 8);
@@ -2068,7 +2251,7 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
             template = raw
                 .replace('{leadName}', lead.name)
                 .replace('{companyName}', userProfile.companyName)
-                .replace('{packageLink}', selectedGalleryLink);
+                .replace('{packageLink}', activePackageLink);
         } else {
             const raw = userProfile.bookingFormTemplate || 'Halo {leadName},\n\nTerima kasih atas ketertarikan Anda menggunakan layanan {companyName}.\n\nBerikut tautan formulir booking resmi kami untuk melengkapi data Acara Pernikahan Anda:\n\n{bookingFormLink}\n\nMohon lengkapi formulir tersebut agar jadwal Anda dapat segera kami kunci.\n\nSalam,\n{companyName}';
             template = raw
@@ -2077,7 +2260,49 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
                 .replace('{bookingFormLink}', bookingUrlWithName);
         }
         setMessage(template);
-    }, [type, lead.name, userProfile.packageShareTemplate, userProfile.bookingFormTemplate, userProfile.companyName, selectedGalleryLink, bookingUrlWithName]);
+    }, [type, lead.name, userProfile.packageShareTemplate, userProfile.bookingFormTemplate, userProfile.companyName, activePackageLink, bookingUrlWithName]);
+
+    const handleSwitchSource = (newSource: 'public-packages' | 'gallery') => {
+        const oldLink = activePackageLink;
+        const newLink = newSource === 'public-packages' ? selectedPublicPackageLink : selectedGalleryLink;
+        setPackageSource(newSource);
+        if (oldLink && newLink && oldLink !== newLink) {
+            if (message.includes(oldLink)) {
+                setMessage(prev => prev.replace(oldLink, newLink));
+            } else if (message.includes('{packageLink}')) {
+                setMessage(prev => prev.replace('{packageLink}', newLink));
+            }
+        }
+    };
+
+    const handleSelectRegion = (regValue: string) => {
+        const oldLink = selectedPublicPackageLink;
+        setSelectedRegion(regValue);
+        const newLink = buildPublicPackageLinkForRegion(regValue);
+        if (packageSource === 'public-packages') {
+            if (oldLink && message.includes(oldLink)) {
+                setMessage(prev => prev.replace(oldLink, newLink));
+            } else if (message.includes('{packageLink}')) {
+                setMessage(prev => prev.replace('{packageLink}', newLink));
+            }
+        }
+    };
+
+    const handleApplyLinkToMessage = (linkToApply: string, label: string) => {
+        if (message.includes(linkToApply)) {
+            showNotification(`Tautan ${label} sudah ada di dalam pesan.`);
+            return;
+        }
+        const currentLinkInMsg = activePackageLink;
+        if (currentLinkInMsg && message.includes(currentLinkInMsg)) {
+            setMessage(prev => prev.replace(currentLinkInMsg, linkToApply));
+        } else if (message.includes('{packageLink}')) {
+            setMessage(prev => prev.replace('{packageLink}', linkToApply));
+        } else {
+            setMessage(prev => (prev ? `${prev}\n\nLink Paket: ${linkToApply}` : linkToApply));
+        }
+        showNotification(`Tautan ${label} berhasil dimasukkan ke pesan.`);
+    };
 
     const handleGalleryChange = (newGalleryId: string) => {
         const previousLink = selectedGalleryLink;
@@ -2098,18 +2323,12 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
 
     const handleInsertPricelistLink = () => {
         if (!selectedGalleryLink) return;
-        if (message.includes(selectedGalleryLink)) {
-            showNotification('Link Pricelist sudah ada di dalam pesan.');
-            return;
-        }
-        setMessage(prev => (prev ? `${prev}\n\nLink Pricelist: ${selectedGalleryLink}` : selectedGalleryLink));
-        showNotification('Link Pricelist berhasil dimasukkan ke pesan.');
+        handleApplyLinkToMessage(selectedGalleryLink, 'Pricelist');
     };
 
     const handleCopyPricelistLink = () => {
         if (selectedGalleryLink) {
-            navigator.clipboard.writeText(selectedGalleryLink);
-            showNotification('Link Pricelist berhasil disalin ke clipboard.');
+            handleCopy(selectedGalleryLink, 'pricelist', 'Pricelist');
         }
     };
 
@@ -2126,8 +2345,8 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
                 rawTemplate = message
                     .replace(new RegExp(escapeRegExp(lead.name), 'g'), '{leadName}')
                     .replace(new RegExp(escapeRegExp(userProfile.companyName), 'g'), '{companyName}');
-                if (selectedGalleryLink) {
-                    rawTemplate = rawTemplate.replace(new RegExp(escapeRegExp(selectedGalleryLink), 'g'), '{packageLink}');
+                if (activePackageLink) {
+                    rawTemplate = rawTemplate.replace(new RegExp(escapeRegExp(activePackageLink), 'g'), '{packageLink}');
                 }
                 setProfile(prev => ({ ...prev, packageShareTemplate: rawTemplate }));
                 await upsertProfile({ id: userProfile.id, packageShareTemplate: rawTemplate });
@@ -2151,67 +2370,185 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
     return (
         <Modal isOpen={true} onClose={onClose} title={title} size="lg">
             <div className="space-y-4">
-                {/* Bagikan Package mengambil dari Pricelist Upload agar alur konversi & booking akurat */}
                 {type === 'package' && (
-                    <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/80 space-y-2.5">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                            <span className="text-xs sm:text-sm font-bold text-[#1E3A8A] inline-flex items-center gap-1.5">
-                                <LinkIcon className="w-4 h-4 text-[#3563E9]" />
-                                Pricelist dari Menu Pricelist Upload
-                            </span>
-                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                                Tersambung ke Lead ID
-                            </span>
+                    <div className="space-y-3">
+                        {/* Selector Tab: Tautan Paket Publik per Wilayah VS Pricelist Upload */}
+                        <div className="flex items-center gap-1.5 p-1 bg-[#F4F6F9] rounded-xl border border-[#EAEFF4]">
+                            <button
+                                type="button"
+                                onClick={() => handleSwitchSource('public-packages')}
+                                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                    packageSource === 'public-packages'
+                                        ? 'bg-white text-[#5D87FF] shadow-xs'
+                                        : 'text-[#5A6A85] hover:text-[#2A3547]'
+                                }`}
+                            >
+                                <PackageIconLucide className="w-3.5 h-3.5" />
+                                <span>Katalog Paket Publik (per Wilayah)</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSwitchSource('gallery')}
+                                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                    packageSource === 'gallery'
+                                        ? 'bg-white text-[#5D87FF] shadow-xs'
+                                        : 'text-[#5A6A85] hover:text-[#2A3547]'
+                                }`}
+                            >
+                                <LinkIcon className="w-3.5 h-3.5" />
+                                <span>Pricelist Upload</span>
+                            </button>
                         </div>
 
-                        {galleries.length > 0 ? (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
-                                    <select
-                                        value={selectedGalleryId}
-                                        onChange={(e) => handleGalleryChange(e.target.value)}
-                                        className="input-field sm:col-span-2 text-xs sm:text-sm bg-white"
-                                    >
-                                        {galleries.map(g => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.title} {g.region ? `• ${g.region}` : ''}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="flex gap-1.5 w-full">
+                        {/* Mode 1: Katalog Paket Publik per Wilayah */}
+                        {packageSource === 'public-packages' && (
+                            <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/80 space-y-3">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <span className="text-xs sm:text-sm font-bold text-[#1E3A8A] inline-flex items-center gap-1.5">
+                                        <PackageIconLucide className="w-4 h-4 text-[#3563E9]" />
+                                        Tautan Paket Publik (/#/public-packages)
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                        Tersambung ke Lead ID
+                                    </span>
+                                </div>
+
+                                {/* Region Selector Tabs */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[11px] font-bold text-[#5A6A85] uppercase tracking-wider">
+                                            Pilih Wilayah:
+                                        </label>
+                                        <a
+                                            href={selectedPublicPackageLink}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-[11px] font-semibold text-[#5D87FF] hover:underline inline-flex items-center gap-1"
+                                        >
+                                            <span>Buka Halaman</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                                         <button
                                             type="button"
-                                            onClick={handleCopyPricelistLink}
-                                            className="button-secondary flex-1 text-xs py-2 cursor-pointer"
-                                            title="Salin tautan Pricelist"
+                                            onClick={() => handleSelectRegion('')}
+                                            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center truncate ${
+                                                selectedRegion === ''
+                                                    ? 'bg-[#5D87FF] text-white shadow-xs'
+                                                    : 'bg-white text-[#5A6A85] hover:bg-slate-100 border border-[#EAEFF4]'
+                                            }`}
                                         >
-                                            Salin Link
+                                            Semua Wilayah
+                                        </button>
+                                        {REGIONS.map((r) => (
+                                            <button
+                                                key={r.value}
+                                                type="button"
+                                                onClick={() => handleSelectRegion(r.value)}
+                                                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer text-center truncate ${
+                                                    selectedRegion === r.value
+                                                        ? 'bg-[#5D87FF] text-white shadow-xs'
+                                                        : 'bg-white text-[#5A6A85] hover:bg-slate-100 border border-[#EAEFF4]'
+                                                }`}
+                                            >
+                                                {r.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Active URL box & Quick Actions */}
+                                <div className="space-y-2 bg-white p-2.5 rounded-xl border border-blue-100">
+                                    <p className="text-[11px] text-[#475569] font-mono break-all bg-[#F9FBFC] p-2 rounded-lg border border-[#EAEFF4] select-all">
+                                        {selectedPublicPackageLink}
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCopy(selectedPublicPackageLink, 'active-pkg', selectedRegion ? `Wilayah ${selectedRegion}` : 'Semua Wilayah')}
+                                            className={`button-secondary flex-1 text-xs py-1.5 flex items-center justify-center gap-1 cursor-pointer ${
+                                                copiedKey === 'active-pkg' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''
+                                            }`}
+                                        >
+                                            {copiedKey === 'active-pkg' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                            <span>{copiedKey === 'active-pkg' ? 'Tersalin' : 'Salin Link'}</span>
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={handleInsertPricelistLink}
-                                            className="button-primary flex-1 text-xs py-2 cursor-pointer"
-                                            title="Masukkan tautan ke dalam pesan"
+                                            onClick={() => handleApplyLinkToMessage(selectedPublicPackageLink, selectedRegion ? `Wilayah ${selectedRegion}` : 'Semua Wilayah')}
+                                            className="button-primary flex-1 text-xs py-1.5 cursor-pointer"
                                         >
-                                            Terapkan
+                                            Terapkan ke Pesan
                                         </button>
                                     </div>
                                 </div>
-                                {selectedGalleryLink && (
-                                    <p className="text-[11px] text-[#475569] font-mono break-all bg-white p-2 rounded-lg border border-blue-100 select-all">
-                                        {selectedGalleryLink}
-                                    </p>
+                            </div>
+                        )}
+
+                        {/* Mode 2: Pricelist Upload */}
+                        {packageSource === 'gallery' && (
+                            <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200/80 space-y-2.5">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <span className="text-xs sm:text-sm font-bold text-[#1E3A8A] inline-flex items-center gap-1.5">
+                                        <LinkIcon className="w-4 h-4 text-[#3563E9]" />
+                                        Pricelist dari Menu Pricelist Upload
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                                        Tersambung ke Lead ID
+                                    </span>
+                                </div>
+
+                                {galleries.length > 0 ? (
+                                    <>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
+                                            <select
+                                                value={selectedGalleryId}
+                                                onChange={(e) => handleGalleryChange(e.target.value)}
+                                                className="input-field sm:col-span-2 text-xs sm:text-sm bg-white"
+                                            >
+                                                {galleries.map(g => (
+                                                    <option key={g.id} value={g.id}>
+                                                        {g.title} {g.region ? `• ${g.region}` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="flex gap-1.5 w-full">
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCopyPricelistLink}
+                                                    className="button-secondary flex-1 text-xs py-2 cursor-pointer"
+                                                    title="Salin tautan Pricelist"
+                                                >
+                                                    Salin Link
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleInsertPricelistLink}
+                                                    className="button-primary flex-1 text-xs py-2 cursor-pointer"
+                                                    title="Masukkan tautan ke dalam pesan"
+                                                >
+                                                    Terapkan
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {selectedGalleryLink && (
+                                            <p className="text-[11px] text-[#475569] font-mono break-all bg-white p-2 rounded-lg border border-blue-100 select-all">
+                                                {selectedGalleryLink}
+                                            </p>
+                                        )}
+                                        <p className="text-[11px] text-[#334155] leading-relaxed">
+                                            💡 Tautan di atas diambil dari menu <strong>Pricelist Upload</strong> dan menyertakan ID calon pengantin (<strong>{lead.name}</strong>). Saat calon pengantin membuka & menekan tombol booking di Pricelist ini, status calon pengantin akan otomatis terkonversi akurat.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                        <p className="font-semibold">Belum ada Pricelist di menu Pricelist Upload (/#/Pricelist%20Upload).</p>
+                                        <p className="mt-0.5 text-[11px] text-amber-700">
+                                            Silakan gunakan tab <strong>Katalog Paket Publik</strong> di atas untuk membagikan tautan paket per wilayah (Vendor, Jabodetabek, Banten).
+                                        </p>
+                                    </div>
                                 )}
-                                <p className="text-[11px] text-[#334155] leading-relaxed">
-                                    💡 Tautan di atas diambil dari menu <strong>Pricelist Upload</strong> dan menyertakan ID calon pengantin (<strong>{lead.name}</strong>). Saat calon pengantin membuka & menekan tombol booking di Pricelist ini, status calon pengantin akan otomatis terkonversi akurat.
-                                </p>
-                            </>
-                        ) : (
-                            <div className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                                <p className="font-semibold">Belum ada Pricelist di menu Pricelist Upload (/#/Pricelist%20Upload).</p>
-                                <p className="mt-0.5 text-[11px] text-amber-700">
-                                    Buat Pricelist baru di menu <strong>Pricelist Upload</strong> untuk menampilkan paket per wilayah. Saat ini tautan diarahkan ke formulir paket default.
-                                </p>
                             </div>
                         )}
                     </div>

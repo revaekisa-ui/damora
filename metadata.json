@@ -1,6 +1,6 @@
 {
-  "name": "Remix vena20209",
-  "description": "Imported from GitHub: ekivena9-code/vena20209",
+  "name": "Weddfin",
+  "description": "weddfin — manajemen pengantin, keuangan, dan penjadwalan tim untuk bisnis wedding photography profesional.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
