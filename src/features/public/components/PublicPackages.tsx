@@ -167,7 +167,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
     }, [addOns, selectedRegion]);
 
     const [bookingModal, setBookingModal] = useState<{ isOpen: boolean; pkg: Package | null }>({ isOpen: false, pkg: null });
-    const [optionalPackages, setOptionalPackages] = useState<{ id: string; name: string; price: number }[]>([]);
+    const [optionalPackages, setOptionalPackages] = useState<{ id: string; name: string; price: number; selectedDuration?: string }[]>([]);
     const [formData, setFormData] = useState(initialForm);
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -366,8 +366,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
             .reduce((sum, addon) => sum + addon.price, 0);
 
         const optionalPackagesPrice = optionalPackages.reduce((sum, opt) => {
-            const pkg = packages.find(p => p.id === opt.packageId);
-            return sum + (pkg?.price || 0);
+            return sum + (opt.price || 0);
         }, 0);
 
         const transportFee = Number(formData.transportCost) || 0;
@@ -681,22 +680,22 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                     }
                 }
             `}</style>
-                <div className="w-full max-w-7xl mx-auto py-12 px-4">
-                    <header className="text-center mb-12 md:mb-16 widget-animate">
+                <div className="w-full max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+                    <header className="text-center mb-16 widget-animate">
                         {/* Hero Image */}
-                        <div className="w-full h-48 sm:h-64 md:h-80 mb-8 rounded-3xl overflow-hidden shadow-xl border border-public-border">
+                        <div className="w-full h-56 sm:h-72 md:h-96 mb-8 rounded-3xl overflow-hidden shadow-2xl border border-brand-border/60">
                             <img src={userProfile.publicPageConfig?.backgroundImages?.portalPengantin || "/assets/images/backgrounds/portal-pengantin-3.jpg"} alt="Hero" className="w-full h-full object-cover" />
                         </div>
                         {userProfile.logoBase64 ? (
                             <img src={userProfile.logoBase64} alt="Company Logo" className="h-16 md:h-20 mx-auto mb-4 object-contain" />
                         ) : (
-                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gradient">{userProfile.companyName}</h1>
+                            <h1 className="text-3xl md:text-5xl font-extrabold text-gradient">{userProfile.companyName}</h1>
                         )}
                         {publicPageConfig?.title && (
-                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-brand-text-light mt-4">{publicPageConfig.title}</h2>
+                            <h2 className="text-2xl md:text-4xl font-bold text-brand-text-light mt-4">{publicPageConfig.title}</h2>
                         )}
                         {publicPageConfig?.introduction && (
-                            <p className="text-base md:text-lg text-brand-text-secondary mt-4 max-w-3xl mx-auto">{publicPageConfig.introduction}</p>
+                            <p className="text-base md:text-lg text-brand-text-secondary mt-4 max-w-3xl mx-auto leading-relaxed">{publicPageConfig.introduction}</p>
                         )}
                     </header>
 
@@ -864,20 +863,20 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                     </section>
 
                     {/* Region Selector Bar */}
-                    <div className="mb-8 flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-brand-surface rounded-2xl border border-brand-border">
-                        <div className="flex items-center gap-2 text-sm text-brand-text-secondary">
-                            <MapPin className="w-4 h-4 text-brand-accent shrink-0" />
+                    <div className="mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-brand-surface rounded-2xl border border-brand-border shadow-xs">
+                        <div className="flex items-center gap-3 text-sm text-brand-text-secondary font-medium">
+                            <MapPin className="w-5 h-5 text-brand-accent shrink-0" />
                             <span>
                                 Wilayah Katalog: <strong className="text-brand-text-light">{selectedRegion ? (REGIONS.find(r => r.value.toLowerCase() === selectedRegion.toLowerCase())?.label || selectedRegion.toUpperCase()) : 'Semua Wilayah'}</strong>
                             </span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap w-full sm:w-auto pb-1">
                             <button
                                 type="button"
                                 onClick={() => setSelectedRegion(null)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                                     !selectedRegion
-                                        ? 'bg-brand-accent text-white shadow-xs'
+                                        ? 'bg-brand-accent text-white shadow-sm'
                                         : 'bg-brand-bg text-brand-text-secondary hover:text-brand-text-light border border-brand-border'
                                 }`}
                             >
@@ -888,9 +887,9 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                     key={r.value}
                                     type="button"
                                     onClick={() => setSelectedRegion(r.value.toLowerCase())}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer shrink-0 ${
                                         selectedRegion?.toLowerCase() === r.value.toLowerCase()
-                                            ? 'bg-brand-accent text-white shadow-xs'
+                                            ? 'bg-brand-accent text-white shadow-sm'
                                             : 'bg-brand-bg text-brand-text-secondary hover:text-brand-text-light border border-brand-border'
                                     }`}
                                 >
@@ -900,10 +899,10 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                         </div>
                     </div>
 
-                    <div className="grid lg:grid-cols-3 gap-6 md:gap-8 items-start">
-                        <section className="lg:col-span-2 space-y-12 md:space-y-16">
+                    <div className="grid lg:grid-cols-3 gap-8 md:gap-10 items-start">
+                        <section className="lg:col-span-2 space-y-16">
                             {Object.keys(packagesByCategory).length === 0 && (
-                                <div className="text-center py-16 bg-brand-surface rounded-2xl border border-brand-border p-6">
+                                <div className="text-center py-20 bg-brand-surface rounded-3xl border border-brand-border p-8 shadow-sm">
                                     <MapPin className="w-12 h-12 mx-auto text-brand-text-secondary mb-3 opacity-40" />
                                     <h4 className="text-lg font-bold text-brand-text-light">Belum Ada Paket untuk Wilayah Ini</h4>
                                     <p className="text-sm text-brand-text-secondary mt-1 max-w-md mx-auto">
@@ -912,101 +911,80 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                     <button
                                         type="button"
                                         onClick={() => setSelectedRegion(null)}
-                                        className="mt-4 px-4 py-2 rounded-xl bg-brand-accent text-white text-xs font-bold cursor-pointer"
+                                        className="mt-6 px-5 py-2.5 rounded-xl bg-brand-accent text-white text-xs font-bold shadow-sm cursor-pointer hover:bg-brand-accent-hover transition-colors"
                                     >
                                         Tampilkan Semua Wilayah
                                     </button>
                                 </div>
                             )}
                             {Object.entries(packagesByCategory as Record<string, Package[]>).map(([category, pkgs]) => (
-                                <div key={category}>
-                                    <div className="mb-6 md:mb-8">
-                                        <h3 className="text-2xl md:text-3xl font-bold text-brand-text-light">{category}</h3>
-                                        <div className="text-brand-text-secondary mt-2 max-w-2xl">
+                                <div key={category} className="space-y-8">
+                                    <div>
+                                        <h3 className="text-2xl md:text-3xl font-extrabold text-brand-text-light">{category}</h3>
+                                        <p className="text-brand-text-secondary mt-2 max-w-2xl text-sm md:text-base leading-relaxed">
                                             {categoryDescriptions[category] || `Berbagai pilihan Package untuk kebutuhan ${category.toLowerCase()} Anda.`}
-                                        </div>
+                                        </p>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                                         {pkgs.map((pkg, index) => (
-                                            <div key={pkg.id} className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl widget-animate" style={{ animationDelay: `${200 + index * 100}ms` }}>
+                                            <div key={pkg.id} className="relative bg-brand-surface rounded-3xl shadow-lg border border-brand-border flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl widget-animate" style={{ animationDelay: `${200 + index * 100}ms` }}>
                                                 {pkg.id === mostPopularPackageId && (
-                                                    <div className="absolute -top-3 right-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">Paling Populer</div>
+                                                    <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md z-10">Paling Populer</div>
                                                 )}
                                                 {pkg.coverImage ? (
-                                                    <div className="package-card-cover w-full h-36 sm:h-48 overflow-hidden rounded-t-2xl">
+                                                    <div className="package-card-cover w-full h-48 sm:h-56 overflow-hidden bg-brand-bg">
                                                         <img
                                                             src={pkg.coverImage}
                                                             alt={pkg.name}
                                                             loading="lazy"
-                                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                                                             onError={(e) => {
-                                                                // If image fails to load, show the camera icon
                                                                 const target = e.target as HTMLImageElement;
                                                                 target.style.display = 'none';
-                                                                const parent = target.parentElement;
-                                                                if (parent) {
-                                                                    parent.innerHTML = `
-                                                                    <div class="w-full h-48 bg-brand-bg flex items-center justify-center">
-                                                                        <svg class="w-12 h-12 text-brand-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                                        </svg>
-                                                                    </div>`;
-                                                                }
                                                             }}
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className="package-card-cover w-full h-36 sm:h-48 bg-brand-bg flex items-center justify-center rounded-t-2xl overflow-hidden">
-                                                        <svg className="w-12 h-12 text-brand-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                        </svg>
+                                                    <div className="package-card-cover w-full h-48 sm:h-56 bg-brand-bg/60 flex items-center justify-center">
+                                                        <CameraIcon className="w-12 h-12 text-brand-text-secondary/50" />
                                                     </div>
                                                 )}
-                                                <div className="p-3 md:p-4 sm:p-6 flex flex-col flex-grow">
-                                                    <h4 className="package-card-title text-base md:text-lg lg:text-xl font-bold text-gradient">{pkg.name}</h4>
+                                                <div className="p-6 md:p-8 flex flex-col flex-grow space-y-4">
+                                                    <h4 className="package-card-title text-lg md:text-xl font-bold text-brand-text-light">{pkg.name}</h4>
                                                     {pkg.durationOptions?.length ? (
-                                                        <div className="my-2 md:my-3">
-                                                            <p className="package-duration-heading text-[10px] sm:text-xs font-semibold text-brand-text-secondary mb-1.5">Harga berdasarkan durasi</p>
-                                                            <div className="grid grid-cols-2 gap-1.5">
+                                                        <div className="space-y-2">
+                                                            <p className="package-duration-heading text-xs font-semibold text-brand-text-secondary">Pilihan Durasi</p>
+                                                            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
                                                                 {pkg.durationOptions.map(option => (
-                                                                    <div key={option.label} className="package-duration-option flex items-center justify-between gap-2 rounded-lg border border-brand-border bg-brand-bg/60 px-2 py-1.5 text-[10px] sm:text-xs">
-                                                                        <span className="package-duration-label font-medium text-brand-text-secondary">{option.label}{option.default ? ' · Default' : ''}</span>
+                                                                    <div key={option.label} className="package-duration-option flex items-center justify-between gap-3 rounded-xl border border-brand-border bg-brand-bg/50 px-3 py-2 text-xs shrink-0">
+                                                                        <span className="package-duration-label font-medium text-brand-text-secondary truncate">{option.label}{option.default ? ' · Default' : ''}</span>
                                                                         <span className="package-duration-price shrink-0 font-bold text-brand-text-light">{formatCurrency(option.price)}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xl md:text-2xl lg:text-3xl font-bold text-brand-text-light my-2 md:my-3">{formatCurrency(pkg.price)}</p>
+                                                        <p className="text-2xl md:text-3xl font-extrabold text-brand-text-light">{formatCurrency(pkg.price)}</p>
                                                     )}
-                                                    <div className="package-desc-text space-y-1 text-xs md:text-sm text-brand-text-secondary flex-grow">
-                                                        {/* Team lines separated */}
+                                                    <div className="package-desc-text space-y-2 text-xs md:text-sm text-brand-text-secondary flex-grow pt-2">
                                                         {pkg.photographers && (
-                                                            <p className="leading-snug">{pkg.photographers}</p>
+                                                            <div className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-brand-accent shrink-0" /><span>{pkg.photographers}</span></div>
                                                         )}
                                                         {pkg.videographers && (
-                                                            <p className="leading-snug">{pkg.videographers}</p>
+                                                            <div className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-brand-accent shrink-0" /><span>{pkg.videographers}</span></div>
                                                         )}
                                                         {pkg.digitalItems.length > 0 && pkg.digitalItems.map((item, i) => (
-                                                            <p key={`d-${i}`} className="leading-snug">{item}</p>
+                                                            <div key={`d-${i}`} className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-brand-accent shrink-0" /><span>{item}</span></div>
                                                         ))}
                                                         {pkg.physicalItems.length > 0 && pkg.physicalItems.map((item, i) => (
-                                                            <p key={`p-${i}`} className="leading-snug">{item.name}</p>
+                                                            <div key={`p-${i}`} className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-brand-accent shrink-0" /><span>{item.name}</span></div>
                                                         ))}
                                                     </div>
-                                                    <div className="mt-6 pt-4 border-t border-brand-border">
+                                                    <div className="pt-4 border-t border-brand-border mt-auto">
                                                         <button
                                                             type="button"
                                                             onClick={() => handleOpenBookingModal(pkg)}
                                                             className="package-booking-button button-primary w-full text-center"
-                                                            style={{
-                                                                fontSize: '1.25rem',
-                                                                fontWeight: 800,
-                                                                padding: '0.875rem 1.25rem',
-                                                                minHeight: '54px',
-                                                            }}
                                                         >
                                                             Booking Package Ini
                                                         </button>
@@ -1172,14 +1150,14 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                     title={`Download Pricelist ${targetPricelist?.title || ''}`}
                                 >
                                     <Download className="w-5 h-5" />
-                                    <span className="font-semibold text-sm">Download Pricelist</span>
+                                    <span className="font-semibold text-sm">{targetPricelist?.buttonLabel || 'Download Pricelist'}</span>
                                 </button>
                             </div>
                         );
                     })()}
                 </div>
 
-                <Modal isOpen={bookingModal.isOpen} onClose={handleCloseBookingModal} title={`Booking: ${bookingModal.pkg?.name}`} size="4xl">
+                <Modal isOpen={bookingModal.isOpen} onClose={handleCloseBookingModal} title={`Booking: ${bookingModal.pkg?.name}`} size="7xl">
                     {isSubmitted ? (
                         <div className="text-center p-8">
                             <h3 className="text-2xl font-bold text-gradient">Terima Kasih!</h3>
@@ -1195,10 +1173,18 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                             <button onClick={handleCloseBookingModal} className="mt-4 button-secondary w-full max-w-xs mx-auto">Tutup</button>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-4 form-compact form-compact--ios-scale">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-2">
+                    <form onSubmit={handleSubmit} className="space-y-8 p-2 sm:p-4 form-compact form-compact--ios-scale">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                            {/* Column 1: Client Info & Main Package */}
+                            <div className="space-y-6 bg-brand-surface/60 p-6 rounded-3xl border border-brand-border/80 shadow-sm">
+                                <div className="space-y-1">
+                                    <h4 className="text-base font-bold text-brand-text-light flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-brand-accent"></span>
+                                        Informasi Anda & Acara Pernikahan
+                                    </h4>
+                                    <p className="text-xs text-brand-text-secondary">Lengkapi data diri dan detail acara Anda.</p>
+                                </div>
                                 <div className="space-y-4">
-                                    <h4 className="text-base font-semibold text-gradient border-b border-public-border pb-2">Informasi Anda & Acara Pernikahan</h4>
                                     <div className="input-group"><input type="text" id="clientName" name="clientName" value={formData.clientName} onChange={handleFormChange} className="input-field" placeholder=" " required /><label htmlFor="clientName" className="input-label">Nama Pengantin</label></div>
                                     <div className="input-group"><input type="email" id="email" name="email" value={formData.email} onChange={handleFormChange} className="input-field" placeholder=" " /><label htmlFor="email" className="input-label">Email (Opsional)</label></div>
                                     <div className="input-group"><input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleFormChange} className="input-field" placeholder=" " required /><label htmlFor="phone" className="input-label">Nomor WhatsApp</label></div>
@@ -1206,163 +1192,216 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                     <div className="input-group">
                                         <input type="date" id="date" name="date" value={formData.date} onChange={handleFormChange} className="input-field" placeholder=" " />
                                         <label htmlFor="date" className="input-label">Tanggal Acara Pernikahan (Opsional)</label>
-                                        {!formData.date && <p className="text-[10px] text-brand-text-secondary">Kosongkan jika tanggal acara belum ditentukan.</p>}
+                                        {!formData.date && <p className="text-[10px] text-brand-text-secondary mt-1">Kosongkan jika tanggal acara belum ditentukan.</p>}
                                         {formData.date && (
-                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, date: '' }))} className="mt-1 text-xs font-semibold text-[#5D87FF] hover:underline">
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, date: '' }))} className="mt-1 text-xs font-semibold text-brand-accent hover:underline">
                                                 Kosongkan tanggal
                                             </button>
                                         )}
                                     </div>
                                     <div className="input-group"><input type="text" id="location" name="location" value={formData.location} onChange={handleFormChange} className="input-field" placeholder=" " /><label htmlFor="location" className="input-label">Alamat Acara Pernikahan</label></div>
-                                    <h4 className="text-base font-semibold text-gradient border-b border-public-border pb-2 pt-4">Package & Pembayaran</h4>
-                                    <div className="p-4 bg-public-bg rounded-lg space-y-3">
-                                        {bookingModal.pkg && (() => {
-                                            const pkg = bookingModal.pkg;
-                                            const hasDurationOpts = pkg.durationOptions && pkg.durationOptions.length > 0;
-                                            const selectedOpt = hasDurationOpts
-                                                ? (pkg.durationOptions!.find(o => o.label === formData.durationSelection) || pkg.durationOptions!.find(o => o.default) || pkg.durationOptions![0])
-                                                : null;
-                                            const photographers = selectedOpt?.photographers || pkg.photographers;
-                                            const videographers = selectedOpt?.videographers || pkg.videographers;
-                                            const processingTime = selectedOpt?.processingTime || pkg.processingTime;
-                                            const digitalItems = (selectedOpt?.digitalItems?.filter(Boolean).length ? selectedOpt.digitalItems : pkg.digitalItems)?.filter(Boolean) || [];
-                                            const physicalItems = (selectedOpt?.physicalItems?.filter((p: { name?: string }) => p?.name).length ? selectedOpt.physicalItems : pkg.physicalItems)?.filter((p: { name?: string }) => p?.name) || [];
-                                            const hasAnyDetail = photographers || videographers || processingTime || digitalItems.length > 0 || physicalItems.length > 0;
-                                            return (
-                                                <div className="mb-3 p-3 border border-public-border bg-public-surface rounded-lg space-y-2">
-                                                    <p className="text-xs font-semibold text-public-accent">
-                                                        Detail Package: {pkg.name}
-                                                        {selectedOpt && hasDurationOpts && <span className="font-normal text-public-text-secondary"> — {selectedOpt.label}</span>}
-                                                    </p>
-                                                    {hasAnyDetail ? (
-                                                        <ul className="text-xs text-public-text-secondary space-y-1">
-                                                            {photographers && <li>• {photographers}</li>}
-                                                            {videographers && <li>• {videographers}</li>}
-                                                            {processingTime && <li>• Waktu pengerjaan: {processingTime}</li>}
-                                                            {digitalItems.map((item: string, i: number) => <li key={i}>• {item}</li>)}
-                                                            {physicalItems.map((item: { name: string }, i: number) => <li key={i}>• {item.name}</li>)}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="text-xs text-public-text-secondary italic">Pilih opsi Jam Kerja untuk melihat detail.</p>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-public-text-secondary">Package: {bookingModal.pkg?.name}</span>
-                                            <span className="text-public-text-primary font-semibold">
-                                                {(() => {
-                                                    if (!bookingModal.pkg) return formatCurrency(0);
-                                                    const opts = bookingModal.pkg.durationOptions;
-                                                    if (!opts || opts.length === 0) return formatCurrency(bookingModal.pkg.price);
-                                                    const selected = opts.find(o => o.label === formData.durationSelection) || opts.find(o => o.default) || opts[0];
-                                                    return formatCurrency(selected?.price ?? bookingModal.pkg.price);
-                                                })()}
-                                            </span>
-                                        </div>
-                                        {bookingModal.pkg?.durationOptions && bookingModal.pkg.durationOptions.length > 0 && (
-                                            <div className="mt-2">
-                                                <label className="text-xs font-semibold text-public-accent">Jam Kerja</label>
-                                                <p className="text-xs text-public-text-secondary mt-1 mb-2">Pilih durasi. Detail Package akan berubah sesuai pilihan.</p>
-                                                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    {bookingModal.pkg.durationOptions.map(opt => {
-                                                        const isSelected = formData.durationSelection === opt.label;
-                                                        return (
-                                                            <label key={opt.label} className={`flex min-h-[76px] cursor-pointer flex-col justify-between gap-2 rounded-xl border-2 p-3 transition-colors ${isSelected ? 'border-public-accent bg-public-accent/5 ring-2 ring-public-accent/15' : 'border-public-border bg-public-surface hover:border-public-accent/50'}`}>
-                                                                <span className="flex items-center justify-between gap-2 text-xs font-semibold text-public-text-primary">
-                                                                    {opt.label}
-                                                                    {opt.default && <span className="rounded-full bg-public-accent/10 px-2 py-0.5 text-[9px] font-bold uppercase text-public-accent">Default</span>}
-                                                                </span>
-                                                                <span className="flex items-center justify-between gap-2">
-                                                                    <span className="text-[10px] font-medium text-public-text-secondary">Harga durasi</span>
-                                                                    <span className="text-base font-extrabold text-public-accent">{formatCurrency(opt.price)}</span>
-                                                                    <input type="radio" name="durationSelection" value={opt.label} checked={isSelected} onChange={handleFormChange} className="h-4 w-4 accent-[var(--public-accent)]" />
-                                                                </span>
-                                                            </label>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {formData.selectedAddOnIds.length > 0 && visibleAddOns.filter(a => formData.selectedAddOnIds.includes(a.id)).map(a => (
-                                            <div key={a.id} className="flex justify-between items-center text-sm"><span className="text-public-text-secondary pl-4">Add-on: {a.name}</span><span className="text-public-text-primary font-semibold">{formatCurrency(a.price)}</span></div>
-                                        ))}
-                                        {Number(formData.transportCost) > 0 && <div className="flex justify-between items-center text-sm"><span className="text-public-text-secondary">Fee Transport</span><span className="text-public-text-primary font-semibold">{formatCurrency(Number(formData.transportCost) || 0)}</span></div>}
-                                        {discountAmount > 0 && <div className="flex justify-between items-center text-sm"><span className="text-public-text-secondary">Diskon ({discountText})</span><span className="text-green-500 font-semibold">-{formatCurrency(discountAmount)}</span></div>}
-                                        <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-public-border"><span className="text-public-text-secondary">Total Biaya</span><span className="text-public-text-primary">{formatCurrency(totalProject)}</span></div>
-                                    </div>
                                 </div>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between pt-4 border-t border-public-border">
-                                            <h4 className="text-sm font-semibold text-public-accent">Paket Tambahan (Opsional)</h4>
+
+                                <div className="pt-4 border-t border-brand-border space-y-4">
+                                    <div className="space-y-1">
+                                        <h4 className="text-base font-bold text-brand-text-light flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-brand-accent"></span>
+                                            Pilihan Package & Durasi
+                                        </h4>
+                                        <p className="text-xs text-brand-text-secondary">Detail paket utama yang dipilih.</p>
+                                    </div>
+
+                                    {bookingModal.pkg && (() => {
+                                        const pkg = bookingModal.pkg;
+                                        const hasDurationOpts = pkg.durationOptions && pkg.durationOptions.length > 0;
+                                        const selectedOpt = hasDurationOpts
+                                            ? (pkg.durationOptions!.find(o => o.label === formData.durationSelection) || pkg.durationOptions!.find(o => o.default) || pkg.durationOptions![0])
+                                            : null;
+                                        const photographers = selectedOpt?.photographers || pkg.photographers;
+                                        const videographers = selectedOpt?.videographers || pkg.videographers;
+                                        const processingTime = selectedOpt?.processingTime || pkg.processingTime;
+                                        const digitalItems = (selectedOpt?.digitalItems?.filter(Boolean).length ? selectedOpt.digitalItems : pkg.digitalItems)?.filter(Boolean) || [];
+                                        const physicalItems = (selectedOpt?.physicalItems?.filter((p: { name?: string }) => p?.name).length ? selectedOpt.physicalItems : pkg.physicalItems)?.filter((p: { name?: string }) => p?.name) || [];
+                                        const hasAnyDetail = photographers || videographers || processingTime || digitalItems.length > 0 || physicalItems.length > 0;
+                                        return (
+                                            <div className="p-4 border border-brand-border bg-brand-bg/50 rounded-2xl space-y-2.5">
+                                                <p className="text-xs font-bold text-brand-accent flex items-center justify-between">
+                                                    <span>{pkg.name}</span>
+                                                    {selectedOpt && hasDurationOpts && <span className="font-normal text-brand-text-secondary">({selectedOpt.label})</span>}
+                                                </p>
+                                                {hasAnyDetail ? (
+                                                    <ul className="text-xs text-brand-text-secondary space-y-1.5 pl-2">
+                                                        {photographers && <li className="flex items-center gap-2"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{photographers}</span></li>}
+                                                        {videographers && <li className="flex items-center gap-2"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{videographers}</span></li>}
+                                                        {processingTime && <li className="flex items-center gap-2"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>Pengerjaan: {processingTime}</span></li>}
+                                                        {digitalItems.map((item: string, i: number) => <li key={i} className="flex items-center gap-2"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{item}</span></li>)}
+                                                        {physicalItems.map((item: { name: string }, i: number) => <li key={i} className="flex items-center gap-2"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{item.name}</span></li>)}
+                                                    </ul>
+                                                ) : (
+                                                    <p className="text-xs text-brand-text-secondary italic">Pilih opsi Jam Kerja untuk melihat detail.</p>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {bookingModal.pkg?.durationOptions && bookingModal.pkg.durationOptions.length > 0 && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-brand-text-light">Jam Kerja / Durasi</label>
+                                            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-2">
+                                                {bookingModal.pkg.durationOptions.map(opt => {
+                                                    const isSelected = formData.durationSelection === opt.label;
+                                                    return (
+                                                        <label key={opt.label} className={`flex min-w-[150px] cursor-pointer flex-col justify-between gap-2 rounded-2xl border-2 p-3 transition-all shrink-0 ${isSelected ? 'border-brand-accent bg-brand-accent/5 shadow-sm' : 'border-brand-border bg-brand-surface hover:border-brand-accent/50'}`}>
+                                                            <span className="flex items-center justify-between gap-2 text-xs font-semibold text-brand-text-primary">
+                                                                {opt.label}
+                                                                {opt.default && <span className="rounded-full bg-brand-accent/10 px-2 py-0.5 text-[9px] font-bold uppercase text-brand-accent">Default</span>}
+                                                            </span>
+                                                            <span className="flex items-center justify-between gap-2 pt-2 border-t border-brand-border/60">
+                                                                <span className="text-[10px] font-medium text-brand-text-secondary">{formatCurrency(opt.price)}</span>
+                                                                <input type="radio" name="durationSelection" value={opt.label} checked={isSelected} onChange={handleFormChange} className="h-4 w-4 accent-brand-accent" />
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                            <div className="space-y-2">
-                                                {visiblePackages
-                                                    .filter(p => p.id !== bookingModal.pkg?.id)
-                                                    .map(pkg => {
-                                                        const isSelected = optionalPackages.some(op => op.id === pkg.id);
-                                                        return (
-                                                            <div key={pkg.id} className="flex items-center gap-2 p-2 border rounded text-xs hover:bg-public-bg">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={isSelected}
-                                                                    onChange={(e) => {
-                                                                        if (e.target.checked) {
-                                                                            setOptionalPackages([...optionalPackages, { id: pkg.id, name: pkg.name, price: pkg.price }]);
-                                                                        } else {
-                                                                            setOptionalPackages(optionalPackages.filter(op => op.id !== pkg.id));
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <div className="flex-1">
-                                                                    <p className="font-semibold">{pkg.name}</p>
-                                                                    <p className="text-gray-500">{formatCurrency(pkg.price)}</p>
-                                                                    {isSelected && (
-                                                                        <div className="mt-2 pl-2 space-y-1 border-l-2 border-gray-200 text-xs text-gray-600">
-                                                                            <p className="font-medium text-gray-800">Detail Package: {pkg.name}</p>
-                                                                            {pkg.description && (
-                                                                                <div className="whitespace-pre-wrap">{pkg.description}</div>
-                                                                            )}
-                                                                            {pkg.durationOptions && pkg.durationOptions.length > 0 && (
-                                                                                <div className="mt-2">
-                                                                                    <p className="font-medium text-gray-800">Jam Kerja:</p>
-                                                                                    {pkg.durationOptions.map(opt => (
-                                                                                        <div key={opt.id} className="flex justify-between py-0.5">
-                                                                                            <span>{opt.label}</span>
-                                                                                            <span>{formatCurrency(opt.price)}</span>
-                                                                                        </div>
-                                                                                    ))}
-                                                                                </div>
-                                                                            )}
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Column 2: Optional Packages, Add-ons, Promo, Payment */}
+                            <div className="space-y-6 bg-brand-surface/60 p-6 rounded-3xl border border-brand-border/80 shadow-sm">
+                                <div className="space-y-1">
+                                    <h4 className="text-base font-bold text-brand-text-light flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-brand-accent"></span>
+                                        Paket Tambahan & Add-On
+                                    </h4>
+                                    <p className="text-xs text-brand-text-secondary">Pilih tambahan layanan jika diperlukan.</p>
+                                </div>
+
+                                {visiblePackages.filter(p => p.id !== bookingModal.pkg?.id).length > 0 && (
+                                    <div className="space-y-3">
+                                        <label className="text-xs font-bold text-brand-text-light">Paket Tambahan (Opsional)</label>
+                                        <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+                                            {visiblePackages
+                                                .filter(p => p.id !== bookingModal.pkg?.id)
+                                                .map(pkg => {
+                                                    const isSelected = optionalPackages.some(op => op.id === pkg.id);
+                                                    const selectedOptional = optionalPackages.find(op => op.id === pkg.id);
+                                                    const hasDurationOpts = pkg.durationOptions && pkg.durationOptions.length > 0;
+                                                    const selectedOpt = hasDurationOpts
+                                                        ? (pkg.durationOptions!.find(o => o.label === selectedOptional?.selectedDuration) || pkg.durationOptions!.find(o => o.default) || pkg.durationOptions![0])
+                                                        : null;
+                                                    const photographers = selectedOpt?.photographers || pkg.photographers;
+                                                    const videographers = selectedOpt?.videographers || pkg.videographers;
+                                                    const processingTime = selectedOpt?.processingTime || pkg.processingTime;
+                                                    const digitalItems = (selectedOpt?.digitalItems?.filter(Boolean).length ? selectedOpt.digitalItems : pkg.digitalItems)?.filter(Boolean) || [];
+                                                    const physicalItems = (selectedOpt?.physicalItems?.filter((p: { name?: string }) => p?.name).length ? selectedOpt.physicalItems : pkg.physicalItems)?.filter((p: { name?: string }) => p?.name) || [];
+                                                    const hasAnyDetail = photographers || videographers || processingTime || digitalItems.length > 0 || physicalItems.length > 0;
+                                                    return (
+                                                        <div key={pkg.id} className="p-3.5 border border-brand-border bg-brand-bg/40 rounded-2xl space-y-2.5 text-xs">
+                                                            <div className="flex items-center justify-between gap-3">
+                                                                <label className="flex items-center gap-2.5 cursor-pointer flex-1">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={isSelected}
+                                                                        onChange={(e) => {
+                                                                            if (e.target.checked) {
+                                                                                const defaultDuration = pkg.durationOptions && pkg.durationOptions.length > 0
+                                                                                    ? (pkg.durationOptions.find(o => o.default) || pkg.durationOptions[0])
+                                                                                    : undefined;
+                                                                                setOptionalPackages([...optionalPackages, { 
+                                                                                    id: pkg.id, 
+                                                                                    name: pkg.name, 
+                                                                                    price: defaultDuration?.price ?? pkg.price,
+                                                                                    selectedDuration: defaultDuration?.label
+                                                                                }]);
+                                                                            } else {
+                                                                                setOptionalPackages(optionalPackages.filter(op => op.id !== pkg.id));
+                                                                            }
+                                                                        }}
+                                                                        className="h-4 w-4 rounded accent-brand-accent"
+                                                                    />
+                                                                    <span className="font-bold text-brand-text-light">{pkg.name}</span>
+                                                                </label>
+                                                                <span className="font-extrabold text-brand-accent">
+                                                                    {formatCurrency(selectedOptional?.price ?? (hasDurationOpts ? (pkg.durationOptions!.find(o => o.default) || pkg.durationOptions![0])!.price : pkg.price))}
+                                                                </span>
+                                                            </div>
+                                                            {isSelected && (
+                                                                <div className="pt-3 pl-6 space-y-2.5 border-t border-brand-border/60">
+                                                                    {hasAnyDetail ? (
+                                                                        <ul className="text-[11px] text-brand-text-secondary space-y-1.5">
+                                                                            {photographers && <li className="flex items-center gap-1.5"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{photographers}</span></li>}
+                                                                            {videographers && <li className="flex items-center gap-1.5"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{videographers}</span></li>}
+                                                                            {processingTime && <li className="flex items-center gap-1.5"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>Pengerjaan: {processingTime}</span></li>}
+                                                                            {digitalItems.map((item: string, i: number) => <li key={i} className="flex items-center gap-1.5"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{item}</span></li>)}
+                                                                            {physicalItems.map((item: { name: string }, i: number) => <li key={i} className="flex items-center gap-1.5"><CheckIcon className="w-3.5 h-3.5 text-brand-accent shrink-0" /><span>{item.name}</span></li>)}
+                                                                        </ul>
+                                                                    ) : pkg.description ? (
+                                                                        <p className="text-[11px] text-brand-text-secondary whitespace-pre-wrap">{pkg.description}</p>
+                                                                    ) : null}
+
+                                                                    {hasDurationOpts && (
+                                                                        <div className="pt-2">
+                                                                            <p className="text-[10px] font-semibold text-brand-text-secondary mb-1.5">Pilih Jam Kerja Tambahan:</p>
+                                                                            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1">
+                                                                                {pkg.durationOptions!.map(opt => {
+                                                                                    const isOptSelected = selectedOptional?.selectedDuration === opt.label;
+                                                                                    return (
+                                                                                        <label key={opt.label} className={`flex min-w-[130px] cursor-pointer flex-col justify-between gap-1 rounded-xl border p-2 text-[10px] shrink-0 ${isOptSelected ? 'border-brand-accent bg-brand-accent/10 font-bold' : 'border-brand-border bg-brand-surface'}`}>
+                                                                                            <span className="flex items-center justify-between">
+                                                                                                <span>{opt.label}</span>
+                                                                                                <input 
+                                                                                                    type="radio" 
+                                                                                                    name={`duration-${pkg.id}`} 
+                                                                                                    checked={isOptSelected}
+                                                                                                    onChange={() => {
+                                                                                                        setOptionalPackages(optionalPackages.map(op => 
+                                                                                                            op.id === pkg.id 
+                                                                                                            ? { ...op, price: Number(opt.price), selectedDuration: opt.label }
+                                                                                                            : op
+                                                                                                        ));
+                                                                                                    }}
+                                                                                                    className="h-3 w-3 accent-brand-accent"
+                                                                                                />
+                                                                                            </span>
+                                                                                            <span className="text-brand-accent font-bold">{formatCurrency(opt.price)}</span>
+                                                                                        </label>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                            </div>
-                                    </div>
-                                    <h4 className="text-base font-semibold text-gradient border-b border-public-border pb-2 pt-4">Tambahan</h4>
-                                    {visibleAddOns.length > 0 ? (
-                                        <div className="input-group">
-                                            <label className="input-label !static !-top-4 text-public-accent">
-                                                Add-On Lainnya (Opsional {selectedRegion ? `- Wilayah ${selectedRegion.toUpperCase()}` : ''})
-                                            </label>
-                                            <div className="p-3 border border-public-border bg-public-bg rounded-lg space-y-2 mt-2">
-                                                {visibleAddOns.map(addon => (
-                                                    <label key={addon.id} className="flex items-center justify-between p-1.5 rounded-md hover:bg-public-surface cursor-pointer">
-                                                        <span className="text-sm text-public-text-primary">{addon.name}</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-sm text-public-text-secondary">{formatCurrency(addon.price)}</span>
-                                                            <input type="checkbox" id={addon.id} name="addOns" checked={formData.selectedAddOnIds.includes(addon.id)} onChange={handleFormChange} className="h-4 w-4 rounded flex-shrink-0 text-brand-accent focus:ring-brand-accent transition" />
+                                                            )}
                                                         </div>
-                                                    </label>
-                                                ))}
-                                            </div>
+                                                    );
+                                                })}
                                         </div>
-                                    ) : (
-                                        <p className="text-xs text-brand-text-secondary italic">Tidak ada add-on khusus untuk wilayah ini.</p>
-                                    )}
+                                    </div>
+                                )}
+
+                                {visibleAddOns.length > 0 && (
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-brand-text-light">
+                                            Add-On Lainnya {selectedRegion ? `(Wilayah ${selectedRegion.toUpperCase()})` : ''}
+                                        </label>
+                                        <div className="p-3 border border-brand-border bg-brand-bg/40 rounded-2xl space-y-2 max-h-[600px] overflow-y-auto">
+                                            {visibleAddOns.map(addon => (
+                                                <label key={addon.id} className="flex items-center justify-between p-2 rounded-xl hover:bg-brand-surface cursor-pointer text-xs transition-colors">
+                                                    <span className="font-medium text-brand-text-primary">{addon.name}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="font-semibold text-brand-text-secondary">{formatCurrency(addon.price)}</span>
+                                                        <input type="checkbox" id={addon.id} name="addOns" checked={formData.selectedAddOnIds.includes(addon.id)} onChange={handleFormChange} className="h-4 w-4 rounded accent-brand-accent" />
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="input-group">
                                         <input type="text" id="promoCode" name="promoCode" value={formData.promoCode} onChange={handleFormChange} className="input-field" placeholder=" " />
                                         <label htmlFor="promoCode" className="input-label">Kode Promo (Opsional)</label>
@@ -1379,46 +1418,98 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                                         />
                                         <label htmlFor="transportCost" className="input-label">Fee Transport (Opsional)</label>
                                     </div>
-                                    <div className="p-4 bg-public-bg rounded-lg">
-                                        <p className="text-sm text-public-text-secondary">Silakan transfer Uang Muka (DP) ke rekening:</p>
-                                        <p className="font-semibold text-public-text-primary text-center py-2 bg-public-surface rounded-md border border-public-border mt-2">{userProfile.bankAccount}</p>
-                                        <div className="mt-3">
-                                            <div className="input-group !mt-0">
-                                                <RupiahInput
-                                                    id="dp"
-                                                    name="dp"
-                                                    value={String(formData.dp ?? '')}
-                                                    onChange={(raw) => setFormData(prev => ({ ...prev, dp: raw }))}
-                                                    className="input-field text-right"
-                                                    placeholder=" "
-                                                />
-                                                <label htmlFor="dp" className="input-label">Jumlah DP</label>
-                                                <p className="text-xs text-public-text-secondary mt-1 text-right">Saran DP (30%): {formatCurrency(suggestedDp)}</p>
+                                </div>
+
+                                {/* Cost Breakdown & DP Payment Box */}
+                                <div className="p-5 bg-brand-bg/60 border border-brand-border rounded-2xl space-y-4">
+                                    <h4 className="text-xs font-bold text-brand-text-light uppercase tracking-wider">Rincian Pembayaran</h4>
+                                    <div className="space-y-2 text-xs">
+                                        <div className="flex justify-between items-center text-brand-text-secondary">
+                                            <span>Package Utama</span>
+                                            <span className="font-semibold text-brand-text-primary">
+                                                {(() => {
+                                                    if (!bookingModal.pkg) return formatCurrency(0);
+                                                    const opts = bookingModal.pkg.durationOptions;
+                                                    if (!opts || opts.length === 0) return formatCurrency(bookingModal.pkg.price);
+                                                    const selected = opts.find(o => o.label === formData.durationSelection) || opts.find(o => o.default) || opts[0];
+                                                    return formatCurrency(selected?.price ?? bookingModal.pkg.price);
+                                                })()}
+                                            </span>
+                                        </div>
+                                        {optionalPackages.map(op => (
+                                            <div key={op.id} className="flex justify-between items-center text-brand-text-secondary pl-2">
+                                                <span>+ Tambahan: {op.name}</span>
+                                                <span className="font-semibold text-brand-text-primary">{formatCurrency(op.price)}</span>
                                             </div>
+                                        ))}
+                                        {formData.selectedAddOnIds.length > 0 && visibleAddOns.filter(a => formData.selectedAddOnIds.includes(a.id)).map(a => (
+                                            <div key={a.id} className="flex justify-between items-center text-brand-text-secondary pl-2">
+                                                <span>+ Add-on: {a.name}</span>
+                                                <span className="font-semibold text-brand-text-primary">{formatCurrency(a.price)}</span>
+                                            </div>
+                                        ))}
+                                        {Number(formData.transportCost) > 0 && (
+                                            <div className="flex justify-between items-center text-brand-text-secondary pl-2">
+                                                <span>+ Fee Transport</span>
+                                                <span className="font-semibold text-brand-text-primary">{formatCurrency(Number(formData.transportCost) || 0)}</span>
+                                            </div>
+                                        )}
+                                        {discountAmount > 0 && (
+                                            <div className="flex justify-between items-center text-green-600 pl-2">
+                                                <span>- Diskon ({discountText})</span>
+                                                <span className="font-semibold">-{formatCurrency(discountAmount)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center font-extrabold text-base pt-3 border-t border-brand-border text-brand-text-light">
+                                            <span>Total Biaya</span>
+                                            <span className="text-brand-accent text-lg">{formatCurrency(totalProject)}</span>
                                         </div>
                                     </div>
-                                    <div className="input-group">
-                                        <label htmlFor="dpPaymentProof" className="input-label !static !-top-4 text-public-accent">Unggah Bukti Transfer DP</label>
-                                        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-public-border px-6 py-10">
-                                            <div className="text-center">
-                                                <UploadIcon className="mx-auto h-12 w-12 text-public-text-secondary" />
-                                                <div className="mt-4 flex text-sm leading-6 text-public-text-secondary">
-                                                    <label htmlFor="dpPaymentProof" className="relative cursor-pointer rounded-md bg-public-surface font-semibold text-public-accent focus-within:outline-none hover:text-public-accent-hover">
-                                                        <span>Unggah file</span>
-                                                        <input id="dpPaymentProof" name="dpPaymentProof" type="file" className="sr-only" onChange={handleFileChange} accept="image/png, image/jpeg, image/jpg, application/pdf" />
-                                                    </label>
-                                                    <p className="pl-1">atau seret dan lepas</p>
-                                                </div>
-                                                <p className="text-xs leading-5 text-public-text-secondary">PNG, JPG, PDF hingga 10MB</p>
+
+                                    <div className="pt-3 border-t border-brand-border space-y-3">
+                                        <div className="text-xs space-y-1">
+                                            <p className="text-brand-text-secondary">Silakan transfer Uang Muka (DP) ke rekening:</p>
+                                            <p className="font-bold text-brand-text-light p-2 bg-brand-surface rounded-xl border border-brand-border text-center tracking-wide">{userProfile.bankAccount}</p>
+                                        </div>
+                                        <div className="input-group !mt-0">
+                                            <RupiahInput
+                                                id="dp"
+                                                name="dp"
+                                                value={String(formData.dp ?? '')}
+                                                onChange={(raw) => setFormData(prev => ({ ...prev, dp: raw }))}
+                                                className="input-field text-right font-bold"
+                                                placeholder=" "
+                                            />
+                                            <label htmlFor="dp" className="input-label">Jumlah DP</label>
+                                            <p className="text-[11px] text-brand-text-secondary mt-1 text-right">Saran DP (30%): <strong className="text-brand-accent">{formatCurrency(suggestedDp)}</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="dpPaymentProof" className="text-xs font-bold text-brand-text-light block">Unggah Bukti Transfer DP</label>
+                                    <div className="flex justify-center rounded-2xl border border-dashed border-brand-border bg-brand-bg/40 px-6 py-8 hover:bg-brand-bg/80 transition-colors">
+                                        <div className="text-center">
+                                            <UploadIcon className="mx-auto h-10 w-10 text-brand-text-secondary mb-2" />
+                                            <div className="flex text-xs leading-6 text-brand-text-secondary">
+                                                <label htmlFor="dpPaymentProof" className="relative cursor-pointer rounded-md bg-brand-surface px-2 py-1 font-semibold text-brand-accent border border-brand-border hover:bg-brand-surface/80">
+                                                    <span>Pilih file</span>
+                                                    <input id="dpPaymentProof" name="dpPaymentProof" type="file" className="sr-only" onChange={handleFileChange} accept="image/png, image/jpeg, image/jpg, application/pdf" />
+                                                </label>
+                                                <p className="pl-2 pt-1">atau seret dan lepas</p>
                                             </div>
+                                            <p className="text-[11px] text-brand-text-secondary mt-1">PNG, JPG, PDF hingga 10MB {paymentProof ? `(Dipilih: ${paymentProof.name})` : ''}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex justify-end gap-3 pt-4 border-t border-public-border">
-                                <button type="button" onClick={handleCloseBookingModal} className="button-secondary">Batal</button>
-                                <button type="submit" disabled={isSubmitting} className="button-primary">{isSubmitting ? 'Mengirim...' : 'Kirim Booking'}</button>
-                            </div>
-                        </form>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-6 border-t border-brand-border">
+                            <button type="button" onClick={handleCloseBookingModal} className="button-secondary px-6">Batal</button>
+                            <button type="submit" disabled={isSubmitting} className="button-primary px-8">{isSubmitting ? 'Mengirim...' : 'Kirim Booking'}</button>
+                        </div>
+                    </form>
                     )}
                 </Modal>
                 <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Syarat & Ketentuan Umum">

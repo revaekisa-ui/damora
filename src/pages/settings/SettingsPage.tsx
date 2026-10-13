@@ -1424,6 +1424,13 @@ const ChecklistTemplateSettings: React.FC<{
 
 const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, projects, packages, setPackages, users, setUsers, currentUser }) => {
     const [activeTab, setActiveTab] = useState('profile');
+    const [localProfile, setLocalProfile] = useState<Profile>(profile);
+
+    useEffect(() => {
+        if (profile) {
+            setLocalProfile(profile);
+        }
+    }, [profile]);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
@@ -1626,10 +1633,8 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setProfile(prev => ({ ...prev, [name]: value }));
+        setLocalProfile(prev => ({ ...prev, [name]: value }));
     };
-
-
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -1640,14 +1645,15 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
             }
             const reader = new FileReader();
             reader.onloadend = () => {
-                setProfile(prev => ({ ...prev, logoBase64: reader.result as string }));
+                const res = reader.result as string;
+                setLocalProfile(prev => ({ ...prev, logoBase64: res }));
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleRemoveLogo = () => {
-        setProfile(prev => ({ ...prev, logoBase64: '' as any }));
+        setLocalProfile(prev => ({ ...prev, logoBase64: '' as any }));
     };
 
     const handleSignatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1659,14 +1665,15 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
             }
             const reader = new FileReader();
             reader.onloadend = () => {
-                setProfile(prev => ({ ...prev, signatureBase64: reader.result as string }));
+                const res = reader.result as string;
+                setLocalProfile(prev => ({ ...prev, signatureBase64: res }));
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleRemoveSignature = () => {
-        setProfile(prev => ({ ...prev, signatureBase64: '' as any }));
+        setLocalProfile(prev => ({ ...prev, signatureBase64: '' as any }));
     };
 
     const handleBackgroundUpload = async (
@@ -1689,17 +1696,18 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
         try {
             const url = await uploadGalleryImage(file);
             const nextProfile = {
-                ...profile,
+                ...localProfile,
                 publicPageConfig: {
-                    ...profile.publicPageConfig,
+                    ...localProfile.publicPageConfig,
                     backgroundImages: {
-                        ...(profile.publicPageConfig?.backgroundImages || {}),
+                        ...(localProfile.publicPageConfig?.backgroundImages || {}),
                         [key]: url,
                     },
                 },
             };
             const saved = await upsertProfile(nextProfile);
             setProfile(saved);
+            setLocalProfile(saved);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {
@@ -1729,8 +1737,9 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
         setIsSaving(true);
         setSaveError('');
         try {
-            const updated = await upsertProfile(profile);
+            const updated = await upsertProfile(localProfile);
             setProfile(updated);
+            setLocalProfile(updated);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
         } catch (err: any) {

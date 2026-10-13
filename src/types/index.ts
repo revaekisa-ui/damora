@@ -594,6 +594,7 @@ export interface RegionPricelistPdf {
   pdfUrl: string; // base64 or URL
   fileName?: string;
   fileSize?: string;
+  buttonLabel?: string; // Teks khusus untuk tombol download PDF di halaman publik
   updatedAt?: string;
 }
 

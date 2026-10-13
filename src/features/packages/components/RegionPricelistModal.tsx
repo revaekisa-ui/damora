@@ -39,6 +39,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
     const [formRegion, setFormRegion] = useState('banten');
     const [formCustomRegion, setFormCustomRegion] = useState('');
     const [formTitle, setFormTitle] = useState('');
+    const [formButtonLabel, setFormButtonLabel] = useState('');
     const [formFile, setFormFile] = useState<File | null>(null);
     const [formBase64, setFormBase64] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
@@ -86,6 +87,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
         setFormRegion('banten');
         setFormCustomRegion('');
         setFormTitle('');
+        setFormButtonLabel('');
         setFormFile(null);
         setFormBase64('');
     };
@@ -111,6 +113,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
             setFormCustomRegion(item.region);
         }
         setFormTitle(item.title);
+        setFormButtonLabel(item.buttonLabel || '');
         setFormFile(null);
         setFormBase64(item.pdfUrl);
     };
@@ -198,6 +201,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
                         region: activeRegionValue,
                         regionLabel: resolvedRegionLabel,
                         title: formTitle.trim(),
+                        buttonLabel: formButtonLabel.trim() || undefined,
                         pdfUrl: effectivePdfUrl,
                         fileName: formFile ? formFile.name : item.fileName,
                         fileSize: formFile ? formatSize(formFile.size) : item.fileSize,
@@ -213,6 +217,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
                 region: activeRegionValue,
                 regionLabel: resolvedRegionLabel,
                 title: formTitle.trim(),
+                buttonLabel: formButtonLabel.trim() || undefined,
                 pdfUrl: effectivePdfUrl,
                 fileName: formFile?.name || 'pricelist.pdf',
                 fileSize: formFile ? formatSize(formFile.size) : 'File PDF',
@@ -371,6 +376,20 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
                                         placeholder="contoh: Pricelist Wilayah Banten 2025"
                                         className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAEFF4] bg-white focus:border-[#5D87FF] text-xs text-[#2A3547] outline-none"
                                         required
+                                    />
+                                </div>
+
+                                {/* Button Label */}
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-bold text-[#2A3547] mb-1.5 uppercase tracking-wider">
+                                        Teks Nama Tombol Download PDF (Opsional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formButtonLabel}
+                                        onChange={(e) => setFormButtonLabel(e.target.value)}
+                                        placeholder="contoh: Download Pricelist Banten"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAEFF4] bg-white focus:border-[#5D87FF] text-xs text-[#2A3547] outline-none"
                                     />
                                 </div>
                             </div>
