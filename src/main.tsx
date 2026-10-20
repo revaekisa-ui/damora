@@ -6,6 +6,7 @@ import ErrorBoundary from './shared/ui/ErrorBoundary';
 import { SimplifiedDataProvider } from './contexts/SimplifiedDataContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getCurrentCacheScope, restoreQueryCache } from './lib/queryCachePersistence';
+import { Analytics } from '@vercel/analytics/react';
 import './index.css';
 import '../app/index.css';
 import './styles/print.css';
@@ -77,6 +78,7 @@ async function startApp() {
           </ErrorBoundary>
         </SimplifiedDataProvider>
       </QueryClientProvider>
+      <Analytics />
     </React.StrictMode>,
   );
 
