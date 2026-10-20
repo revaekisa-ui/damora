@@ -782,11 +782,11 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
 
   // ── tab config ────────────────────────────────────────────────────────────
 
-  const tabs: { key: 'info' | 'events' | 'attire' | 'payments'; label: string; icon: React.ReactNode }[] = [
-    { key: 'info', label: customizeUiText('client.detail.tab.info', 'Informasi', uiTextOverrides), icon: <UsersIcon className="w-4 h-4" /> },
-    { key: 'events', label: `${customizeUiText('client.detail.tab.events', 'Acara Pernikahan', uiTextOverrides)} (${totalProjects})`, icon: <FolderKanbanIcon className="w-4 h-4" /> },
-    { key: 'attire', label: 'Busana & Attire', icon: <ShirtIcon className="w-4 h-4" /> },
-    { key: 'payments', label: customizeUiText('client.detail.tab.payments', 'Pembayaran & Transaksi', uiTextOverrides), icon: <HistoryIcon className="w-4 h-4" /> },
+  const tabs: { key: 'info' | 'events' | 'attire' | 'payments'; label: string; mobileLabel: string; icon: React.ReactNode }[] = [
+    { key: 'info', label: customizeUiText('client.detail.tab.info', 'Informasi', uiTextOverrides), mobileLabel: 'Info', icon: <UsersIcon className="w-4 h-4" /> },
+    { key: 'events', label: `${customizeUiText('client.detail.tab.events', 'Acara Pernikahan', uiTextOverrides)} (${totalProjects})`, mobileLabel: `Acara ${totalProjects}`, icon: <FolderKanbanIcon className="w-4 h-4" /> },
+    { key: 'attire', label: 'Busana & Attire', mobileLabel: 'Busana', icon: <ShirtIcon className="w-4 h-4" /> },
+    { key: 'payments', label: customizeUiText('client.detail.tab.payments', 'Pembayaran & Transaksi', uiTextOverrides), mobileLabel: 'Pembayaran', icon: <HistoryIcon className="w-4 h-4" /> },
   ];
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -859,17 +859,18 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
       </div>
 
       {/* ── TAB BAR ─────────────────────────────────────────────────────── */}
-      <div className="flex gap-1.5 p-1 bg-brand-bg rounded-xl border border-brand-border mb-4">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-brand-bg rounded-xl border border-brand-border mb-4">
         {tabs.map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 inline-flex items-center justify-center py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-200 ${activeTab === tab.key
+            className={`min-h-9 min-w-0 inline-flex items-center justify-center whitespace-nowrap px-1 py-2 rounded-lg text-[10px] font-bold transition-all duration-200 sm:px-3 sm:text-xs sm:font-semibold ${activeTab === tab.key
                 ? 'bg-brand-surface text-brand-accent shadow-sm border border-brand-border'
                 : 'text-brand-text-secondary hover:text-brand-text-primary'
               }`}
           >
-            <span>{tab.label}</span>
+            <span className="sm:hidden">{tab.mobileLabel}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -1121,7 +1122,7 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                       </div>
                     </div>
                     <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-shrink-0 sm:items-end">
-                      <div className="flex w-full min-w-0 flex-nowrap gap-1 sm:w-auto sm:flex-wrap sm:justify-end">
+                      <div className="flex w-full min-w-0 flex-wrap gap-1 sm:w-auto sm:flex-wrap sm:justify-end">
                         {remainingBalance > 0 ? (
                           <button
                             type="button"
