@@ -1634,11 +1634,12 @@ export const Packages: React.FC<PackagesProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Per Region */}
-                                {REGIONS.map((r) => {
+                                {/* Per Region — termasuk wilayah kustom dari "Wilayah Operasional" paket */}
+                                {unionRegions.map((r) => {
+                                    const regionQuery = encodeURIComponent(r.value);
                                     const regionUrl = typeof window !== 'undefined'
-                                        ? `${window.location.origin}/#/public-packages?region=${r.value}`
-                                        : `/#/public-packages?region=${r.value}`;
+                                        ? `${window.location.origin}/#/public-packages?region=${regionQuery}`
+                                        : `/#/public-packages?region=${regionQuery}`;
                                     return (
                                         <div
                                             key={r.value}
@@ -1657,7 +1658,7 @@ export const Packages: React.FC<PackagesProps> = ({
                                             </p>
                                             <div className="flex items-center gap-2 pt-1">
                                                 <a
-                                                    href={`/#/public-packages?region=${r.value}`}
+                                                    href={`/#/public-packages?region=${regionQuery}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-accent hover:bg-brand-accent-hover text-white text-xs font-bold transition-colors cursor-pointer"

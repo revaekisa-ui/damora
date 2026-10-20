@@ -26,6 +26,8 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
 }
 
+const titleCase = (s: string) => s.replace(/\b\w/g, c => c.toUpperCase());
+
 const getContactChannelIcon = (channel: ContactChannel) => {
     const iconProps = { className: "w-4 h-4" };
     switch (channel) {
@@ -708,6 +710,24 @@ export const Leads: React.FC<LeadsProps> = ({
     const publicBookingFormUrl = useMemo(() => buildPublicShareUrl('booking'), []);
     const publicPackagesUrl = useMemo(() => buildPublicShareUrl('packages'), []);
 
+    // Gabungkan wilayah bawaan dengan wilayah kustom yang diisi pada
+    // "Wilayah Operasional" paket/add-on (mis. "bali") agar tautan booking &
+    // paket per wilayah ikut bertambah di sini.
+    const availableRegions = useMemo(() => {
+        const baseValues = REGIONS.map(r => r.value.toLowerCase());
+        const extras = Array.from(new Set(
+            [...packages, ...addOns]
+                .map(item => (item.region || '').trim())
+                .filter(Boolean)
+        ))
+            .filter(region => !baseValues.includes(region.toLowerCase()))
+            .sort((a, b) => a.localeCompare(b, 'id'));
+        return [
+            ...REGIONS.map(r => ({ value: r.value, label: r.label })),
+            ...extras.map(region => ({ value: region, label: titleCase(region) })),
+        ];
+    }, [packages, addOns]);
+
     const uniqueCities = useMemo(() => {
         const set = new Set<string>();
         leads.forEach(l => {
@@ -806,6 +826,14 @@ export const Leads: React.FC<LeadsProps> = ({
             showNotification('Gagal memperbarui status Calon Pengantin di database.');
         });
         showNotification(`Calon Pengantin "${leadToUpdate.name}" berhasil dipindahkan ke "${statusConfig[newStatus]?.title || newStatus}".`);
+    };
+
+    // Setelah paket dibagikan via WhatsApp, Calon Pengantin yang masih berstatus
+    // Diskusi otomatis dipindahkan ke kolom Follow Up.
+    const handlePackageSharedFollowUp = (leadId: string) => {
+        const target = leads.find(l => l.id === leadId);
+        if (!target || target.status !== LeadStatus.DISCUSSION) return;
+        handleMoveStatus(leadId, LeadStatus.FOLLOW_UP);
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, newStatus: LeadStatus) => {
@@ -1881,7 +1909,7 @@ export const Leads: React.FC<LeadsProps> = ({
                 </div>
             </Modal>
 
-            {shareModalState && <ShareMessageModal type={shareModalState.type} lead={shareModalState.lead} userProfile={userProfile} publicBookingFormUrl={publicBookingFormUrl} publicPackagesUrl={publicPackagesUrl} onClose={() => setShareModalState(null)} showNotification={showNotification} setProfile={setProfile} />}
+            {shareModalState && <ShareMessageModal type={shareModalState.type} lead={shareModalState.lead} userProfile={userProfile} publicBookingFormUrl={publicBookingFormUrl} publicPackagesUrl={publicPackagesUrl} availableRegions={availableRegions} onClose={() => setShareModalState(null)} onPackageShared={() => handlePackageSharedFollowUp(shareModalState.lead.id)} showNotification={showNotification} setProfile={setProfile} />}
 
             <Modal isOpen={!!activeStatModal} onClose={() => setActiveStatModal(null)} title={modalData.title} size="2xl">
                 <div className="max-h-[65vh] overflow-y-auto pr-1 space-y-3">
@@ -2048,11 +2076,12 @@ export const Leads: React.FC<LeadsProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Per Region */}
-                                {REGIONS.map((r) => {
+                                {/* Per Region — termasuk wilayah kustom dari "Wilayah Operasional" paket */}
+                                {availableRegions.map((r) => {
+                                    const regionQuery = encodeURIComponent(r.value);
                                     const regionUrl = typeof window !== 'undefined'
-                                        ? `${window.location.origin}/#/public-packages?region=${r.value}`
-                                        : `/#/public-packages?region=${r.value}`;
+                                        ? `${window.location.origin}/#/public-packages?region=${regionQuery}`
+                                        : `/#/public-packages?region=${regionQuery}`;
                                     return (
                                         <div
                                             key={r.value}
@@ -2071,7 +2100,7 @@ export const Leads: React.FC<LeadsProps> = ({
                                             </p>
                                             <div className="flex items-center gap-2 pt-1">
                                                 <a
-                                                    href={`/#/public-packages?region=${r.value}`}
+                                                    href={`/#/public-packages?region=${regionQuery}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#5D87FF] hover:bg-[#4570EA] text-white text-xs font-bold transition-colors cursor-pointer"
@@ -2206,27 +2235,29 @@ interface ShareMessageModalProps {
     userProfile: Profile;
     publicPackagesUrl: string;
     publicBookingFormUrl: string;
+    availableRegions: { value: string; label: string }[];
     onClose: () => void;
+    onPackageShared: () => void;
     showNotification: (message: string) => void;
     setProfile: React.Dispatch<React.SetStateAction<Profile>>;
 }
 
-const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userProfile, publicPackagesUrl, publicBookingFormUrl, onClose, showNotification, setProfile }) => {
+const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userProfile, publicPackagesUrl, publicBookingFormUrl, availableRegions, onClose, onPackageShared, showNotification, setProfile }) => {
     const [message, setMessage] = useState('');
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [selectedGalleryId, setSelectedGalleryId] = useState<string>('');
     const [packageSource, setPackageSource] = useState<'public-packages' | 'gallery'>('public-packages');
     const initialBookingRegion = useMemo(() => {
         const loc = (lead.location || '').toLowerCase().trim();
-        const found = REGIONS.find(r => r.value.toLowerCase() === loc || r.label.toLowerCase() === loc || loc.includes(r.value.toLowerCase()));
+        const found = availableRegions.find(r => r.value.toLowerCase() === loc || r.label.toLowerCase() === loc || loc.includes(r.value.toLowerCase()));
         return found?.value || '';
-    }, [lead.location]);
+    }, [lead.location, availableRegions]);
     const [selectedBookingRegion, setSelectedBookingRegion] = useState(initialBookingRegion);
 
     const [selectedRegion, setSelectedRegion] = useState<string>(() => {
         const loc = (lead.location || '').toLowerCase().trim();
         if (!loc) return '';
-        const found = REGIONS.find(r => r.value.toLowerCase() === loc || r.label.toLowerCase() === loc || loc.includes(r.value.toLowerCase()));
+        const found = availableRegions.find(r => r.value.toLowerCase() === loc || r.label.toLowerCase() === loc || loc.includes(r.value.toLowerCase()));
         return found ? found.value : '';
     });
 
@@ -2382,6 +2413,10 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
         if (!lead.whatsapp) { showNotification('Nomor WhatsApp untuk Calon Pengantin ini tidak tersedia.'); return; }
         const whatsappUrl = `https://wa.me/${cleanPhoneNumber(lead.whatsapp)}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
+        // Khusus bagikan paket: status otomatis naik dari Diskusi ke Follow Up.
+        if (type === 'package') {
+            onPackageShared();
+        }
     };
 
     const handleSaveTemplate = async () => {
@@ -2461,7 +2496,7 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
                                     >
                                         Semua Wilayah
                                     </button>
-                                    {REGIONS.map((r) => (
+                                    {availableRegions.map((r) => (
                                         <button
                                             key={r.value}
                                             type="button"
@@ -2534,7 +2569,7 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
                             </button>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                            {REGIONS.map(region => (
+                            {availableRegions.map(region => (
                                 <button
                                     key={region.value}
                                     type="button"
