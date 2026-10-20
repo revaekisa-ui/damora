@@ -37,8 +37,8 @@ const NavigationCard: React.FC<{ title: string; description: string; link: strin
 );
 
 const HERO_TITLE = 'Sistem Manajemen All-in-One';
-const HERO_HIGHLIGHT = 'Vendor Photography';
-const HERO_SUBTITLE = 'Dari manajemen pengantin dan Acara Pernikahan hingga keuangan dan penjadwalan tim, Vena Pictures menyediakan semua yang Anda butuhkan untuk berkembang.';
+const HERO_HIGHLIGHT = 'Jasa Makeup & MUA';
+const HERO_SUBTITLE = 'Dari manajemen pengantin dan acara pernikahan hingga keuangan dan penjadwalan tim, Filda Makeup menyediakan semua yang Anda butuhkan untuk berkembang.';
 const HERO_CTA = 'Masuk ke Dasbor Anda';
 const HERO_IMAGE = '/assets/images/landingpage/banner-img.webp';
 const HERO_IMAGE_FALLBACK = '/assets/images/landingpage/banner-img.png';
@@ -48,9 +48,19 @@ const Homepage: React.FC = () => {
         <div className="bg-brand-bg text-brand-text-primary">
             {/* Header */}
             <header className="py-4 px-6 md:px-12 flex justify-between items-center bg-brand-surface/80 backdrop-blur-sm sticky top-0 z-50 border-b border-brand-border">
-                <div className="flex items-center gap-2">
-                    <img src="/assets/images/logos/logoIcon.svg" alt="Vena Pictures logo" className="w-8 h-8" width="32" height="32" />
-                    <span className="text-xl font-extrabold text-brand-text-light">Vena Pictures</span>
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.hash = '#/'}>
+                    <img 
+                        src="/assets/images/logos/logoIcon.svg" 
+                        alt="Filda Makeup logo" 
+                        className="w-8 h-8 object-contain" 
+                        width="32" 
+                        height="32"
+                        onError={(e) => {
+                            // Fallback to inline SVG or alternative if svg fails
+                            (e.target as HTMLElement).style.display = 'none';
+                        }}
+                    />
+                    <span className="text-xl font-extrabold text-brand-text-light">Filda Makeup</span>
                 </div>
                 <div className="space-x-2">
                     <button type="button" onClick={() => window.location.hash = '#/login'} className="button-primary px-6 py-2 text-sm">Masuk</button>
@@ -183,13 +193,13 @@ const Homepage: React.FC = () => {
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-bold text-brand-text-light">Tutorial Video</h2>
-                        <p className="text-brand-text-secondary mt-2">Pelajari cara menggunakan Vena Pictures dengan mudah melalui video tutorial</p>
+                        <p className="text-brand-text-secondary mt-2">Pelajari cara menggunakan Filda Makeup dengan mudah melalui video tutorial</p>
                     </div>
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-brand-border">
                         <iframe
                             className="absolute inset-0 w-full h-full"
                             src="https://www.youtube.com/embed/aAH3CWTKQq8"
-                            title="Vena Pictures Tutorial Video"
+                            title="Filda Makeup Tutorial Video"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             referrerPolicy="strict-origin-when-cross-origin"
@@ -283,7 +293,7 @@ const Homepage: React.FC = () => {
 
             {/* Footer */}
             <footer className="py-12 px-6 text-center text-brand-text-secondary text-sm">
-                <p>&copy; {new Date().getFullYear()} Vena Pictures. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} Filda Makeup. All rights reserved.</p>
             </footer>
         </div>
     );

@@ -27,6 +27,8 @@ import PackageTermsDisplay from '../../packages/components/PackageTermsDisplay';
 import { getPackageTerms } from '../../packages/packageTerms';
 import WorkflowDisplay from '../../packages/components/WorkflowDisplay';
 import { getWorkflows } from '../../packages/workflows';
+import PortalAttireTab from './PortalAttireTab';
+import { ShirtIcon } from 'lucide-react';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -256,6 +258,7 @@ const ClientPortal: React.FC<ClientPortalProps> = ({
   const tabs = [
     ...(!isVendorClient ? [{ key: 'beranda', label: 'Beranda', active: 'tab-active-mono' }] : []),
     { key: 'proyek', label: 'Acara Saya', active: 'tab-active-mono' },
+    ...(!isVendorClient ? [{ key: 'busana', label: 'Busana & Attire', active: 'tab-active-mono' }] : []),
     { key: 'meeting', label: 'Jadwal Meeting', active: 'tab-active-mono' },
     { key: 'dokumen', label: 'Link File', active: 'tab-active-mono' },
     ...(!isVendorClient ? [{ key: 'keuangan', label: 'Invoice', active: 'tab-active-mono' }] : []),
@@ -359,8 +362,9 @@ const ClientPortal: React.FC<ClientPortalProps> = ({
           TAB CONTENT
       ══════════════════════════════════════════════════════════════════ */}
       <div className="portal-tab-content max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'beranda' && !isVendorClient && <DashboardTab client={client} projects={clientProjects} profile={profile} packages={packages} />}
+        {activeTab === 'beranda' && !isVendorClient && <DashboardTab client={client} projects={clientProjects} profile={profile} packages={packages} onSelectTab={setActiveTab} />}
         {activeTab === 'proyek' && <ProjectsTab projects={clientProjects} profile={profile} teamMembers={teamMembers} />}
+        {activeTab === 'busana' && !isVendorClient && <PortalAttireTab client={client} profile={profile} showNotification={showNotification} />}
         {activeTab === 'meeting' && <MeetingsTab projects={clientProjects} />}
         {activeTab === 'dokumen' && <GalleryTab projects={clientProjects} packages={packages} />}
         {activeTab === 'keuangan' && !isVendorClient && <FinanceTab projects={clientProjects} transactions={transactions} profile={profile} packages={packages} client={client} onViewDocument={setViewingDocument} />}
@@ -543,8 +547,8 @@ const MeetingsTab: React.FC<{ projects: Project[] }> = ({ projects }) => {
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
 const DashboardTab: React.FC<{
-  client: Client; projects: Project[]; profile: Profile; packages: Package[];
-}> = ({ client, projects = [], profile, packages = [] }) => {
+  client: Client; projects: Project[]; profile: Profile; packages: Package[]; onSelectTab?: (tab: string) => void;
+}> = ({ client, projects = [], profile, packages = [], onSelectTab }) => {
   const safeProjects = projects || [];
   const safePackages = packages || [];
   const safeStatusConfig = profile?.projectStatusConfig || [];
@@ -671,6 +675,48 @@ const DashboardTab: React.FC<{
           )}
         </div>
       )}
+
+      {/* Busana & Fitting highlight card */}
+      <div className="portal-card rounded-3xl p-5 sm:p-6 portal-animate portal-animate-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-pink-50 text-pink-700 border border-pink-100 flex items-center justify-center font-bold">
+              <ShirtIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-zinc-900">Katalog Busana & Fitting Pengantin</p>
+              <p className="text-xs text-zinc-500">Pilihan gaun akad/resepsi, busana keluarga & input ukuran fitting</p>
+            </div>
+          </div>
+          {onSelectTab && (
+            <button
+              onClick={() => onSelectTab('busana')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-zinc-900 text-white rounded-xl text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xs"
+            >
+              <span>Buka Busana</span>
+              <ChevronRightIcon className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-zinc-100 text-center">
+          <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-100">
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Gaun Pengantin</p>
+            <p className="text-xs font-black text-zinc-800 mt-0.5">Akad, Resepsi, Tambahan</p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-100">
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Orang Tua</p>
+            <p className="text-xs font-black text-zinc-800 mt-0.5">Ibu & Ayah</p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-100">
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Saudara</p>
+            <p className="text-xs font-black text-zinc-800 mt-0.5">Bridesmaid & Groomsmen</p>
+          </div>
+          <div className="p-2.5 rounded-xl bg-zinc-50 border border-zinc-100">
+            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Aksesori</p>
+            <p className="text-xs font-black text-zinc-800 mt-0.5">Mahkota, Veil, Hijab</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1004,7 +1050,7 @@ const GalleryTab: React.FC<{ projects: Project[]; packages?: Package[] }> = ({ p
                 Semua file tersimpan aman di Google Drive dan dapat diakses langsung tanpa batas waktu.
               </span>
               <span className="text-zinc-400 text-[10px]">
-                Sinkronisasi Cloud Vena Pictures
+                Sinkronisasi Cloud Filda Makeup
               </span>
             </div>
           </div>

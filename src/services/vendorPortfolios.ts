@@ -9,8 +9,8 @@ export const DEFAULT_PORTFOLIOS: VendorPortfolio[] = [
     {
         id: 'portfolio-sample-1',
         user_id: 'default-user',
-        title: 'The Royal Wedding of Arya & Dinda',
-        category: 'Wedding',
+        title: 'The Royal Wedding Makeup of Arya & Dinda',
+        category: 'Wedding Makeup',
         cover_image_url: '/assets/images/backgrounds/detail-acara-pernikahan.jpg',
         images: [
             { id: 'img-1-1', url: '/assets/images/backgrounds/detail-acara-pernikahan.jpg', caption: 'Pemberkatan & Akad' },

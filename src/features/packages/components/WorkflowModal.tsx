@@ -253,7 +253,7 @@ export const WorkflowModal: React.FC<WorkflowModalProps> = ({
                                     value={formTimelineText}
                                     onChange={(e) => setFormTimelineText(e.target.value)}
                                     rows={7}
-                                    placeholder={"Konsep Acara Pernikahan / Awal → H-90\nPemilihan Vendor / Detail → H-60\nPersiapan Final (Technical Meeting) → H-14\nPelaksanaan Acara Pernikahan → Hari H\nPenyelesaian / Review Akhir → H+7\nSerah Terima Dokumentasi / Laporan → H+30"}
+                                    placeholder={"Konsep Acara Pernikahan / Awal → H-90\nPemilihan Vendor / Detail → H-60\nPersiapan Final (Technical Meeting) → H-14\nPelaksanaan Acara Pernikahan → Hari H\nPenyelesaian / Review Akhir → H+7\nSerah Terima File Riasan / Laporan → H+14"}
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAEFF4] bg-white focus:border-brand-accent text-xs sm:text-sm font-mono text-[#2A3547] outline-none transition-all resize-y leading-relaxed"
                                 />
                                 <div className="flex flex-wrap items-center gap-1.5 mt-2">

@@ -149,7 +149,7 @@ export function useInvoiceFormModal({
         clientEmail: client?.email || '',
         clientAddress: editProj.address || client?.address || '',
         title: editProj.projectName || '',
-        projectType: editProj.projectType || 'Wedding',
+        projectType: editProj.projectType || 'Wedding Makeup',
         invoiceDate: getLatestInvoicePaymentDate(editProj.id, transactions).slice(0, 10),
         paymentDate: paymentDateTransaction?.date.slice(0, 10) || '',
         paymentDateTransactionId: paymentDateTransaction?.id || '',
@@ -157,7 +157,7 @@ export function useInvoiceFormModal({
         location: editProj.location || '',
         address: editProj.address || '',
         lineItems: lineItems.length > 0 ? lineItems : [
-          { id: generateId(), description: 'Jasa Dokumentasi Fotografi & Videografi', quantity: 1, unitPrice: 0, totalPrice: 0 }
+          { id: generateId(), description: 'Jasa Rias Pengantin / Makeup Artist', quantity: 1, unitPrice: 0, totalPrice: 0 }
         ],
         transportCost: tCost,
         discountType: 'fixed',
@@ -168,6 +168,8 @@ export function useInvoiceFormModal({
         // In edit mode: amountPaid is READ-ONLY — derived from transactions, not editable
         amountPaid: actualPaid,
         paymentStatus: actualPaymentStatus,
+        dpProofUrl: editProj.dpProofUrl || '',
+        paymentProofs: editProj.paymentProofs || [],
         notes: editProj.notes || '',
       };
     }
@@ -181,7 +183,7 @@ export function useInvoiceFormModal({
       clientEmail: clientList[0]?.email || '',
       clientAddress: clientList[0]?.address || '',
       title: '',
-      projectType: 'Wedding',
+      projectType: 'Wedding Makeup',
       packageId: '',
       durationSelection: '',
       invoiceSignature: '',
@@ -192,7 +194,7 @@ export function useInvoiceFormModal({
       lineItems: [
         {
           id: generateId(),
-          description: 'Jasa Liputan & Dokumentasi',
+          description: 'Jasa Rias & Makeup Artist',
           quantity: 1,
           unitPrice: 0,
           totalPrice: 0,
@@ -206,6 +208,8 @@ export function useInvoiceFormModal({
       grandTotal: 0,
       amountPaid: 0,
       paymentStatus: PaymentStatus.BELUM_BAYAR,
+      dpProofUrl: '',
+      paymentProofs: [],
       notes: 'Pembayaran DP minimal 30% dari total biaya. Pelunasan paling lambat H-3 sebelum tanggal acara.',
     };
   }
@@ -422,7 +426,7 @@ export function useInvoiceFormModal({
         projectName: effectiveTitle,
         clientName: finalClientName,
         clientId: finalClientId,
-        projectType: formData.projectType || projectToEdit?.projectType || 'Wedding',
+        projectType: formData.projectType || projectToEdit?.projectType || 'Wedding Makeup',
         packageName: primaryPackageName,
         packageId: projectToEdit?.packageId,
         date: (formData.eventDate || formData.invoiceDate)
@@ -455,6 +459,8 @@ export function useInvoiceFormModal({
         totalCost: formData.grandTotal,
         amountPaid: formData.amountPaid,
         paymentStatus: formData.paymentStatus,
+        dpProofUrl: formData.dpProofUrl || undefined,
+        paymentProofs: formData.paymentProofs,
         discountAmount: Number(formData.discountAmount) || 0,
         transportCost: Number(formData.transportCost) || 0,
         customCosts: customCosts,

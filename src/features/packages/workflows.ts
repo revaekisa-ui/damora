@@ -10,7 +10,7 @@ export const DEFAULT_WORKFLOWS: WorkflowItem[] = [
       'Persiapan Final (Technical Meeting) → H-14',
       'Pelaksanaan Acara Pernikahan → Hari H',
       'Penyelesaian / Review Akhir → H+7',
-      'Serah Terima Dokumentasi / Laporan → H+30'
+      'Serah Terima File Riasan / Laporan → H+14'
     ]
   },
   {

@@ -15,7 +15,7 @@ import {
 import Modal from '../../shared/ui/Modal';
 import { getEmbedVideoUrl } from '../../utils/videoUtils';
 
-const DEFAULT_PORTFOLIO_CATEGORIES = ['Wedding', 'Prewedding', 'Engagement'];
+const DEFAULT_PORTFOLIO_CATEGORIES = ['Wedding Makeup', 'Engagement', 'Wisuda / Graduation'];
 const CUSTOM_CATEGORY_VALUE = '__custom_category__';
 
 interface PortfolioCategoryFieldProps {
@@ -926,7 +926,7 @@ const VendorProfilePage: React.FC = () => {
               required
               value={newFaq.question}
               onChange={e => setNewFaq({ ...newFaq, question: e.target.value })}
-              placeholder="Contoh: Berapa lama waktu penyerahan hasil foto dan video?"
+              placeholder="Contoh: Berapa lama durasi makeup dan apakah ada tes makeup?"
               className="w-full px-3 py-2 text-sm rounded-lg bg-brand-surface border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"
             />
           </div>
@@ -937,7 +937,7 @@ const VendorProfilePage: React.FC = () => {
               rows={3}
               value={newFaq.answer}
               onChange={e => setNewFaq({ ...newFaq, answer: e.target.value })}
-              placeholder="Contoh: Preview 10 foto terbaik dikirim dalam 3 hari. Full album dan video jadi dalam 3-4 minggu."
+              placeholder="Contoh: Rias pengantin memakan waktu sekitar 2-3 jam termasuk hijab/hairdo styling. Retouch standby saat resepsi."
               className="w-full px-3 py-2 text-sm rounded-lg bg-brand-surface border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"
             />
           </div>

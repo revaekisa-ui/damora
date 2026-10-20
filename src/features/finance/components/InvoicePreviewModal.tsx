@@ -37,7 +37,7 @@ export const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
 
   const effectiveTitle =
     formData.title ||
-    `Dokumentasi ${formData.projectType || 'Wedding'} - ${formData.clientName || 'Pengantin'}`;
+    `Layanan ${formData.projectType || 'Wedding Makeup'} - ${formData.clientName || 'Klien'}`;
 
   const primaryItem = formData.lineItems[0];
   const additionalItems = formData.lineItems.slice(1);
@@ -61,7 +61,7 @@ export const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
     projectName: effectiveTitle,
     clientName: formData.clientName || 'Pengantin',
     clientId: formData.clientId || '',
-    projectType: formData.projectType || 'Wedding',
+    projectType: formData.projectType || 'Wedding Makeup',
     packageName: primaryItem?.description || effectiveTitle,
     packageId: selectedPackage?.id || previewPackage?.id || '',
     durationSelection: formData.durationSelection,
@@ -89,6 +89,8 @@ export const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
     totalCost: formData.grandTotal,
     amountPaid: formData.amountPaid,
     paymentStatus: formData.paymentStatus,
+    dpProofUrl: formData.dpProofUrl || undefined,
+    paymentProofs: formData.paymentProofs,
     team: [],
     discountAmount: formData.discountAmount,
     transportCost: formData.transportCost,

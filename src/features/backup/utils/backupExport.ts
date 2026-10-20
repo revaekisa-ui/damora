@@ -508,7 +508,7 @@ const createSummaryWorksheet = (
 
 const createWorkbook = (context: BackupExportContext) => {
     const generatedAt = context.generatedAt ?? new Date();
-    const companyName = context.companyName || 'Vena';
+    const companyName = context.companyName || 'Filda Makeup';
     const workbook = new ExcelJS.Workbook();
     workbook.creator = companyName;
     workbook.created = generatedAt;
@@ -636,7 +636,7 @@ export const exportFullBackupToExcel = async (
     context: BackupExportContext = {},
 ): Promise<void> => {
     const workbook = buildFullBackupWorkbook(records, context);
-    await downloadWorkbook(workbook, `backup-lengkap-vena-${getExportDateStamp()}.xlsx`);
+    await downloadWorkbook(workbook, `backup-lengkap-filda-makeup-${getExportDateStamp()}.xlsx`);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1247,7 +1247,7 @@ export const exportBackupReportToExcel = async (
     context: BackupExportContext = {},
 ): Promise<void> => {
     const workbook = buildBackupReportWorkbook(records, context);
-    await downloadWorkbook(workbook, `laporan-vena-${getExportDateStamp()}.xlsx`);
+    await downloadWorkbook(workbook, `laporan-filda-makeup-${getExportDateStamp()}.xlsx`);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1289,7 +1289,7 @@ export const downloadBackupCsv = (
         filename,
         [
             [meta.label, new Date().toLocaleString('id-ID')],
-            ['Perusahaan', meta.companyName || 'Vena'],
+            ['Perusahaan', meta.companyName || 'Filda Makeup'],
             ['Jumlah baris', records.length],
             ['Total nilai kolom Rupiah', totalValue],
         ],
@@ -1421,7 +1421,7 @@ export const downloadFinanceCsv = (
         filename,
         [
             [meta.label, new Date().toLocaleString('id-ID')],
-            ['Perusahaan', meta.companyName || 'Vena'],
+            ['Perusahaan', meta.companyName || 'Filda Makeup'],
             ['Jumlah baris transaksi', records.filter((record) => record.dataset.table === 'transactions').length],
             ['Catatan', 'Nominal berupa angka murni (tanpa "Rp"). Tanggal dd/mm/yyyy.'],
         ],

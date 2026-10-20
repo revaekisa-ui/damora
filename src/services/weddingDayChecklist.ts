@@ -140,11 +140,10 @@ export async function renameChecklistCategory(projectId: string, oldCategory: st
 }
 
 export const DEFAULT_CHECKLIST_TEMPLATES = [
-  { category: 'Persiapan', items: ['Cek perlengkapan makeup', 'Cek gaun/jas pengantin', 'Cek bunga tangan', 'Cek cincin'] },
-  { category: 'Mempelai Pria', items: ['Foto detail aksesoris', 'Prosesi pemakaian jas', 'Foto bersama orang tua', 'Keberangkatan'] },
-  { category: 'Mempelai Wanita', items: ['Foto makeup', 'Prosesi pemakaian gaun', 'Foto bersama bridesmaids', 'First look'] },
-  { category: 'Foto Keluarga', items: ['Keluarga inti pria', 'Keluarga inti wanita', 'Keluarga besar', 'Sesi salaman'] },
-  { category: 'Catering', items: ['Cek menu utama', 'Cek pondokan', 'Cek kebersihan area makan', 'Cek ketersediaan piring/sendok'] },
+  { category: 'Persiapan Rias & Alat', items: ['Cek koper & perlengkapan makeup', 'Cek ring light & cermin', 'Cek aksesoris & mahkota', 'Cek ronce melati segar'] },
+  { category: 'Mempelai Wanita', items: ['Skin preparation (cleansing & hydrating)', 'Proses makeup & foundation', 'Hijab / Hairdo styling', 'Pemasangan gaun & aksesoris', 'Touch-up sebelum temu pengantin'] },
+  { category: 'Mempelai Pria & Keluarga', items: ['Grooming & bedak tipis mempelai pria', 'Makeup & hairdo ibu mempelai wanita', 'Makeup & hairdo ibu mempelai pria', 'Rias pagar ayu / bridesmaid'] },
+  { category: 'Sesi Acara & Resepsi', items: ['Standby saat akad / pemberkatan', 'Ganti busana & riasan resepsi', 'Retouch makeup resepsi', 'Pelepasan busana & aksesoris'] },
 ];
 
 export async function initializeDefaultChecklist(projectId: string, customTemplates?: { category: string; items: string[] }[]): Promise<WeddingDayChecklist[]> {

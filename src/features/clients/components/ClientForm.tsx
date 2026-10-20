@@ -39,6 +39,22 @@ const ClientForm: React.FC<ClientFormProps> = ({
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [avatarUploadError, setAvatarUploadError] = useState('');
 
+    const handleDpProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.currentTarget.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            setFormData(prev => ({ ...prev, dpProofFile: null }));
+            e.currentTarget.value = '';
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            setFormData(prev => ({ ...prev, dpProofFile: null }));
+            e.currentTarget.value = '';
+            return;
+        }
+        setFormData(prev => ({ ...prev, dpProofFile: file }));
+    };
+
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const input = e.currentTarget;
         const file = input.files?.[0];
@@ -184,11 +200,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 md:gap-x-8 gap-y-2">
                 {/* Left Column: Client & Project Info */}
                 <div className="space-y-5">
-                    <h4 className="text-sm md:text-base font-bold text-[#2A3547] border-b border-[#EAEFF4] pb-2">Informasi Pengantin</h4>
+                    <h4 className="text-sm md:text-base font-bold text-[#2A3547] border-b border-[#EAEFF4] pb-2">Informasi Klien</h4>
                     <div className="flex items-center gap-3">
                         <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border border-[#EAEFF4] bg-[#F4F6F9] flex items-center justify-center text-lg font-bold text-[#5A6A85]">
                             {formData.avatarUrl ? (
-                                <img src={formData.avatarUrl} alt="Foto profil pengantin" className="w-full h-full object-cover" />
+                                <img src={formData.avatarUrl} alt="Foto profil klien" className="w-full h-full object-cover" />
                             ) : (
                                 formData.clientName?.charAt(0).toUpperCase() || '?'
                             )}
@@ -204,7 +220,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="clientName" className="block text-xs text-[#5A6A85]">Nama Pengantin</label>
+                        <label htmlFor="clientName" className="block text-xs text-[#5A6A85]">Nama Klien</label>
                         <input
                             type="text"
                             id="clientName"
@@ -212,12 +228,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
                             value={formData.clientName}
                             onChange={handleFormChange}
                             className="w-full px-4 py-3 rounded-xl border border-[#EAEFF4] bg-white text-[#2A3547] focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all"
-                            placeholder="Masukkan nama pengantin"
+                            placeholder="Masukkan nama klien"
                             required={!!formData.date}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="clientType" className="block text-xs text-[#5A6A85]">Jenis Pengantin</label>
+                        <label htmlFor="clientType" className="block text-xs text-[#5A6A85]">Jenis Klien</label>
                         <select
                             id="clientType"
                             name="clientType"
@@ -274,9 +290,9 @@ const ClientForm: React.FC<ClientFormProps> = ({
                         />
                     </div>
 
-                    <h4 className="text-sm md:text-base font-bold text-[#2A3547] border-b border-[#EAEFF4] pb-2 pt-4">Informasi Acara Pernikahan</h4>
+                    <h4 className="text-sm md:text-base font-bold text-[#2A3547] border-b border-[#EAEFF4] pb-2 pt-4">Informasi Acara / Makeup</h4>
                     <div className="space-y-2">
-                        <label htmlFor="projectName" className="block text-xs text-[#5A6A85]">Nama Acara Pernikahan</label>
+                        <label htmlFor="projectName" className="block text-xs text-[#5A6A85]">Nama Acara</label>
                         <input
                             type="text"
                             id="projectName"
@@ -284,13 +300,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
                             value={formData.projectName}
                             onChange={handleFormChange}
                             className="w-full px-4 py-3 rounded-xl border border-[#EAEFF4] bg-white text-[#2A3547] focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent transition-all"
-                            placeholder="Masukkan nama Acara Pernikahan"
+                            placeholder="Masukkan nama acara"
                             required
                         />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label htmlFor="projectType" className="block text-xs text-[#5A6A85]">Jenis Acara Pernikahan</label>
+                            <label htmlFor="projectType" className="block text-xs text-[#5A6A85]">Jenis Acara</label>
                             <select
                                 id="projectType"
                                 name="projectType"
@@ -336,7 +352,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="address" className="block text-xs text-[#5A6A85]">Alamat Lengkap / Gedung</label>
+                        <label htmlFor="address" className="block text-xs text-[#5A6A85]">Alamat Lengkap / Venue</label>
                         <textarea
                             id="address"
                             name="address"
@@ -349,8 +365,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
                     </div>
                     <div className="space-y-2">
                         <label htmlFor="homeAddress" className="block text-xs text-[#5A6A85]">
-                            Alamat Rumah Pengantin
-                            <span className="ml-1.5 text-[10px] text-brand-accent font-semibold">(Untuk Pengiriman Cetakan)</span>
+                            Alamat Rumah Klien
+                            <span className="ml-1.5 text-[10px] text-brand-accent font-semibold">(Untuk Pengiriman Kelengkapan)</span>
                         </label>
                         <textarea
                             id="homeAddress"
@@ -644,6 +660,24 @@ const ClientForm: React.FC<ClientFormProps> = ({
                                 placeholder=" "
                             />
                         </div>
+                        {Number(formData.dp) > 0 && (
+                            <div className="space-y-2">
+                                <span className="block text-xs text-[#5A6A85]">Bukti Transfer DP (Opsional)</span>
+                                <label htmlFor="dp-proof-upload" className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#D5DCE6] bg-white px-4 py-2 text-xs font-semibold text-[#2A3547] transition-colors hover:bg-[#F4F6F9]">
+                                    <Upload className="h-4 w-4" />
+                                    {formData.dpProofFile || formData.dpProofUrl ? 'Ganti Bukti Transfer' : 'Upload Bukti Transfer'}
+                                </label>
+                                <input id="dp-proof-upload" type="file" accept="image/*" onChange={handleDpProofChange} className="sr-only" />
+                                <p className="text-[10px] text-[#5A6A85]">JPG, PNG, atau WebP. Maksimal 10 MB.</p>
+                                {formData.dpProofFile && <p className="break-all text-[11px] font-medium text-[#2A3547]">{formData.dpProofFile.name}</p>}
+                                {formData.dpProofUrl && !formData.dpProofFile && (
+                                    <a href={formData.dpProofUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-[11px] font-semibold text-brand-accent underline underline-offset-2">
+                                        <img src={formData.dpProofUrl} alt="Pratinjau bukti transfer DP" className="h-12 w-16 rounded-md border border-[#EAEFF4] object-cover" />
+                                        Lihat bukti transfer saat ini
+                                    </a>
+                                )}
+                            </div>
+                        )}
                         {Number(formData.dp) > 0 && (
                             <div className="space-y-2">
                                 <label htmlFor="dpDestinationCardId" className="text-xs text-[#5A6A85]">Kartu Tujuan</label>

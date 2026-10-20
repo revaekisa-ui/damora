@@ -63,6 +63,7 @@ const InvoicePage = lazy(() => import("../pages/finance/InvoicePage"));
 const ExcelMigrationPage = lazy(() =>
   import("../pages/migration/ExcelMigrationPage").then((m) => ({ default: m.ExcelMigrationPage }))
 );
+const AttireManagement = lazy(() => import("../pages/attire/AttireManagementPage"));
 
 export interface AuthenticatedRoutesProps {
   activeView: ViewType;
@@ -344,6 +345,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
               projectId: string,
               amount: number,
               destinationCardId: string,
+              proofUrl?: string,
             ) => {
               try {
                 const today = new Date().toISOString().split("T")[0];
@@ -389,6 +391,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
                           ...p,
                           amountPaid: newAmountPaid,
                           paymentStatus: newPaymentStatus,
+                          ...(proofUrl ? { paymentProofs: [...(p.paymentProofs || []), { url: proofUrl, amount, date: today }] } : {}),
                         }
                       : p,
                   ),
@@ -397,6 +400,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
                   await updateProjectInDb(projectId, {
                     amountPaid: newAmountPaid,
                     paymentStatus: newPaymentStatus,
+                    ...(proofUrl ? { paymentProofs: [...(proj.paymentProofs || []), { url: proofUrl, amount, date: today }] } : {}),
                   } as any);
                 } catch (error) {
                   console.error(
@@ -655,6 +659,20 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
             setTransactions={setTransactions}
             setTeamMembers={setTeamMembers}
             showNotification={(msg, type) => showNotification(msg)}
+          />
+        </Suspense>
+      );
+
+    case ViewType.ATTIRE_MANAGEMENT:
+      return (
+        <Suspense fallback={<LoadingState />}>
+          <AttireManagement
+            clients={clients}
+            projects={projects}
+            handleNavigation={handleNavigation}
+            initialAction={initialAction}
+            setInitialAction={setInitialAction}
+            showNotification={showNotification}
           />
         </Suspense>
       );

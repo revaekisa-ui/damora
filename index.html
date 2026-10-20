@@ -11,15 +11,15 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="VenaPictures">
+  <meta name="apple-mobile-web-app-title" content="FildaMakeup">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="description"
-    content="Vena Pictures — manajemen pengantin, keuangan, dan penjadwalan tim untuk bisnis wedding photography profesional.">
+    content="Filda Makeup — manajemen pengantin, keuangan, dan penjadwalan tim untuk bisnis jasa makeup artist (MUA) profesional.">
   <meta property="og:description"
-    content="Vena Pictures — manajemen pengantin, keuangan, dan penjadwalan tim untuk bisnis wedding photography profesional.">
-  <title>Vena Pictures</title>
-  <meta property="og:title" content="Vena Pictures">
+    content="Filda Makeup — manajemen pengantin, keuangan, dan penjadwalan tim untuk bisnis jasa makeup artist (MUA) profesional.">
+  <title>Filda Makeup</title>
+  <meta property="og:title" content="Filda Makeup">
   <!-- Tailwind CSS loaded via build process -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1033,7 +1033,11 @@
 
       .calendar-grid {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+      }
+
+      .calendar-grid > * {
+        min-width: 0;
       }
 
       /* Mobile calendar optimizations */

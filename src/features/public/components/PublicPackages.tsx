@@ -20,6 +20,8 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
 };
 
+const DEFAULT_HERO_IMAGE = '/assets/images/backgrounds/portal-pengantin-3.jpg';
+
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -595,6 +597,22 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
 
     const suggestedDp = totalProject * 0.3;
 
+    // Samakan sumber gambar header dengan form booking agar gambar banner yang
+    // sudah diunggah vendor selalu tampil (bukan hanya saat gambar "Portal
+    // Pengantin" diisi), dengan fallback gambar bawaan bila URL gagal dimuat.
+    const heroImageSrc =
+        userProfile.publicPageConfig?.backgroundImages?.bookingForm
+        || userProfile.publicPageConfig?.backgroundImages?.eventDetail
+        || userProfile.publicPageConfig?.backgroundImages?.portalPengantin
+        || DEFAULT_HERO_IMAGE;
+
+    const handleHeroImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        const target = e.currentTarget;
+        if (target.dataset.fallbackApplied === 'true' || target.src.endsWith(DEFAULT_HERO_IMAGE)) return;
+        target.dataset.fallbackApplied = 'true';
+        target.src = DEFAULT_HERO_IMAGE;
+    };
+
     return (
         isLoading ? (
             <div className="min-h-screen flex items-center justify-center">
@@ -888,7 +906,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                     <header className="text-center mb-16 widget-animate">
                         {/* Hero Image */}
                         <div className="w-full h-56 sm:h-72 md:h-96 mb-8 rounded-3xl overflow-hidden shadow-2xl border border-brand-border/60">
-                            <img src={userProfile.publicPageConfig?.backgroundImages?.portalPengantin || "/assets/images/backgrounds/portal-pengantin-3.jpg"} alt="Hero" className="w-full h-full object-cover" />
+                            <img src={heroImageSrc} onError={handleHeroImageError} alt="Hero" className="w-full h-full object-cover" />
                         </div>
                         {publicPageConfig?.introduction && (
                             <p className="text-base md:text-lg text-brand-text-secondary mt-4 max-w-3xl mx-auto leading-relaxed">{publicPageConfig.introduction}</p>
@@ -899,7 +917,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                         <section className="mb-8 md:mb-10 widget-animate -mx-4" style={{ animationDelay: '100ms' }}>
                             <div className="text-center mb-4">
                                 <h3 className="text-2xl font-bold text-brand-text-light">Pricelist</h3>
-                                <p className="text-sm text-brand-text-secondary mt-1">Pricelist {userProfile?.companyName || 'Vena Pictures'}</p>
+                                <p className="text-sm text-brand-text-secondary mt-1">Pricelist {userProfile?.companyName || 'Filda Makeup'}</p>
                             </div>
                             <div className="space-y-2 sm:space-y-3">
                                 {publicPageConfig?.galleryImages?.map((imgSrc, index) => (

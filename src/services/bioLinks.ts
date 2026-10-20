@@ -7,14 +7,14 @@ type BioLinkPageInput = Omit<BioLinkPage, 'id' | 'updated_at'>;
 
 export const DEFAULT_BIO_LINK_PAGE: BioLinkPageInput = {
   slug: 'link-bisnis',
-  title: 'Vena Pictures',
-  subtitle: 'Wedding & Prewedding Photography Portfolio',
+  title: 'Filda Makeup',
+  subtitle: 'Jasa Rias Pengantin & Makeup Artist (MUA) Profesional',
   whatsapp_number: '6281234567890',
   whatsapp_label: 'Konsultasi via WhatsApp',
   avatar_url: '/assets/images/logos/logoIcon.svg',
   cover_url: '/assets/images/backgrounds/detail-acara-pernikahan.jpg',
   links: [
-    { id: 'pricelist', title: 'Pricelist & Paket Foto', url: '#/public-packages' },
+    { id: 'pricelist', title: 'Pricelist & Paket Rias / MUA', url: '#/public-packages' },
     { id: 'booking', title: 'Formulir Booking Pernikahan', url: '#/public-booking' },
     { id: 'vendor-profile', title: 'Profil & Portofolio Vendor', url: '#/profile' },
   ],

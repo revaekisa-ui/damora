@@ -12,16 +12,19 @@ import {
   HistoryIcon, DollarSignIcon, FolderKanbanIcon, UsersIcon, TrendingUpIcon,
   TrendingDownIcon, CheckIcon, XIcon, cleanPhoneNumber
 } from '../../../constants';
-import { Sparkles, Zap, Plus, Settings, Gift, ChevronDown } from 'lucide-react';
+import { Sparkles, Zap, Plus, Settings, Gift, ChevronDown, ShirtIcon } from 'lucide-react';
 import { updateProject as updateProjectRow } from '../../../services/projects';
 import { createTransaction as createTransactionRow } from '../../../services/transactions';
 import { updatePocket as updatePocketRow } from '../../../services/pockets';
 import { updateTeamProjectPayments as updateTeamProjectPaymentsRow } from '../../../services/teamProjectPayments';
 import { createTeamPaymentRecord } from '../../../services/teamPaymentRecords';
+import { uploadDpProof } from '../../../services/storage';
 import { formatCurrency, normalizeTerminology } from '../utils/clientHelpers';
 import { useExtraChargeTemplates } from '../../../hooks/useExtraChargeTemplates';
 import ManageTemplatesModal from './ManageTemplatesModal';
+import { ClientAttireTab } from './ClientAttireTab';
 import { customizeUiText, useUiTextOverrides } from '../../../utils/uiTextCustomization';
+
 
 const ProjectManagement = lazy(() =>
   import('../../../pages/projects/ProjectsPage').then(module => ({ default: module.Projects })),
@@ -40,11 +43,12 @@ interface ClientDetailModalProps {
   onViewReceipt: (transaction: Transaction) => void;
   onViewInvoice: (project: Project) => void;
   handleNavigation: (view: ViewType, action?: NavigationAction) => void;
-  onRecordPayment: (projectId: string, amount: number, destinationCardId: string) => void;
+  onRecordPayment: (projectId: string, amount: number, destinationCardId: string, proofUrl?: string) => void | Promise<void>;
   cards: Card[];
   onSharePortal: (client: Client) => void;
   onDeleteProject: (projectId: string) => void;
   showNotification: (message: string) => void;
+  initialTab?: 'info' | 'events' | 'attire' | 'payments';
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
   setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   setCards: React.Dispatch<React.SetStateAction<Card[]>>;
@@ -66,46 +70,44 @@ export interface ExtraChargeTemplate {
 }
 
 export const DEFAULT_CHARGE_TEMPLATES: ExtraChargeTemplate[] = [
-  // Overtime
-  { name: 'Overtime Kru (1 Jam)', category: 'Overtime & Jam Tambahan', defaultAmount: 500000 },
-  { name: 'Overtime Kru (2 Jam)', category: 'Overtime & Jam Tambahan', defaultAmount: 900000 },
-  { name: 'Overtime Acara (Per Jam)', category: 'Overtime & Jam Tambahan', defaultAmount: 350000 },
-  { name: 'Overtime Standby / Jeda Waktu', category: 'Overtime & Jam Tambahan', defaultAmount: 250000 },
+  // Overtime & Standby
+  { name: 'Overtime Standby / Retouch Resepsi (1 Jam)', category: 'Overtime & Jam Tambahan', defaultAmount: 350000 },
+  { name: 'Overtime Standby / Retouch Resepsi (2 Jam)', category: 'Overtime & Jam Tambahan', defaultAmount: 600000 },
+  { name: 'Early Morning Charge (Subuh sebelum 05.00)', category: 'Overtime & Jam Tambahan', defaultAmount: 300000 },
+  { name: 'Standby Seharian (Akad sd Resepsi Malam)', category: 'Overtime & Jam Tambahan', defaultAmount: 750000 },
 
-  // Dokumentasi & Personil Ekstra
-  { name: 'Drone Aerial 4K / Pilot Drone', category: 'Dokumentasi & Personil', defaultAmount: 1200000 },
-  { name: 'Same Day Edit (SDE) Video Teaser', category: 'Dokumentasi & Personil', defaultAmount: 1500000 },
-  { name: 'Fotografer Tambahan (1 Orang)', category: 'Dokumentasi & Personil', defaultAmount: 750000 },
-  { name: 'Videografer Tambahan (1 Orang)', category: 'Dokumentasi & Personil', defaultAmount: 850000 },
-  { name: 'Lighting Setup & Gear Tambahan', category: 'Dokumentasi & Personil', defaultAmount: 500000 },
+  // Rias & Personil Ekstra
+  { name: 'Makeup Ibu / Besan (1 Orang)', category: 'Rias & Personil Ekstra', defaultAmount: 500000 },
+  { name: 'Makeup Bridesmaid / Keluarga (1 Orang)', category: 'Rias & Personil Ekstra', defaultAmount: 350000 },
+  { name: 'Hairdo / Hijab Do Tambahan (1 Orang)', category: 'Rias & Personil Ekstra', defaultAmount: 200000 },
+  { name: 'Asisten MUA Tambahan (1 Orang)', category: 'Rias & Personil Ekstra', defaultAmount: 400000 },
+  { name: 'Touch-up / Retouch Ganti Baju (Look ke-2)', category: 'Rias & Personil Ekstra', defaultAmount: 450000 },
 
-  // Cetak & Merchandise
-  { name: 'Upgrade Cetak Album 20x30 Exclusive & Box', category: 'Cetak & Album', defaultAmount: 600000 },
-  { name: 'Cetak Kanvas 24R + Frame Minimalis', category: 'Cetak & Album', defaultAmount: 450000 },
-  { name: 'USB Flashdisk Kayu Exclusive & Box', category: 'Cetak & Album', defaultAmount: 250000 },
-  { name: 'Mini Album Parents (2 Buku)', category: 'Cetak & Album', defaultAmount: 500000 },
-  { name: 'Cetak Pembesaran 16R + Bingkai', category: 'Cetak & Album', defaultAmount: 200000 },
+  // Aksesoris, Melati & Busana
+  { name: 'Ronce Melati Segar Pengantin', category: 'Aksesoris & Busana', defaultAmount: 450000 },
+  { name: 'Sewa Aksesoris / Siger / Mahkota Premium', category: 'Aksesoris & Busana', defaultAmount: 350000 },
+  { name: 'Softlens & Fake Lashes Premium', category: 'Aksesoris & Busana', defaultAmount: 150000 },
+  { name: 'Nail Art / Fake Nails Pengantin', category: 'Aksesoris & Busana', defaultAmount: 150000 },
 
   // Layanan & Operasional
-  { name: 'Live Streaming Acara (IG / YouTube)', category: 'Layanan & Operasional', defaultAmount: 1500000 },
+  { name: 'Sesi Trial / Test Makeup Sebelum Hari H', category: 'Layanan & Operasional', defaultAmount: 600000 },
   { name: 'Transport & Akomodasi Luar Kota', category: 'Layanan & Operasional', defaultAmount: 500000 },
-  { name: 'Biaya Izin Lokasi / Venue Charge', category: 'Layanan & Operasional', defaultAmount: 300000 },
-  { name: 'Fast Editing / Express Delivery (3 Hari)', category: 'Layanan & Operasional', defaultAmount: 750000 },
+  { name: 'Biaya Izin Venue / Lokasi Rias', category: 'Layanan & Operasional', defaultAmount: 300000 },
 
   // Bonus / Complimentary (Rp 0)
-  { name: 'Bonus Overtime 1 Jam (Free)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
-  { name: 'Bonus Cetak Foto Mini Frame (Free)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
-  { name: 'Bonus Flashdisk Tambahan (Free)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
-  { name: 'Complimentary Raw Files Access (Free)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
+  { name: 'Free Retouch Touch-Up Akad (Rp 0)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
+  { name: 'Free Pasang Softlens & Bulu Mata (Rp 0)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
+  { name: 'Free Aksesoris Hijab Basic (Rp 0)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
+  { name: 'Free Konsultasi & Skin Preparation (Rp 0)', category: 'Bonus / Free (Rp 0)', defaultAmount: 0, badge: 'Rp 0' },
 ];
 
 export const POPULAR_PRESET_CHIPS: { label: string; name: string; amount: number; isFree?: boolean }[] = [
-  { label: 'Overtime 1 Jam', name: 'Overtime Kru (1 Jam)', amount: 500000 },
-  { label: 'Drone 4K', name: 'Drone Aerial 4K / Pilot Drone', amount: 1200000 },
-  { label: 'SDE Video', name: 'Same Day Edit (SDE) Video Teaser', amount: 1500000 },
-  { label: 'Upgrade Album', name: 'Upgrade Cetak Album 20x30 Exclusive & Box', amount: 600000 },
-  { label: 'Bonus Overtime (Rp 0)', name: 'Bonus Overtime 1 Jam (Free)', amount: 0, isFree: true },
-  { label: 'Bonus Cetak (Rp 0)', name: 'Bonus Cetak Foto Mini Frame (Free)', amount: 0, isFree: true },
+  { label: 'Overtime 1 Jam', name: 'Overtime Standby / Retouch Resepsi (1 Jam)', amount: 350000 },
+  { label: 'Makeup Ibu / Besan', name: 'Makeup Ibu / Besan (1 Orang)', amount: 500000 },
+  { label: 'Makeup Bridesmaid', name: 'Makeup Bridesmaid / Keluarga (1 Orang)', amount: 350000 },
+  { label: 'Melati Segar', name: 'Ronce Melati Segar Pengantin', amount: 450000 },
+  { label: 'Free Retouch (Rp 0)', name: 'Free Retouch Touch-Up Akad (Rp 0)', amount: 0, isFree: true },
+  { label: 'Free Softlens (Rp 0)', name: 'Free Pasang Softlens & Bulu Mata (Rp 0)', amount: 0, isFree: true },
 ];
 
 // ─── Tiny reusable sub-components ───────────────────────────────────────────
@@ -236,15 +238,24 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
   onClose, onEditClient, onDeleteClient,
   onViewReceipt, onViewInvoice, handleNavigation,
   onRecordPayment, cards, onSharePortal, onDeleteProject,
-  showNotification, setProjects, setTransactions, setCards,
+  showNotification, initialTab, setProjects, setTransactions, setCards,
   teamMembers, teamProjectPayments, setTeamProjectPayments, teamPaymentRecords = [], pockets, setPockets,
 }) => {
   const uiTextOverrides = useUiTextOverrides();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'info' | 'events' | 'payments'>(() =>
-    projects.some(project => project.clientId === client.id) ? 'events' : 'info',
-  );
+  const [activeTab, setActiveTab] = useState<'info' | 'events' | 'attire' | 'payments'>(() => {
+    if (initialTab) return initialTab;
+    return projects.some(project => project.clientId === client.id) ? 'events' : 'info';
+  });
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [newPayments, setNewPayments] = useState<{ [key: string]: { amount: string; destinationCardId: string } }>({});
+  const [paymentProofFiles, setPaymentProofFiles] = useState<Record<string, File | null>>({});
+  const [savingPaymentProjectId, setSavingPaymentProjectId] = useState<string | null>(null);
   const [editingTeamPaymentId, setEditingTeamPaymentId] = useState<string | null>(null);
   const [teamPaymentEditDraft, setTeamPaymentEditDraft] = useState({ role: '', fee: '' });
   const [savingTeamPaymentId, setSavingTeamPaymentId] = useState<string | null>(null);
@@ -301,7 +312,7 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
     setNewPayments(prev => ({ ...prev, [projectId]: { ...current, [field]: value } }));
   };
 
-  const handleNewPaymentSubmit = (projectId: string) => {
+  const handleNewPaymentSubmit = async (projectId: string) => {
     const paymentData = newPayments[projectId];
     const project = clientProjects.find(p => p.id === projectId);
     if (paymentData && Number(paymentData.amount) > 0 && paymentData.destinationCardId && project) {
@@ -310,8 +321,19 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
         alert('Jumlah pembayaran melebihi sisa pembayaran.');
         return;
       }
-      onRecordPayment(projectId, amount, paymentData.destinationCardId);
-      setNewPayments(prev => ({ ...prev, [projectId]: { amount: '', destinationCardId: '' } }));
+      setSavingPaymentProjectId(projectId);
+      try {
+        const proofFile = paymentProofFiles[projectId];
+        const proofUrl = proofFile ? await uploadDpProof(proofFile) : undefined;
+        await onRecordPayment(projectId, amount, paymentData.destinationCardId, proofUrl);
+        setNewPayments(prev => ({ ...prev, [projectId]: { amount: '', destinationCardId: '' } }));
+        setPaymentProofFiles(prev => ({ ...prev, [projectId]: null }));
+      } catch (error) {
+        console.error('[ClientDetailModal] Failed to upload payment proof:', error);
+        showNotification('Gagal mengunggah bukti pembayaran. Pembayaran belum dicatat.');
+      } finally {
+        setSavingPaymentProjectId(null);
+      }
     } else {
       showNotification('Harap isi jumlah dan tujuan pembayaran dengan benar.');
     }
@@ -760,9 +782,10 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
 
   // ── tab config ────────────────────────────────────────────────────────────
 
-  const tabs: { key: 'info' | 'events' | 'payments'; label: string; icon: React.ReactNode }[] = [
+  const tabs: { key: 'info' | 'events' | 'attire' | 'payments'; label: string; icon: React.ReactNode }[] = [
     { key: 'info', label: customizeUiText('client.detail.tab.info', 'Informasi', uiTextOverrides), icon: <UsersIcon className="w-4 h-4" /> },
     { key: 'events', label: `${customizeUiText('client.detail.tab.events', 'Acara Pernikahan', uiTextOverrides)} (${totalProjects})`, icon: <FolderKanbanIcon className="w-4 h-4" /> },
+    { key: 'attire', label: 'Busana & Attire', icon: <ShirtIcon className="w-4 h-4" /> },
     { key: 'payments', label: customizeUiText('client.detail.tab.payments', 'Pembayaran & Transaksi', uiTextOverrides), icon: <HistoryIcon className="w-4 h-4" /> },
   ];
 
@@ -775,7 +798,7 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
 
       {/* ── HERO HEADER ─────────────────────────────────────────────────── */}
       <div
-        className="relative rounded-2xl overflow-hidden mb-5 shadow-lg shadow-blue-500/20 bg-cover bg-center"
+        className="relative rounded-2xl overflow-hidden mb-3 sm:mb-5 shadow-lg shadow-blue-500/20 bg-cover bg-center"
         style={{ backgroundImage: `url(${profile.publicPageConfig?.backgroundImages?.clientDetail || '/assets/images/backgrounds/detail-pengantin-4.jpg'})` }}
       >
         {/* Dark overlay to ensure text readability */}
@@ -785,9 +808,9 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
         <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
         <div className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
 
-        <div className="relative flex flex-col items-center gap-4 p-3.5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
+        <div className="relative flex flex-col items-center gap-2.5 p-2.5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
           {/* Avatar */}
-          <div className="w-24 h-24 sm:w-48 sm:h-48 rounded-2xl overflow-hidden bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-inner border border-white/30">
+          <div className="w-16 h-16 sm:w-48 sm:h-48 rounded-xl sm:rounded-2xl overflow-hidden bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-inner border border-white/30">
             {client.avatarUrl ? (
               <img src={client.avatarUrl} alt={`${client.name} avatar`} className="w-full h-full object-cover" />
             ) : (
@@ -796,10 +819,10 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
           </div>
 
           {/* Name + meta */}
-          <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-3 text-center sm:items-start sm:text-left">
+          <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:gap-3 text-center sm:items-start sm:text-left">
             <div className="w-full">
-              <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-white/80 mb-0.5">{customizeUiText('client.detail.title', 'Detail Pengantin', uiTextOverrides)}</p>
-              <h2 className="text-base sm:text-2xl font-black text-white leading-tight break-words">{client.name}</h2>
+              <p className="text-[8px] sm:text-[10px] font-semibold uppercase tracking-widest text-white/80 mb-0.5">{customizeUiText('client.detail.title', 'Detail Pengantin', uiTextOverrides)}</p>
+              <h2 className="text-sm sm:text-2xl font-black text-white leading-tight break-words">{client.name}</h2>
               <div className="mt-1 flex flex-wrap justify-center gap-1.5 sm:justify-start sm:gap-2">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-white/15 text-white text-[9px] sm:text-[10px] font-semibold border border-white/20">
                   Terdaftar {new Date(client.since).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -999,6 +1022,16 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
           </Suspense>
         )}
 
+        {activeTab === 'attire' && (
+          <div className="space-y-5 animate-fade-in">
+            <ClientAttireTab
+              client={client}
+              showNotification={showNotification}
+              handleNavigation={handleNavigation}
+            />
+          </div>
+        )}
+
         {/* ════════════════════════════════════════════════════════════════
             TAB: PAYMENTS
         ════════════════════════════════════════════════════════════════ */}
@@ -1088,7 +1121,7 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                       </div>
                     </div>
                     <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-shrink-0 sm:items-end">
-                      <div className="grid w-full min-w-0 grid-cols-2 gap-1 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+                      <div className="flex w-full min-w-0 flex-nowrap gap-1 sm:w-auto sm:flex-wrap sm:justify-end">
                         {remainingBalance > 0 ? (
                           <button
                             type="button"
@@ -1096,13 +1129,14 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                               ...prev,
                               [p.id]: prev[p.id] === 'payment' ? null : 'payment',
                             }))}
-                            className="inline-flex min-h-9 min-w-0 w-full items-center justify-center gap-1 rounded-lg bg-emerald-700 px-1.5 py-1 text-center text-[10px] font-bold leading-tight text-white transition-colors hover:bg-emerald-800 sm:w-auto sm:px-2.5 sm:text-[11px]"
+                            className="inline-flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-emerald-700 px-1 py-1 text-center text-[9px] font-bold leading-tight text-white transition-colors hover:bg-emerald-800 sm:flex-none sm:px-2.5 sm:text-[11px]"
                             aria-expanded={transactionFormOpen[p.id] === 'payment'}
                             aria-label="Catat pembayaran klien"
                             title="Catat pembayaran klien"
                           >
                             <Plus className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-                            {transactionFormOpen[p.id] === 'payment' ? 'Tutup' : 'Pembayaran'}
+                            <span className="sm:hidden">{transactionFormOpen[p.id] === 'payment' ? 'Tutup' : 'Bayar'}</span>
+                            <span className="hidden sm:inline">{transactionFormOpen[p.id] === 'payment' ? 'Tutup' : 'Pembayaran'}</span>
                           </button>
                         ) : (
                           <span className="inline-flex min-h-9 min-w-0 w-full items-center justify-center rounded-lg bg-emerald-50 px-2 py-1.5 text-center text-[10px] font-bold leading-tight text-emerald-700 sm:w-auto sm:px-2.5">
@@ -1115,13 +1149,14 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                             ...prev,
                             [p.id]: prev[p.id] === 'charges' ? null : 'charges',
                           }))}
-                          className="inline-flex min-h-9 min-w-0 w-full items-center justify-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-1.5 py-1 text-center text-[10px] font-bold leading-tight text-white transition-colors hover:bg-blue-700 sm:w-auto sm:px-2.5 sm:text-[11px]"
+                          className="inline-flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border border-blue-700 bg-blue-600 px-1 py-1 text-center text-[9px] font-bold leading-tight text-white transition-colors hover:bg-blue-700 sm:flex-none sm:px-2.5 sm:text-[11px]"
                           aria-expanded={transactionFormOpen[p.id] === 'charges'}
                           aria-label="Tambah biaya atau paket ke tagihan"
                           title="Tambah biaya atau paket ke tagihan klien"
                         >
                           <Plus className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-                          {transactionFormOpen[p.id] === 'charges' ? 'Tutup' : 'Tambah tagihan'}
+                            <span className="sm:hidden">{transactionFormOpen[p.id] === 'charges' ? 'Tutup' : 'Tagihan'}</span>
+                            <span className="hidden sm:inline">{transactionFormOpen[p.id] === 'charges' ? 'Tutup' : 'Tambah tagihan'}</span>
                         </button>
                         <button
                           type="button"
@@ -1141,13 +1176,14 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                               }));
                             }
                           }}
-                          className="col-span-2 inline-flex min-h-9 w-1/2 min-w-0 justify-self-center items-center justify-center gap-1 rounded-lg border border-red-700 bg-red-600 px-1.5 py-1 text-center text-[10px] font-bold leading-tight text-white transition-colors hover:bg-red-700 sm:col-span-1 sm:w-auto sm:justify-self-auto sm:px-2.5 sm:text-[11px]"
+                          className="inline-flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border border-red-700 bg-red-600 px-1 py-1 text-center text-[9px] font-bold leading-tight text-white transition-colors hover:bg-red-700 sm:flex-none sm:px-2.5 sm:text-[11px]"
                           aria-expanded={transactionFormOpen[p.id] === 'expense'}
                           aria-label="Catat pengeluaran acara"
                           title="Catat pengeluaran acara"
                         >
                           <TrendingDownIcon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-                          {transactionFormOpen[p.id] === 'expense' ? 'Tutup' : 'Pengeluaran'}
+                          <span className="sm:hidden">{transactionFormOpen[p.id] === 'expense' ? 'Tutup' : 'Biaya'}</span>
+                          <span className="hidden sm:inline">{transactionFormOpen[p.id] === 'expense' ? 'Tutup' : 'Pengeluaran'}</span>
                         </button>
                       </div>
                     </div>
@@ -1218,13 +1254,25 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                               ))}
                             </select>
                           </div>
+                          <div className="sm:col-span-10 space-y-1.5">
+                            <label htmlFor={`payment-proof-${p.id}`} className="text-xs font-semibold text-brand-text-light">Bukti Transfer (Opsional)</label>
+                            <input
+                              id={`payment-proof-${p.id}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={event => setPaymentProofFiles(prev => ({ ...prev, [p.id]: event.target.files?.[0] || null }))}
+                              className="w-full h-[42px] px-3 py-2 text-xs bg-white border border-gray-300 rounded-xl text-gray-700 file:mr-3 file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-xs file:font-semibold"
+                            />
+                          </div>
                           <div className="sm:col-span-2">
                             <button
-                              onClick={() => handleNewPaymentSubmit(p.id)}
+                              type="button"
+                              onClick={() => void handleNewPaymentSubmit(p.id)}
+                              disabled={savingPaymentProjectId === p.id}
                               className="w-full h-[42px] bg-gray-950 hover:bg-gray-800 text-white !py-0 flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
                             >
                               <CheckIcon className="w-3.5 h-3.5" />
-                              Catat
+                              {savingPaymentProjectId === p.id ? 'Mengunggah...' : 'Catat'}
                             </button>
                           </div>
                         </div>
@@ -1482,21 +1530,22 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                     <SectionTitle sub="Rincian tagihan dan riwayat pembayaran untuk acara ini.">
                       {customizeUiText('client.detail.section.transactions', 'Riwayat Transaksi', uiTextOverrides)}
                     </SectionTitle>
-                    <div className="grid grid-cols-2 gap-1 rounded-xl border border-brand-border bg-brand-bg p-1 sm:grid-cols-4">
+                    <div className="grid grid-cols-4 gap-1 rounded-xl border border-brand-border bg-brand-bg p-1">
                       {([
-                        { id: 'summary', label: 'Rincian' },
-                        { id: 'client', label: `Klien (${clientPaymentTransactions.length})` },
-                        { id: 'team', label: `Tim (${teamProjectPaymentsForEvent.length})` },
-                        { id: 'expenses', label: `Biaya acara (${eventExpenseTransactions.length})` },
+                        { id: 'summary', label: 'Rincian', mobileLabel: 'Rincian' },
+                        { id: 'client', label: `Klien (${clientPaymentTransactions.length})`, mobileLabel: `Klien ${clientPaymentTransactions.length}` },
+                        { id: 'team', label: `Tim (${teamProjectPaymentsForEvent.length})`, mobileLabel: `Tim ${teamProjectPaymentsForEvent.length}` },
+                        { id: 'expenses', label: `Biaya acara (${eventExpenseTransactions.length})`, mobileLabel: `Biaya ${eventExpenseTransactions.length}` },
                       ] as const).map(tab => (
                         <button
                           key={tab.id}
                           type="button"
                           onClick={() => setProjectPaymentHistoryTabs(prev => ({ ...prev, [p.id]: tab.id }))}
-                          className={`min-h-9 min-w-0 rounded-lg px-1.5 py-2 text-[10px] font-bold transition-colors sm:text-xs ${activePaymentHistoryTab === tab.id ? 'bg-brand-accent text-white shadow-sm' : 'text-brand-text-secondary hover:bg-white hover:text-brand-text-primary'}`}
+                          className={`min-h-9 min-w-0 whitespace-nowrap rounded-lg px-0.5 py-2 text-[9px] font-bold transition-colors sm:px-1.5 sm:text-xs ${activePaymentHistoryTab === tab.id ? 'bg-brand-accent text-white shadow-sm' : 'text-brand-text-secondary hover:bg-white hover:text-brand-text-primary'}`}
                           aria-pressed={activePaymentHistoryTab === tab.id}
                         >
-                          {tab.label}
+                          <span className="sm:hidden">{tab.mobileLabel}</span>
+                          <span className="hidden sm:inline">{tab.label}</span>
                         </button>
                       ))}
                     </div>
@@ -1506,7 +1555,7 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                   {activePaymentHistoryTab === 'summary' && (
                   <div className="bg-brand-surface rounded-2xl border border-brand-border shadow-sm overflow-hidden">
 
-                    <div className="p-4 sm:p-5 space-y-5">
+                    <div className="p-3 sm:p-5 space-y-3 sm:space-y-5">
 
                       {/* Cost breakdown */}
                       <details className="rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
@@ -1695,24 +1744,24 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                       </div>
 
                       {/* Action buttons */}
-                      <div className="client-detail-action-group flex items-center justify-end gap-2 pt-1">
+                      <div className="client-detail-action-group flex flex-nowrap items-center justify-end gap-1 sm:gap-2 pt-1">
                         {p.dpProofUrl && (
                           <a
                             href={p.dpProofUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-auto max-w-full button-secondary !py-2 !px-3 text-xs inline-flex items-center justify-center gap-1.5"
+                            className="w-auto max-w-full button-secondary !py-1.5 !px-2 sm:!py-2 sm:!px-3 text-[10px] sm:text-xs inline-flex items-center justify-center gap-1"
                           >
-                            <CreditCardIcon className="w-3.5 h-3.5 text-brand-accent" />
-                            Bukti DP
+                            <CreditCardIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-accent" />
+                            <span className="sm:hidden">Bukti DP</span><span className="hidden sm:inline">Bukti DP</span>
                           </a>
                         )}
                         <button
                           onClick={() => onViewInvoice(p)}
-                          className="w-auto max-w-full button-primary !py-2 !px-3 text-xs inline-flex items-center justify-center gap-1.5"
+                          className="w-auto max-w-full button-primary !py-1.5 !px-2 sm:!py-2 sm:!px-3 text-[10px] sm:text-xs inline-flex items-center justify-center gap-1"
                         >
-                          <FileTextIcon className="w-3.5 h-3.5" />
-                          Invoice PDF
+                          <FileTextIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span className="sm:hidden">Invoice</span><span className="hidden sm:inline">Invoice PDF</span>
                         </button>
                         <button
                           onClick={() => {
@@ -1720,12 +1769,12 @@ const ClientDetailModal: React.FC<ClientDetailModalProps> = ({
                               onDeleteProject(p.id);
                             }
                           }}
-                          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-red-200 px-3 py-2 text-[11px] font-bold text-red-700 transition-all hover:border-red-300 hover:bg-red-50 active:scale-95"
+                          className="inline-flex min-h-9 items-center justify-center gap-1 rounded-xl border border-red-200 px-2 py-1.5 text-[10px] sm:px-3 sm:py-2 sm:text-[11px] sm:gap-1.5 font-bold text-red-700 transition-all hover:border-red-300 hover:bg-red-50 active:scale-95"
                           title="Hapus Acara"
                           aria-label={`Hapus acara ${p.projectName}`}
                         >
-                          <Trash2Icon className="w-4 h-4" />
-                          <span>Hapus Acara</span>
+                          <Trash2Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="sm:hidden">Hapus</span><span className="hidden sm:inline">Hapus Acara</span>
                         </button>
                       </div>
                     </div>

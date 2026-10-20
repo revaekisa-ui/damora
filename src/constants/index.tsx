@@ -328,17 +328,17 @@ export const TERMINOLOGY_CHANGES: TerminologyChange[] = [
 ];
 
 // --- PENGATURAN: KONSTANTA DEFAULT (mempermudah input) ---
-/** Saran kategori pemasukan untuk layanan pernikahan */
-export const DEFAULT_INCOME_CATEGORIES = ['DP Acara Pernikahan', 'Pelunasan', 'Tambahan (Add-on)', 'Layanan Fisik/Produk', 'Lainnya'];
+/** Saran kategori pemasukan untuk layanan makeup */
+export const DEFAULT_INCOME_CATEGORIES = ['DP Rias & Makeup', 'Pelunasan', 'Tambahan (Add-on)', 'Layanan Produk/Fisik', 'Lainnya'];
 /** Saran kategori pengeluaran */
-export const DEFAULT_EXPENSE_CATEGORIES = ['Gaji Tim / Vendor', 'Operasional', 'Produksi Fisik', 'Transport', 'Perlengkapan', 'Lainnya'];
+export const DEFAULT_EXPENSE_CATEGORIES = ['Gaji Tim / MUA', 'Operasional', 'Produk & Kosmetik', 'Transport', 'Perlengkapan', 'Lainnya'];
 /** Saran jenis proyek */
-export const DEFAULT_PROJECT_TYPES = ['Pernikahan', 'Lamaran / Engagement', 'Corporate / Event', 'Ulang Tahun', 'Wisuda', 'Lainnya'];
-/** Saran jenis Acara Pernikahan internal (kalender) */
-export const DEFAULT_EVENT_TYPES = ['Meeting Pengantin', 'Persiapan Acara Pernikahan', 'Pelaksanaan (Hari H)', 'Evaluasi', 'Lainnya'];
+export const DEFAULT_PROJECT_TYPES = ['Wedding Makeup', 'Engagement', 'Wisuda / Graduation', 'Party / Photoshoot', 'Acara Lainnya'];
+/** Saran jenis Acara / Sesi internal (kalender) */
+export const DEFAULT_EVENT_TYPES = ['Meeting Klien / Konsultasi', 'Trial Makeup', 'Hari H / Pelaksanaan Rias', 'Retouch / Touch-up', 'Lainnya'];
 /** Saran kategori Package */
-export const DEFAULT_PACKAGE_CATEGORIES = ['Pernikahan', 'Lamaran / Engagement', 'Corporate / Event', 'Ulang Tahun', 'Wisuda', 'Lainnya'];
-/** Saran sumber Calon Pengantin (leads) */
+export const DEFAULT_PACKAGE_CATEGORIES = ['Wedding Makeup', 'Engagement', 'Wisuda / Graduation', 'Party / Photoshoot', 'Acara Lainnya'];
+/** Saran sumber Calon Klien (leads) */
 export const DEFAULT_LEAD_SOURCES = ['WhatsApp', 'Instagram', 'Website', 'Telepon', 'Referensi', 'Form Saran', 'Lainnya'];
 /** Saran status proyek beserta sub-status (id diisi di komponen) */
 export const DEFAULT_PROJECT_STATUS_SUGGESTIONS: {
@@ -433,10 +433,11 @@ export const DEFAULT_PROJECT_STATUS_SUGGESTIONS: {
 // --- DEFAULT TEMPLATES (untuk pengisian awal di Settings) ---
 export const DEFAULT_BRIEFING_TEMPLATE = `Hai Tim,
 
-Berikut briefing untuk acara ini. Mohon diperhatikan:
-- Cek detail acara di link di atas
-- Pastikan deadline dan deliverable jelas
-- Jika ada pertanyaan, hubungi admin
+Berikut briefing jadwal rias & makeup untuk acara ini. Mohon diperhatikan:
+- Cek detail waktu standby & lokasi di link di atas
+- Pastikan perlengkapan makeup/hairdo lengkap dan higienis
+- Tiba di lokasi tepat waktu sebelum rundown dimulai
+- Jika ada pertanyaan atau kendala, hubungi admin
 
 Terima kasih!`;
 
@@ -461,22 +462,22 @@ export const CHAT_TEMPLATES: ChatTemplate[] = [
     {
         id: 'welcome',
         title: 'Ucapan Selamat Datang',
-        template: 'Halo {clientName}, selamat! Booking Anda untuk Acara Pernikahan "{projectName}" telah kami konfirmasi. Kami sangat senang bisa bekerja sama dengan Anda! Tim kami akan segera menghubungi Anda untuk langkah selanjutnya. Terima kasih!'
+        template: 'Halo {clientName}, selamat! Booking Anda untuk layanan rias Acara Pernikahan "{projectName}" telah kami konfirmasi bersama {companyName}. Kami sangat senang bisa menjadi bagian dari hari bahagia Anda! Tim kami akan segera berkoordinasi untuk persiapan selanjutnya. Terima kasih!'
     },
     {
         id: 'next_steps',
         title: 'Langkah Selanjutnya',
-        template: 'Hai {clientName}, menindaklanjuti konfirmasi Acara Pernikahan "{projectName}", berikut langkah selanjutnya: [jadwal meeting, survey lokasi, dll]. Mohon informasikan waktu terbaik Anda. Terima kasih.'
+        template: 'Hai {clientName}, menindaklanjuti konfirmasi Acara Pernikahan "{projectName}", berikut langkah selanjutnya: [konsultasi tema riasan/hijab, jadwal fitting/trial makeup, dll]. Mohon informasikan waktu terbaik Anda. Terima kasih.'
     },
     {
         id: 'progress_update',
         title: 'Update Progres Pengerjaan',
-        template: 'Halo {clientName},\n\nKami ingin memberikan update progress Acara Pernikahan Anda:\n\nAcara Pernikahan: {projectName}\nTotal Biaya: {totalCost}\nTerbayar: {amountPaid}\nSisa Pembayaran: {sisaTagihan}\n\nAnda dapat memantau progres detailnya melalui portal pengantin di sini:\n{portalLink}\n\nTerima kasih!'
+        template: 'Halo {clientName},\n\nKami ingin memberikan update progress persiapan rias Acara Pernikahan Anda:\n\nAcara Pernikahan: {projectName}\nTotal Biaya: {totalCost}\nTerbayar: {amountPaid}\nSisa Pembayaran: {sisaTagihan}\n\nAnda dapat memantau rincian paket dan persiapan melalui portal pengantin di sini:\n{portalLink}\n\nTerima kasih!'
     },
     {
         id: 'schedule_confirmation',
         title: 'Konfirmasi Jadwal & Lokasi',
-        template: 'Halo {clientName},\n\nKami ingin mengkonfirmasi jadwal Acara Pernikahan Anda:\n\nAcara Pernikahan: {projectName}\nLokasi: {location}\n\nMohon konfirmasinya jika sudah sesuai. Terima kasih!'
+        template: 'Halo {clientName},\n\nKami ingin mengkonfirmasi jadwal dan lokasi pelaksanaan rias Acara Pernikahan Anda:\n\nAcara Pernikahan: {projectName}\nLokasi: {location}\n\nMohon konfirmasinya jika sudah sesuai. Terima kasih!'
     },
     {
         id: 'payment_reminder',
@@ -490,13 +491,13 @@ export const CHAT_TEMPLATES: ChatTemplate[] = [
     },
     {
         id: 'survey_reminder',
-        title: 'Pengingat Survey Lokasi',
-        template: 'Hai {clientName}, untuk Acara Pernikahan "{projectName}", kami ingin mengatur jadwal survey lokasi. Kapan waktu yang cocok untuk Anda? Terima kasih.'
+        title: 'Jadwal Konsultasi & Trial/Fitting',
+        template: 'Hai {clientName}, untuk Acara Pernikahan "{projectName}", kami ingin mengatur jadwal konsultasi konsep rias dan fitting/trial makeup. Kapan waktu yang cocok untuk Anda? Terima kasih.'
     },
     {
         id: 'delivery_ready',
-        title: 'Hasil Siap Diambil / Selesai',
-        template: 'Halo {clientName}, hasil kerja untuk "{projectName}" sudah siap! Silakan cek laporan/link yang kami kirim. Jika ada revisi atau tanggapan, beritahu kami dalam 7 hari. Terima kasih!'
+        title: 'Layanan Selesai & Testimoni',
+        template: 'Halo {clientName}, seluruh rangkaian layanan rias dan pendampingan untuk "{projectName}" telah selesai dilaksanakan! Terima kasih atas kepercayaan Anda kepada {companyName}. Jika berkenan, mohon berikan ulasan atau testimoni melalui link portal berikut. Terima kasih banyak!'
     }
 ];
 

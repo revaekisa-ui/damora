@@ -845,8 +845,8 @@ export const Packages: React.FC<PackagesProps> = ({
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `${pkg.name} - ${profile?.companyName || 'Vena Pictures'}`,
-                    text: `Lihat paket ${pkg.name} dari ${profile?.companyName || 'Vena Pictures'}`,
+                    title: `${pkg.name} - ${profile?.companyName || 'Filda Makeup'}`,
+                    text: `Lihat paket ${pkg.name} dari ${profile?.companyName || 'Filda Makeup'}`,
                     url: shareUrl,
                 });
                 showNotification(`Paket "${pkg.name}" berhasil dibagikan!`);
@@ -1080,7 +1080,7 @@ export const Packages: React.FC<PackagesProps> = ({
                         <span>{text('title', 'Katalog Paket & Layanan')}</span>
                     </h2>
                     <p className="text-[11px] sm:text-xs text-[#5A6A85] mt-0.5 line-clamp-2 sm:line-clamp-none">
-                        {text('subtitle', 'Kelola paket dokumentasi, opsi durasi dinamis, add-on, dan portofolio penawaran harga pengantin')}
+                        {text('subtitle', 'Kelola paket rias & makeup, opsi durasi dinamis, add-on, dan portofolio penawaran harga pengantin')}
                     </p>
                 </div>
 

@@ -877,7 +877,7 @@ const ClientReports: React.FC<ClientReportsProps> = ({
         } else if (activeStatModal === 'top-team') {
             modalContent = (
                 <div className="space-y-3">
-                    <p className="text-xs text-brand-text-secondary">Kinerja anggota tim fotografi, videografi, dan kru dengan jumlah job dan total pembayaran honor terbanyak.</p>
+                    <p className="text-xs text-brand-text-secondary">Kinerja anggota tim rias, MUA, dan kru dengan jumlah job dan total pembayaran honor terbanyak.</p>
                     <div className="overflow-x-auto rounded-xl border border-brand-border/50">
                         <table className="w-full text-sm">
                             <thead className="bg-brand-bg/80 text-xs text-brand-text-secondary">
@@ -1684,7 +1684,7 @@ const ClientReports: React.FC<ClientReportsProps> = ({
                                 Rekap & Data: Kinerja & Pembayaran Honor Tim
                             </h3>
                             <p className="text-xs text-brand-text-secondary mt-0.5">
-                                Monitoring beban job kru fotografer/videografer, honor yang telah dibayarkan, dan sisa honor tertunda.
+                                Monitoring beban job kru MUA/stylist, honor yang telah dibayarkan, dan sisa honor tertunda.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">

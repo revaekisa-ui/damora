@@ -62,7 +62,7 @@ export const PackageTable: React.FC<PackageTableProps> = ({
                                 {text('price', 'Harga / Variasi')}
                             </th>
                             <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-[#5A6A85]">
-                                {text('team', 'Tim Dokumentasi')}
+                                {text('team', 'Tim Rias / MUA')}
                             </th>
                             <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-[#5A6A85] text-right">
                                 {text('actions', 'Aksi')}

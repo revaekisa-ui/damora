@@ -223,7 +223,7 @@ const InvoiceListTable: React.FC<InvoiceListTableProps> = ({
             <tr>
               <Th label="No. Dokumen" field="number" sortField={sortField} sortDir={sortDir} onSort={onSort} className="px-2 lg:px-4" />
               <Th label="Jenis" sortField={sortField} sortDir={sortDir} onSort={onSort} className="px-2 lg:px-4" />
-              <Th label="Pengantin" field="clientName" sortField={sortField} sortDir={sortDir} onSort={onSort} className="px-2 lg:px-4" />
+              <Th label="Klien" field="clientName" sortField={sortField} sortDir={sortDir} onSort={onSort} className="px-2 lg:px-4" />
               <Th label="Acara" sortField={sortField} sortDir={sortDir} onSort={onSort} className="hidden lg:table-cell px-2 lg:px-4" />
               <Th label="Tanggal" field="date" sortField={sortField} sortDir={sortDir} onSort={onSort} className="px-2 lg:px-4" />
               <Th label="Jumlah" field="amount" sortField={sortField} sortDir={sortDir} onSort={onSort} className="text-right px-2 lg:px-4" />

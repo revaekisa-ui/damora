@@ -499,7 +499,7 @@ const buildClientExportPayload = (
     context: ExportContext = {},
 ): ClientExportPayload => {
     const generatedAt = new Date();
-    const companyName = context.companyName || 'Vena';
+    const companyName = context.companyName || 'Filda Makeup';
     const { contractsByProjectId, contractsByClientId } = buildContractLookup(context.contracts || []);
 
     const projectEntries = clients.flatMap((client) => client.projects.map((project) => ({ client, project })));

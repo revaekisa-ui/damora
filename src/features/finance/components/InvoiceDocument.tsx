@@ -337,7 +337,7 @@ const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
         {/* Footer / Signatures */}
         <div className="invoice-signature-section avoid-break grid grid-cols-3 gap-2 sm:gap-6 pt-2.5 sm:pt-4 border-t border-slate-100 print:border-slate-200">
           <div className="col-span-2 flex items-end justify-center pb-1 sm:pb-2">
-            <p className="invoice-footer-note text-[6.5px] sm:text-[9px] text-slate-400 text-center uppercase tracking-widest font-black">Dicetak Otomatis Vena Pictures</p>
+            <p className="invoice-footer-note text-[6.5px] sm:text-[9px] text-slate-400 text-center uppercase tracking-widest font-black">Dicetak Otomatis Filda Makeup</p>
           </div>
           <div className="text-center flex flex-col items-center">
             <p className="invoice-section-label text-[7px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 sm:mb-2">Hormat Kami,</p>
@@ -357,6 +357,18 @@ const InvoiceDocument: React.FC<InvoiceDocumentProps> = ({
           </div>
         </div>
       </div>
+
+      {[...(project.dpProofUrl ? [{ url: project.dpProofUrl, label: 'Bukti Transfer DP' }] : []), ...(project.paymentProofs || []).map((proof, index) => ({
+        url: proof.url,
+        label: `Bukti Pembayaran ${index + 1}${proof.amount ? ` - ${formatCurrency(proof.amount)}` : ''}`,
+      }))].map((proof, index) => (
+        <section key={proof.url} className={`invoice-proof-appendix mx-auto w-full max-w-[800px] border-t border-slate-200 bg-white p-4 sm:p-6 print:border-0 ${index > 0 || project.dpProofUrl ? 'print:break-before-page' : ''}`}>
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700 print:text-black">{proof.label}</h3>
+          <a href={proof.url} target="_blank" rel="noopener noreferrer" className="block">
+            <img src={proof.url} alt={proof.label} className="mx-auto max-h-[900px] max-w-full object-contain" crossOrigin="anonymous" />
+          </a>
+        </section>
+      ))}
 
       <style dangerouslySetInnerHTML={{
         __html: `

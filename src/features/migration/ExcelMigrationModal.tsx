@@ -219,10 +219,10 @@ export const ExcelMigrationModal: React.FC<ExcelMigrationModalProps> = ({
             const savedClient = await clientService.add(clientData);
             if ((c as any).projectName || (c as any).projectType || (c as any).date || (c as any).location || (c as any).packageName) {
               const projectPayload = {
-                projectName: (c as any).projectName || `${savedClient.name} Wedding`,
+                projectName: (c as any).projectName || `${savedClient.name} Wedding Makeup`,
                 clientName: savedClient.name,
                 clientId: savedClient.id,
-                projectType: (c as any).projectType || 'Wedding',
+                projectType: (c as any).projectType || 'Wedding Makeup',
                 packageName: (c as any).packageName || 'Custom Package',
                 date: (c as any).date || savedClient.since || new Date().toISOString().split('T')[0],
                 location: (c as any).location || savedClient.address || '',
@@ -543,7 +543,7 @@ export const ExcelMigrationModal: React.FC<ExcelMigrationModalProps> = ({
                       {selectedType === 'team_payments' && <Check className="w-4 h-4 text-blue-600" />}
                     </div>
                     <p className="text-xs text-slate-500">
-                      Honor fotografer, videografer, asisten, status lunas/belum, nomor rekening, dan acara.
+                      Honor MUA, stylist, asisten, status lunas/belum, nomor rekening, dan acara.
                     </p>
                   </div>
                 </div>
@@ -909,7 +909,7 @@ export const ExcelMigrationModal: React.FC<ExcelMigrationModalProps> = ({
                   Import Data Berhasil!
                 </h3>
                 <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  Semua data dari file Excel Anda telah sukses dimasukkan ke dalam sistem manajemen Vena Pictures.
+                  Semua data dari file Excel Anda telah sukses dimasukkan ke dalam sistem manajemen Filda Makeup.
                 </p>
               </div>
 

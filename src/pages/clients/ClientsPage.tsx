@@ -81,7 +81,7 @@ interface ClientsProps {
     setPromoCodes: React.Dispatch<React.SetStateAction<PromoCode[]>>;
     onSignInvoice: (projectId: string, signatureDataUrl: string) => void;
     onSignTransaction: (transactionId: string, signatureDataUrl: string) => void;
-    onRecordPayment: (projectId: string, amount: number, destinationCardId: string) => Promise<void>;
+    onRecordPayment: (projectId: string, amount: number, destinationCardId: string, proofUrl?: string) => Promise<void>;
     addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
     totals: {
         projects: number;
@@ -166,6 +166,7 @@ export const Clients: React.FC<ClientsProps> = ({
     // Detail & Document States
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [clientForDetail, setClientForDetail] = useState<Client | null>(null);
+    const [detailInitialTab, setDetailInitialTab] = useState<'info' | 'events' | 'attire' | 'payments' | undefined>(undefined);
     const [billingChatModal, setBillingChatModal] = useState<Client | null>(null);
     const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
@@ -282,10 +283,15 @@ export const Clients: React.FC<ClientsProps> = ({
 
     // Handle incoming deep navigation actions
     useEffect(() => {
-        if (initialAction && initialAction.type === 'VIEW_CLIENT_DETAILS' && initialAction.id) {
+        if (initialAction && (initialAction.type === 'VIEW_CLIENT_DETAILS' || initialAction.type === 'VIEW') && initialAction.id) {
             const clientToView = clients.find(c => c.id === initialAction.id);
             if (clientToView) {
                 setClientForDetail(clientToView);
+                if (initialAction.tab && ['info', 'events', 'attire', 'payments'].includes(initialAction.tab)) {
+                    setDetailInitialTab(initialAction.tab as any);
+                } else {
+                    setDetailInitialTab(undefined);
+                }
                 setIsDetailModalOpen(true);
             }
             setInitialAction(null);
@@ -596,6 +602,7 @@ export const Clients: React.FC<ClientsProps> = ({
                     transactions={transactions}
                     packages={packages}
                     addOns={addOns}
+                    initialTab={detailInitialTab}
                     onClose={() => setIsDetailModalOpen(false)}
                     onEditClient={client => {
                         const clientProjects = projects.filter(p => p.clientId === client.id);

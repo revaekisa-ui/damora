@@ -26,7 +26,7 @@ export function generateExcelTemplate(type: MigrationDataType = 'all'): void {
         'Lokasi (Kota)': 'Serang',
         'Alamat Lengkap / Gedung': 'Hotel Aston, Serang',
         'Status Pengantin': 'Aktif',
-        'Catatan': 'Tema adat Sunda modern, butuh 2 videografer & 2 fotografer'
+        'Catatan': 'Tema adat Sunda modern, butuh 2 MUA & 1 asisten'
       },
       {
         'Nama Pengantin (Wajib)': 'Dimas & Anisa',
@@ -110,15 +110,15 @@ export function generateExcelTemplate(type: MigrationDataType = 'all'): void {
   if (type === 'packages' || type === 'all') {
     const packagesData = [
       {
-        'Nama Paket (Wajib)': 'Wedding Gold',
+        'Nama Paket (Wajib)': 'Wedding Makeup Gold',
         'Harga (IDR) (Wajib)': 15000000,
         'Wilayah': 'Serang',
-        'Kategori': 'Wedding',
-        'Fotografer': '2 Orang',
-        'Videografer': '1 Orang',
-        'Waktu Pengerjaan': '30 Hari Kerja',
-        'Item Digital (Pisahkan dengan koma)': '300 Edited Photos, All Original Files',
-        'Item Fisik (Pisahkan dengan koma)': '1 Album Photobook 20x30, 1 Frame 40x60'
+        'Kategori': 'Wedding Makeup',
+        'Tim Rias': '2 MUA',
+        'Asisten': '1 Orang',
+        'Waktu Pengerjaan': '14 Hari Kerja',
+        'Item Digital (Pisahkan dengan koma)': 'Foto Akad & Resepsi High-Res, Video Teaser',
+        'Item Fisik (Pisahkan dengan koma)': 'Free Pasang Melati, Touch-up Standby'
       }
     ];
 
@@ -131,7 +131,7 @@ export function generateExcelTemplate(type: MigrationDataType = 'all'): void {
   }
 
   const guideData = [
-    { 'PANDUAN': 'PETUNJUK IMPORT EXCEL Vena Pictures' },
+    { 'PANDUAN': 'PETUNJUK IMPORT EXCEL Filda Makeup' },
     { 'PANDUAN': '1. Sheet "Data Pengantin": isi Nama Pengantin, Email, Nomor HP, Status Pengantin (Aktif/Calon Pengantin/Tidak Aktif/Hilang), Tipe Pengantin (Langsung/Vendor), dan Alamat.' },
     { 'PANDUAN': '2. Sheet "Data Keuangan Transaksi": isi Tanggal, Keterangan, Tipe (Pemasukan/Pengeluaran), Nominal, Kategori, dan Metode Pembayaran.' },
     { 'PANDUAN': '3. Sheet "Keuangan Tim & Honor": isi Nama Tim, Peran, Nomor HP, Nomor Rekening, Total Honor, dan Status Bayar.' },
@@ -343,8 +343,8 @@ export function parseClientsFromSheet(rows: any[]): ParseResult<Partial<Client>>
     const clientType: ClientType = clientTypeRaw.includes('vendor') ? ClientType.VENDOR : ClientType.DIRECT;
 
     const notes = normalized['catatan tambahan'] || normalized['catatan'] || normalized['notes'] || '';
-    const projectName = normalized['nama acara'] || normalized['nama acara pernikahan'] || normalized['nama proyek'] || normalized['project name'] || `${String(name).trim()} Wedding`;
-    const projectType = normalized['jenis acara'] || normalized['project type'] || normalized['jenis pengantin'] || 'Wedding';
+    const projectName = normalized['nama acara'] || normalized['nama acara pernikahan'] || normalized['nama proyek'] || normalized['project name'] || `${String(name).trim()} Wedding Makeup`;
+    const projectType = normalized['jenis acara'] || normalized['project type'] || normalized['jenis pengantin'] || 'Wedding Makeup';
     const packageName = normalized['nama paket'] || normalized['package name'] || normalized['package'] || 'Custom Package';
     const projectDate = parseRawDate(
       normalized['tanggal acara'] ||

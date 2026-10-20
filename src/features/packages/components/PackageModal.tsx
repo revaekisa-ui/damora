@@ -301,13 +301,13 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-[#2A3547] mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
                                     <Users className="w-3.5 h-3.5 text-brand-accent" />
-                                    {text('field.team', 'Tim Dokumentasi')}
+                                    {text('field.team', 'Tim Rias / MUA')}
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.photographers}
                                     onChange={e => setFormData((p: any) => ({ ...p, photographers: e.target.value }))}
-                                    placeholder="Contoh: 2 Fotografer & 1 Videografer"
+                                    placeholder="Contoh: 1 MUA Utama & 1 Asisten Hairdo"
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAEFF4] bg-[#F4F6F9] focus:bg-white focus:border-brand-accent text-sm text-[#2A3547] outline-none transition-all placeholder:text-[#5A6A85]/50"
                                 />
                             </div>
@@ -438,7 +438,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                                                     type="text"
                                                     value={opt.photographers || ''}
                                                     onChange={e => handleDurationChange(index, 'photographers', e.target.value)}
-                                                    placeholder="Contoh: 1 Fotografer saja"
+                                                    placeholder="Contoh: 1 MUA Utama saja"
                                                     className="w-full px-3 py-2 rounded-lg border border-[#EAEFF4] bg-[#F4F6F9] outline-none focus:bg-white focus:border-brand-accent"
                                                 />
                                             </div>
@@ -478,7 +478,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                                     const lines = e.target.value.split('\n');
                                     setFormData((prev: any) => ({ ...prev, digitalItems: lines }));
                                 }}
-                                placeholder={`Semua file foto edit warna\nVideo Teaser 1 Menit\nVideo Full Highlight\nFlashdisk 64GB`}
+                                placeholder={`Makeup Akad & Resepsi\nHijab Do / Hairdo Pengantin\nTouch-up / Retouch Standby\nFree Pasang Melati & Softlens`}
                                 className="w-full px-4 py-3 rounded-xl border border-[#EAEFF4] bg-[#F4F6F9] focus:bg-white focus:border-green-600 focus:shadow-[0_0_0_3px_rgba(22,163,74,0.12)] text-xs sm:text-sm text-[#2A3547] outline-none transition-all resize-none leading-relaxed"
                             />
                         </div>
@@ -487,8 +487,8 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                         <div className="pt-4 border-t border-[#EAEFF4] space-y-3">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h4 className="font-bold text-sm text-[#2A3547]">{text('physical.title', 'Vendor / Allpackage & Fisik')}</h4>
-                                    <p className="text-xs text-[#5A6A85]">Item cetak fisik, album, atau vendor rekanan jika paket all-in.</p>
+                                    <h4 className="font-bold text-sm text-[#2A3547]">{text('physical.title', 'Vendor Pendukung & Perlengkapan')}</h4>
+                                    <p className="text-xs text-[#5A6A85]">Item perlengkapan fisik, ronce melati, aksesoris busana, atau vendor rekanan.</p>
                                 </div>
                                 <button
                                     type="button"
@@ -496,7 +496,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                                     className="py-1 px-3 rounded-lg bg-brand-accent/10 text-brand-accent hover:bg-brand-accent/20 font-semibold text-xs flex items-center gap-1 transition-colors"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
-                                    <span>Tambah Vendor</span>
+                                    <span>Tambah Item</span>
                                 </button>
                             </div>
 
@@ -510,7 +510,7 @@ export const PackageModal: React.FC<PackageModalProps> = ({
                                             type="text"
                                             value={item.name}
                                             onChange={e => handlePhysicalItemChange(idx, 'name', e.target.value)}
-                                            placeholder="Contoh: Album Magazine 20x30, Cetak Canvas 40x60, Vendor MUA..."
+                                            placeholder="Contoh: Ronce Melati Segar, Mahkota/Siger, Busana Akad, dll..."
                                             className="flex-1 px-3.5 py-2 rounded-xl border border-[#EAEFF4] bg-[#F4F6F9] focus:bg-white focus:border-brand-accent text-xs sm:text-sm text-[#2A3547] outline-none transition-all"
                                         />
                                         <button

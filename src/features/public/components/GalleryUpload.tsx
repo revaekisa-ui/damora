@@ -157,20 +157,24 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ userProfile, showNotifica
         loadGalleries();
     }, []);
 
-    const loadGalleries = async () => {
+    const loadGalleries = async (options?: { silent?: boolean }) => {
+        const silent = options?.silent === true;
         try {
-            setIsLoading(true);
+            if (!silent) setIsLoading(true);
             const data = await listGalleries();
             setGalleries(data);
         } catch (error) {
             console.error('Error loading galleries:', error);
-            showNotification('Gagal memuat Pricelist');
+            if (!silent) showNotification('Gagal memuat Pricelist');
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     };
 
-    useSupabaseRealtimeRefresh('dashboard-galleries', ['galleries'], loadGalleries);
+    // Refresh dari realtime harus senyap: kalau isLoading ikut dinyalakan,
+    // seluruh halaman (termasuk modal edit) ter-unmount lalu muncul lagi,
+    // sehingga tampilan berkedip-kedip saat upload/hapus foto.
+    useSupabaseRealtimeRefresh('dashboard-galleries', ['galleries'], () => loadGalleries({ silent: true }));
 
     const validateDraftImageFiles = (files: File[]) => files.filter(file => {
         if (file.size > 10 * 1024 * 1024) {
@@ -322,25 +326,26 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ userProfile, showNotifica
     const handleDeleteGalleryImage = async (galleryId: string, imageId: string) => {
         if (!confirm('Yakin ingin menghapus gambar ini?')) return;
 
+        // Hapus langsung dari tampilan agar terasa instan, bukan menunggu
+        // proses server selesai.
+        const previousGalleries = galleries;
+        const previousSelectedGallery = selectedGallery;
+        const withoutImage = <T extends { images: Gallery['images'] }>(gallery: T): T => ({
+            ...gallery,
+            images: gallery.images.filter(img => img.id !== imageId)
+        });
+
+        setGalleries(prev => prev.map(g => (g.id === galleryId ? withoutImage(g) : g)));
+        setSelectedGallery(prev => (prev && prev.id === galleryId ? withoutImage(prev) : prev));
+
         try {
             setIsSubmitting(true);
             await deleteGalleryImage(galleryId, imageId);
-
-            setGalleries(prev => prev.map(g =>
-                g.id === galleryId
-                    ? { ...g, images: g.images.filter(img => img.id !== imageId) }
-                    : g
-            ));
-
-            setSelectedGallery(prev =>
-                prev && prev.id === galleryId
-                    ? { ...prev, images: prev.images.filter(img => img.id !== imageId) }
-                    : prev
-            );
-
             showNotification('Gambar berhasil dihapus');
         } catch (error) {
             console.error('Error deleting gallery image:', error);
+            setGalleries(previousGalleries);
+            setSelectedGallery(previousSelectedGallery);
             showNotification('Gagal menghapus gambar');
         } finally {
             setIsSubmitting(false);

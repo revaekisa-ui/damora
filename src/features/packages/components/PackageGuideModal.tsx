@@ -20,7 +20,7 @@ export const PackageGuideModal: React.FC<PackageGuideModalProps> = ({
         >
             <div className="space-y-4 text-xs sm:text-sm text-[#2A3547]">
                 <p className="text-[#5A6A85]">
-                    Halaman ini digunakan untuk mengelola seluruh portofolio paket dokumentasi foto/video pernikahan dan item add-on untuk bisnis wedding Anda.
+                    Halaman ini digunakan untuk mengelola seluruh portofolio paket layanan makeup, rias pengantin, hairdo/hijab do, dan item add-on untuk bisnis makeup Anda.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">

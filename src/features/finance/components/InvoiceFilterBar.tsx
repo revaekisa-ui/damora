@@ -92,7 +92,7 @@ const InvoiceFilterBar: React.FC<InvoiceFilterBarProps> = ({
             type="text"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Cari invoice, pengantin..."
+            placeholder="Cari invoice, klien..."
             className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-brand-border bg-brand-bg/60 text-brand-text-primary placeholder:text-brand-text-secondary focus:outline-none"
           />
         </div>
@@ -135,7 +135,7 @@ const InvoiceFilterBar: React.FC<InvoiceFilterBarProps> = ({
             onChange={(e) => onFilterClientChange(e.target.value)}
             className="px-2.5 py-2 text-xs rounded-xl border border-brand-border bg-brand-bg/60 text-brand-text-primary w-full"
           >
-            <option value="semua">Semua Pengantin</option>
+            <option value="semua">Semua Klien</option>
             {clientOptions.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -187,7 +187,7 @@ const InvoiceFilterBar: React.FC<InvoiceFilterBarProps> = ({
             onChange={(e) => onFilterClientChange(e.target.value)}
             className="px-3 py-2.5 text-sm rounded-xl border border-brand-border bg-brand-bg/60 text-brand-text-primary focus:outline-none focus:ring-2 focus:ring-blue-600/40 transition-all w-full sm:min-w-[150px]"
           >
-            <option value="semua">Semua Pengantin</option>
+            <option value="semua">Semua Klien</option>
             {clientOptions.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

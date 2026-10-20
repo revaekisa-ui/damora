@@ -69,7 +69,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={mode === 'add' ? 'Tambah Acara Pernikahan Baru (Operasional)' : `Edit Acara Pernikahan: ${formData.projectName}`}
+            title={mode === 'add' ? 'Tambah Acara Makeup Baru (Operasional)' : `Edit Acara: ${formData.projectName}`}
             size="4xl"
         >
             <form onSubmit={handleInternalSubmit} className="space-y-4 md:space-y-6">
@@ -80,39 +80,39 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                     <div className="space-y-5 md:space-y-6">
                         {/* Section 1: Basic Info */}
                         <section className="bg-brand-surface rounded-2xl p-4 border border-brand-border">
-                            <h4 className="text-sm md:text-base font-semibold text-gradient border-b border-brand-border pb-2 mb-4">Informasi Dasar Acara Pernikahan</h4>
+                            <h4 className="text-sm md:text-base font-semibold text-gradient border-b border-brand-border pb-2 mb-4">Informasi Dasar Acara / Makeup</h4>
                             <div className="space-y-5">
                                 {mode === 'add' && (
                                     <div className="space-y-2">
-                                        <label htmlFor="clientId" className="block text-xs font-semibold text-brand-text-secondary">Pengantin</label>
+                                        <label htmlFor="clientId" className="block text-xs font-semibold text-brand-text-secondary">Klien</label>
                                         <select id="clientId" name="clientId" value={formData.clientId} onChange={onClientChange} className="input-field" required>
-                                            <option value="">Pilih Pengantin...</option>
+                                            <option value="">Pilih Klien...</option>
                                             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                         </select>
-                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Pilih pengantin yang terkait dengan Acara Pernikahan ini</p>
+                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Pilih klien yang terkait dengan acara ini</p>
                                     </div>
                                 )}
                                 <div className="space-y-2">
-                                    <label htmlFor="projectName" className="block text-xs font-semibold text-brand-text-secondary">Nama Acara Pernikahan</label>
-                                    <input type="text" id="projectName" name="projectName" value={formData.projectName} onChange={onFormChange} className="input-field" placeholder="Masukkan nama Acara Pernikahan" required />
-                                    <p className="hidden sm:block text-xs text-brand-text-secondary">Nama Acara Pernikahan (contoh: Wedding John & Jane)</p>
+                                    <label htmlFor="projectName" className="block text-xs font-semibold text-brand-text-secondary">Nama Acara</label>
+                                    <input type="text" id="projectName" name="projectName" value={formData.projectName} onChange={onFormChange} className="input-field" placeholder="Masukkan nama acara" required />
+                                    <p className="hidden sm:block text-xs text-brand-text-secondary">Nama acara (contoh: Wedding Makeup Sarah)</p>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label htmlFor="projectType" className="block text-xs font-semibold text-brand-text-secondary">Jenis Acara Pernikahan</label>
+                                        <label htmlFor="projectType" className="block text-xs font-semibold text-brand-text-secondary">Jenis Acara</label>
                                         <select id="projectType" name="projectType" value={formData.projectType} onChange={onFormChange} className="input-field" required>
                                             <option value="" disabled>Pilih Jenis...</option>
                                             {profile.projectTypes.map(pt => <option key={pt} value={pt}>{pt}</option>)}
                                         </select>
-                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Kategori jenis Acara Pernikahan</p>
+                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Kategori jenis acara</p>
                                     </div>
                                     {mode === 'add' && (
                                         <div className="space-y-2">
-                                            <label htmlFor="status" className="block text-xs font-semibold text-brand-text-secondary">Progres Acara Pernikahan Pengantin</label>
+                                            <label htmlFor="status" className="block text-xs font-semibold text-brand-text-secondary">Progres Acara Klien</label>
                                             <select id="status" name="status" value={formData.status} onChange={onFormChange} className="input-field" required>
                                                 {profile.projectStatusConfig.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                                             </select>
-                                            <p className="hidden sm:block text-xs text-brand-text-secondary">Status progres Acara Pernikahan saat ini</p>
+                                            <p className="hidden sm:block text-xs text-brand-text-secondary">Status progres acara saat ini</p>
                                         </div>
                                     )}
                                 </div>
@@ -120,12 +120,12 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                     <div className="space-y-2">
                                         <label htmlFor="location" className="block text-xs font-semibold text-brand-text-secondary">Lokasi (Kota)</label>
                                         <input type="text" id="location" name="location" value={formData.location} onChange={onFormChange} className="input-field" placeholder="Kota Contoh: Jakarta" />
-                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Kota tempat Acara Pernikahan berlangsung</p>
+                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Kota tempat acara berlangsung</p>
                                     </div>
                                     <div className="space-y-2">
-                                        <label htmlFor="address" className="block text-xs font-semibold text-brand-text-secondary">Alamat Lengkap / Gedung</label>
+                                        <label htmlFor="address" className="block text-xs font-semibold text-brand-text-secondary">Alamat Lengkap / Venue</label>
                                         <textarea id="address" name="address" value={formData.address} onChange={onFormChange} className="input-field" placeholder="Contoh: Gedung Mulia, Jl. Gatot Subroto No. 1" rows={3}></textarea>
-                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Alamat spesifik venue Acara Pernikahan</p>
+                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Alamat spesifik venue acara</p>
                                     </div>
                                 </div>
                             </div>
@@ -137,9 +137,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                             <div className="space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label htmlFor="date" className="block text-xs font-semibold text-brand-text-secondary">Tanggal Acara Pernikahan (Opsional)</label>
+                                        <label htmlFor="date" className="block text-xs font-semibold text-brand-text-secondary">Tanggal Acara / Rias (Opsional)</label>
                                         <input type="date" id="date" name="date" value={formData.date || ''} onChange={onFormChange} className="input-field" required />
-                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Tanggal pelaksanaan Acara Pernikahan</p>
+                                        <p className="hidden sm:block text-xs text-brand-text-secondary">Tanggal pelaksanaan acara</p>
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="deadlineDate" className="block text-xs font-semibold text-brand-text-secondary">Deadline</label>

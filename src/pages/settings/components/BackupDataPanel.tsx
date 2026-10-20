@@ -129,15 +129,15 @@ const BackupDataPanel: React.FC = () => {
     const showEmptyState = hasLoaded && !isLoading && records.length === 0 && !loadError && tableErrors.length === 0;
 
     const handleDownloadAllCsv = () => {
-        downloadBackupCsv(records, `backup-lengkap-vena-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Backup lengkap' });
+        downloadBackupCsv(records, `backup-lengkap-filda-makeup-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Backup lengkap' });
     };
 
     const handleDownloadFilteredCsv = () => {
-        downloadBackupCsv(filteredRecords, `backup-filter-vena-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Backup sesuai filter' });
+        downloadBackupCsv(filteredRecords, `backup-filter-filda-makeup-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Backup sesuai filter' });
     };
 
     const handleDownloadFinanceCsv = () => {
-        downloadFinanceCsv(records, `laporan-keuangan-vena-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Laporan keuangan Vena' });
+        downloadFinanceCsv(records, `laporan-keuangan-filda-makeup-${new Date().toISOString().slice(0, 10)}.csv`, { label: 'Laporan keuangan Filda Makeup' });
     };
 
     const runExcelExport = async (exporter: () => Promise<void>) => {
@@ -292,10 +292,10 @@ const BackupDataPanel: React.FC = () => {
             )}
 
             <div className="flex flex-col gap-2 border-t border-brand-border pt-4 sm:flex-row sm:justify-end">
-                <button type="button" disabled={exportDisabled} onClick={() => void runExcelExport(() => exportFullBackupToExcel(records, { companyName: 'Vena' }))} className="button-secondary inline-flex items-center justify-center gap-2">
+                <button type="button" disabled={exportDisabled} onClick={() => void runExcelExport(() => exportFullBackupToExcel(records, { companyName: 'Filda Makeup' }))} className="button-secondary inline-flex items-center justify-center gap-2">
                     {isExporting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />} Unduh Backup Lengkap (Excel)
                 </button>
-                <button type="button" disabled={exportDisabled} onClick={() => void runExcelExport(() => exportBackupReportToExcel(records, { companyName: 'Vena' }))} className="button-secondary inline-flex items-center justify-center gap-2">
+                <button type="button" disabled={exportDisabled} onClick={() => void runExcelExport(() => exportBackupReportToExcel(records, { companyName: 'Filda Makeup' }))} className="button-secondary inline-flex items-center justify-center gap-2">
                     {isExporting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />} Unduh Laporan Excel (12 Sheet)
                 </button>
                 <button type="button" disabled={exportDisabled} onClick={handleDownloadFinanceCsv} className="button-secondary inline-flex items-center justify-center gap-2">

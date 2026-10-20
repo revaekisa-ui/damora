@@ -47,15 +47,15 @@ const ClientProfitabilityReport: React.FC<ClientProfitabilityReportProps> = ({
                 <h1 className="text-xl font-bold">{profile.companyName}</h1>
                 <p className="text-sm">{profile.address}</p>
                 <div className="mt-4 pt-4 border-t-2 border-black">
-                    <h2>Laporan Profitabilitas Pengantin</h2>
-                    <p>Pengantin: {clientName} | Periode: {periodText}</p>
+                    <h2>Laporan Profitabilitas Klien</h2>
+                    <p>Klien: {clientName} | Periode: {periodText}</p>
                 </div>
             </div>
 
             {/* Screen Header */}
             <div className="print:hidden">
-                <h2 className="text-2xl font-bold mb-2 text-gradient">Laporan Profitabilitas Pengantin</h2>
-                <p className="mb-6 text-brand-text-primary">Pengantin: <span className="font-semibold">{clientName}</span> | Periode: {periodText}</p>
+                <h2 className="text-2xl font-bold mb-2 text-gradient">Laporan Profitabilitas Klien</h2>
+                <p className="mb-6 text-brand-text-primary">Klien: <span className="font-semibold">{clientName}</span> | Periode: {periodText}</p>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 StatCard-container">
@@ -87,8 +87,8 @@ const ClientProfitabilityReport: React.FC<ClientProfitabilityReportProps> = ({
                 <div className="bg-brand-surface p-6 rounded-2xl shadow-lg border border-brand-border chart-wrapper">
                     <TransactionTable
                         transactions={clientIncome}
-                        title="Pemasukan dari Pengantin"
-                        subtitle="Daftar pembayaran/transaksi masuk dari pengantin"
+                        title="Pemasukan dari Klien"
+                        subtitle="Daftar pembayaran/transaksi masuk dari klien"
                         onEdit={onEditTransaction}
                         onDelete={onDeleteTransaction}
                         onAdd={onAddTransaction}

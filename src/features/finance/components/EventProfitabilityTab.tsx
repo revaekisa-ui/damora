@@ -119,17 +119,17 @@ const EventProfitabilityTab: React.FC<EventProfitabilityTabProps> = ({
                         <p className={`font-semibold ${profitReportMetrics.totalProfit >= 0 ? 'text-[#166534]' : 'text-[#DC2626]'}`}>{formatCurrency(profitReportMetrics.totalProfit)}</p>
                     </div>
                     <div className="rounded-2xl bg-white/5 border border-brand-border p-3">
-                        <p className="text-[11px] text-brand-text-secondary">Avg/Acara Pernikahan</p>
+                        <p className="text-[11px] text-brand-text-secondary">Avg/Acara</p>
                         <p className={`font-semibold ${profitReportMetrics.avgProfit >= 0 ? 'text-[#166534]' : 'text-[#DC2626]'}`}>{formatCurrency(profitReportMetrics.avgProfit)}</p>
                     </div>
                 </div>
                 <div className="rounded-xl bg-brand-surface border border-brand-border overflow-hidden">
-                    <h4 className="px-3 py-2 font-semibold border-b border-brand-border">Laba per Pengantin</h4>
+                    <h4 className="px-3 py-2 font-semibold border-b border-brand-border">Laba per Klien</h4>
                     <div className="overflow-x-auto">
                         <table className="w-full table-fixed border-collapse text-left">
                             <thead className="bg-brand-bg/70 text-brand-text-secondary">
                                 <tr>
-                                    <th className="border-r border-brand-border !px-2 !py-2 text-[10px]">Pengantin / Rincian</th>
+                                    <th className="border-r border-brand-border !px-2 !py-2 text-[10px]">Klien / Rincian</th>
                                     <th className="w-[104px] !px-2 !py-2 text-right text-[10px]">Laba</th>
                                 </tr>
                             </thead>
@@ -169,19 +169,19 @@ const EventProfitabilityTab: React.FC<EventProfitabilityTabProps> = ({
                 />
                 <StatCard
                     icon={<UsersIcon className="w-6 h-6" />}
-                    title="Pengantin Paling Profit"
+                    title="Klien Paling Profit"
                     value={profitReportMetrics.mostProfitableClient}
                     colorVariant="green"
                 />
                 <StatCard
                     icon={<TrendingUpIcon className="w-6 h-6" />}
-                    title="Jumlah Acara Pernikahan Profit"
+                    title="Jumlah Acara Profit"
                     value={`${profitReportMetrics.profitableProjectsCount} dari ${projectProfitabilityData.length}`}
                     colorVariant="orange"
                 />
                 <StatCard
                     icon={<TargetIcon className="w-6 h-6" />}
-                    title="Rata-rata Laba/Acara Pernikahan"
+                    title="Rata-rata Laba/Acara"
                     value={formatCurrency(profitReportMetrics.avgProfit)}
                     valueClassName={profitReportMetrics.avgProfit >= 0 ? '!text-[#166534]' : '!text-[#DC2626]'}
                     colorVariant="purple"
@@ -193,15 +193,15 @@ const EventProfitabilityTab: React.FC<EventProfitabilityTabProps> = ({
                     <h1 className="text-xl font-bold">{profile.companyName}</h1>
                     <p className="text-sm">{profile.address}</p>
                     <div className="mt-4 pt-4 border-t-2 border-black">
-                        <h2>Laporan Laba per Pengantin</h2>
+                        <h2>Laporan Laba per Klien</h2>
                         <p>Periode: {currentMonthName} {profitReportFilters.year}</p>
                     </div>
                 </div>
                 <div className="bg-brand-surface p-6 rounded-2xl shadow-lg mt-6 border border-brand-border print:shadow-none print:border-none print:p-0 print:mt-0">
                     <div className="print:hidden">
-                        <h3 className="text-lg font-bold mb-2 text-gradient">Laporan Laba per Pengantin</h3>
+                        <h3 className="text-lg font-bold mb-2 text-gradient">Laporan Laba per Klien</h3>
                         <p className="text-sm text-brand-text-primary mb-4">
-                            Menampilkan profitabilitas untuk Acara Pernikahan yang dieksekusi pada <strong>{currentMonthName} {profitReportFilters.year}</strong>.
+                            Menampilkan profitabilitas untuk Acara yang dieksekusi pada <strong>{currentMonthName} {profitReportFilters.year}</strong>.
                         </p>
                     </div>
                     <div className="overflow-x-auto max-h-[500px] print:max-h-none print:overflow-visible">

@@ -235,7 +235,7 @@ export const PackageTermsModal: React.FC<PackageTermsModalProps> = ({
                                     type="text"
                                     value={formTitle}
                                     onChange={(e) => setFormTitle(e.target.value)}
-                                    placeholder="Contoh: Ketentuan DP & Booking, Hak Cipta & Dokumentasi, Pembatalan..."
+                                    placeholder="Contoh: Ketentuan DP & Booking, Ketentuan Rias & Retouch, Pembatalan..."
                                     className="w-full px-3.5 py-2.5 rounded-xl border border-[#EAEFF4] bg-white focus:border-brand-accent text-sm text-[#2A3547] font-medium outline-none transition-all placeholder:text-[#5A6A85]/50"
                                 />
                             </div>

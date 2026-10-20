@@ -115,6 +115,7 @@ const NAV_MENUS: NavMenuItem[] = [
     items: [
       { view: ViewType.PACKAGES, label: 'Paket & Layanan', icon: PackageIcon },
       { view: ViewType.PROMO_CODES, label: 'Promo & Katalog', icon: LightbulbIcon },
+      { view: ViewType.ATTIRE_MANAGEMENT, label: 'Busana & Attire', icon: BriefcaseIcon },
       { view: ViewType.GALLERY, label: 'Pricelist Publik', icon: ImageIcon },
     ],
   },
@@ -301,7 +302,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({
               ) : (
                 <img
                   src="/assets/images/logos/logoIcon.svg"
-                  alt="Vena Pictures Logo"
+                  alt="Filda Makeup Logo"
                   width="32"
                   height="32"
                   loading="lazy"
@@ -321,7 +322,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({
                 truncate
                 block
               ">
-                {profile?.companyName || 'Vena Pictures'}
+                {profile?.companyName || 'Filda Makeup'}
               </span>
             </div>
           </div>

@@ -112,7 +112,7 @@ const ContractDocument: React.FC<ContractDocumentProps> = ({ contract, project, 
                             {profile.companyName}
                         </div>
                         <div style={{ fontSize: '7pt', color: '#64748b', marginTop: '2pt', letterSpacing: '0.04em' }}>
-                            WEDDING DOCUMENTATION
+                            PROFESSIONAL MAKEUP ARTIST
                         </div>
                     </div>
                 </div>
@@ -172,7 +172,7 @@ const ContractDocument: React.FC<ContractDocumentProps> = ({ contract, project, 
             {renderCustomContent(contract.pasal1Content, (
                 <>
                     <p style={styles.p}>
-                        1.1 PIHAK PERTAMA sepakat untuk memberikan jasa <strong>{(contract.serviceTitle || `dokumentasi ${project.projectType}`).toLowerCase()}</strong> kepada PIHAK KEDUA.
+                        1.1 PIHAK PERTAMA sepakat untuk memberikan jasa <strong>{(contract.serviceTitle || `rias dan makeup ${project.projectType}`).toLowerCase()}</strong> kepada PIHAK KEDUA.
                     </p>
                     <p style={styles.p}>1.2 Pelaksanaan pekerjaan dilakukan pada:</p>
                     <p style={styles.pIndent}>• <strong>Tanggal Acara</strong> : {formatDate(project.date)}</p>
@@ -236,13 +236,13 @@ const ContractDocument: React.FC<ContractDocumentProps> = ({ contract, project, 
             {renderCustomContent(contract.pasal4Content, (
                 <>
                     <p style={styles.p}>
-                        4.1 Waktu pengerjaan dan pengiriman hasil dokumentasi adalah maksimal <strong>{contract.deliveryTimeframe}</strong> setelah acara berlangsung.
+                        4.1 Waktu pelaksanaan dan penyelesaian rias/makeup disesuaikan dengan jadwal rangkaian acara yang disepakati (durasi layanan: <strong>{contract.deliveryTimeframe}</strong>).
                     </p>
                     {contract.personnelCount && (
                         <p style={styles.p}>4.2 Tim yang akan bertugas pada acara PIHAK KEDUA: <strong>{contract.personnelCount}</strong>.</p>
                     )}
                     <p style={styles.p}>
-                        4.3 PIHAK PERTAMA berhak menggunakan sebagian hasil dokumentasi sebagai portofolio atau media promosi,
+                        4.3 PIHAK PERTAMA berhak menggunakan sebagian dokumentasi foto/video hasil riasan sebagai portofolio atau media promosi,
                         kecuali apabila PIHAK KEDUA menyatakan keberatan secara tertulis.
                     </p>
                 </>

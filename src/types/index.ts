@@ -3,7 +3,7 @@ import React from 'react';
 export type NavigationAction = {
   type: string;
   id?: string;
-  tab?: 'info' | 'project' | 'payment' | 'invoice';
+  tab?: 'info' | 'project' | 'payment' | 'invoice' | 'attire' | 'events';
 };
 
 export interface ChatMessage {
@@ -92,6 +92,7 @@ export enum ViewType {
   BIO_LINKS = 'Link Publik',
   INVOICES = 'Daftar Invoice',
   MIGRATION = 'Migrasi & Import Data',
+  ATTIRE_MANAGEMENT = 'Busana & Attire',
 }
 
 export interface SubStatusConfig {
@@ -453,6 +454,7 @@ export interface Project {
   discountAmount?: number;
   shippingDetails?: string;
   dpProofUrl?: string;
+  paymentProofs?: { url: string; amount: number; date: string }[];
   printingDetails?: PrintingItem[];
   printingCost?: number;
   transportCost?: number;
@@ -931,3 +933,92 @@ export interface CalendarEvent {
   createdAt: string;
   updatedAt: string;
 }
+
+export type AttireStatus = 'Belum Dipilih' | 'Dipilih' | 'Proses Jahit' | 'Fitting' | 'Siap' | 'Sudah Diambil';
+export type AttireCategory = 'Gaun Pengantin Akad' | 'Gaun Pengantin Resepsi' | 'Gaun Tambahan' | 'Busana Ayah' | 'Busana Ibu' | 'Busana Saudara' | 'Bridesmaid' | 'Groomsmen' | 'Aksesori';
+
+export type AttireMainCategory = 'Gaun Pengantin' | 'Busana Orang Tua' | 'Busana Saudara' | 'Aksesori';
+
+export type AttireSubcategory =
+  // Gaun Pengantin
+  | 'Pilihan gaun akad'
+  | 'Pilihan gaun resepsi'
+  | 'Gaun tambahan'
+  // Busana Orang Tua
+  | 'Baju ibu pengantin'
+  | 'Baju ayah pengantin'
+  // Busana Saudara
+  | 'Baju kakak/adik perempuan'
+  | 'Baju kakak/adik laki-laki'
+  | 'Bridesmaid'
+  | 'Groomsmen'
+  // Aksesori
+  | 'Hijab'
+  | 'Mahkota'
+  | 'Hairpiece'
+  | 'Veil'
+  | 'Aksesori tambahan';
+
+export type AttireSelectionStatus = 'Dipilih' | 'Cadangan' | 'Belum Dipilih';
+export type AttirePriceType = 'Sewa' | 'Pembelian' | 'Sewa Perdana';
+
+export interface AttireMeasurements {
+  chest?: number; // lingkar dada cm
+  waist?: number; // lingkar pinggang cm
+  hips?: number; // lingkar pinggul cm
+  shoulder?: number; // lebar bahu cm
+  sleeveLength?: number; // panjang lengan cm
+  shirtLength?: number; // panjang baju cm
+  armCircumference?: number; // lingkar lengan cm
+  height?: number; // tinggi badan cm
+  weight?: number; // berat badan kg
+  shoesSize?: string; // ukuran sepatu EU
+  customNotes?: string; // ukuran khusus
+}
+
+export interface AttireRecord {
+  id: string;
+  clientId: string;
+  personName: string;
+  personRole: 'Pengantin' | 'Ayah' | 'Ibu' | 'Saudara' | 'Bridesmaid' | 'Groomsmen' | 'Aksesori';
+  mainCategory?: AttireMainCategory;
+  subcategory?: string;
+  category: AttireCategory | string;
+  itemName: string;
+  model?: string;
+  color?: string;
+  size?: string;
+  priceType?: AttirePriceType;
+  rentalPrice?: number;
+  selectionStatus?: AttireSelectionStatus;
+  status: AttireStatus;
+  fittingNotes?: string;
+  photoUrl?: string;
+  additionalPhotos?: string[];
+  measurements?: AttireMeasurements;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AttireCatalogItem {
+  id: string;
+  name: string;
+  mainCategory: AttireMainCategory;
+  subcategory: string;
+  category?: AttireCategory | string;
+  model?: string;
+  color: string;
+  size: string;
+  priceType: AttirePriceType;
+  rentalPrice: number;
+  purchasePrice?: number;
+  selectionStatus: AttireSelectionStatus;
+  fittingNotes?: string;
+  photoUrl?: string;
+  additionalPhotos?: string[];
+  measurements?: AttireMeasurements;
+  targetPerson?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+

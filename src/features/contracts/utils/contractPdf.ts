@@ -327,7 +327,7 @@ export const buildContractPdf = async (input: ContractPdfInput): Promise<jsPDF> 
   });
   setFont(7, 'normal');
   ink(COLORS.label);
-  doc.text('WEDDING DOCUMENTATION', CONTENT_LEFT, leftY + 7 * PT_TO_MM);
+  doc.text('PROFESSIONAL MAKEUP ARTIST', CONTENT_LEFT, leftY + 7 * PT_TO_MM);
   leftY += lineHeight(7, 1.3);
 
   // Kolom 2: judul & subjudul.
@@ -430,7 +430,7 @@ export const buildContractPdf = async (input: ContractPdfInput): Promise<jsPDF> 
   renderCustomContent(contract.pasal1Content, () => {
     paragraph([
       { text: '1.1 PIHAK PERTAMA sepakat untuk memberikan jasa ' },
-      { text: (contract.serviceTitle || `dokumentasi ${project.projectType || ''}`).toLowerCase(), bold: true },
+      { text: (contract.serviceTitle || `rias dan makeup ${project.projectType || ''}`).toLowerCase(), bold: true },
       { text: ' kepada PIHAK KEDUA.' },
     ], 10);
     paragraph([{ text: '1.2 Pelaksanaan pekerjaan dilakukan pada:' }], 10);
@@ -504,9 +504,9 @@ export const buildContractPdf = async (input: ContractPdfInput): Promise<jsPDF> 
   sectionTitle('PASAL 4 — KETENTUAN PELAKSANAAN PEKERJAAN');
   renderCustomContent(contract.pasal4Content, () => {
     paragraph([
-      { text: '4.1 Waktu pengerjaan dan pengiriman hasil dokumentasi adalah maksimal ' },
-      { text: sanitize(contract.deliveryTimeframe || '-'), bold: true },
-      { text: ' setelah acara berlangsung.' },
+      { text: '4.1 Waktu pelaksanaan dan penyelesaian rias/makeup disesuaikan dengan jadwal rangkaian acara yang disepakati (durasi layanan: ' },
+      { text: sanitize(contract.deliveryTimeframe || 'Hari H'), bold: true },
+      { text: ').' },
     ], 10);
     if (contract.personnelCount) {
       paragraph([
@@ -516,7 +516,7 @@ export const buildContractPdf = async (input: ContractPdfInput): Promise<jsPDF> 
       ], 10);
     }
     paragraph([
-      { text: '4.3 PIHAK PERTAMA berhak menggunakan sebagian hasil dokumentasi sebagai portofolio atau media promosi, kecuali apabila PIHAK KEDUA menyatakan keberatan secara tertulis.' },
+      { text: '4.3 PIHAK PERTAMA berhak menggunakan sebagian dokumentasi foto/video hasil riasan sebagai portofolio atau media promosi, kecuali apabila PIHAK KEDUA menyatakan keberatan secara tertulis.' },
     ], 10);
   });
 
