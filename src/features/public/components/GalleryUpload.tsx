@@ -112,6 +112,15 @@ const GalleryDraftImagePicker: React.FC<GalleryDraftImagePickerProps> = ({
     );
 };
 
+// Keeps the first occurrence so a freshly created/updated gallery replaces the stale copy already in state.
+const dedupeGalleriesById = (items: Gallery[]): Gallery[] => {
+    const byId = new Map<string, Gallery>();
+    items.forEach(item => {
+        if (!byId.has(item.id)) byId.set(item.id, item);
+    });
+    return Array.from(byId.values());
+};
+
 const GalleryUpload: React.FC<GalleryUploadProps> = ({ userProfile, showNotification, packages = [], addOns = [], attire = [] }) => {
     const [galleries, setGalleries] = useState<Gallery[]>([]);
     const [isLoading, setIsLoading] = useState(true);
