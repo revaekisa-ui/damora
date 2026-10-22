@@ -1,0 +1,5 @@
+# These VITE_* values are intentionally public: Vite inlines them into the client
+# bundle. The Supabase anon key is protected by Row Level Security, and the VAPID
+# key is the public half of the Web Push key pair. Never add secret keys here.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_URL,VITE_VAPID_PUBLIC_KEY"

@@ -1,0 +1,7 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    "physicalItems element shape — handlePackageSelect calls p.name on each physical item. If any package stores physicalItems as an array of plain strings (not objects), the description will render [object Object] instead of the item name. Verify the Package type definition and any DB seed data to confirm all physical items are objects with a name field."
+  ],
+  "reviewDoc": "d:\\honesty\\.agents\\tasks\\invoice-fix-review.md"
+}

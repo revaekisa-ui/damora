@@ -1,0 +1,6 @@
+{
+  "summary":  "Rencana implementasi pembaruan komprehensif untuk Laporan Pengantin (/client-reports) menjadi dashboard terpadu dengan 4 tab utama (Pengantin, Leads, Keuangan, Paket), filter periode dinamis (Bulan ini, Kuartal, Tahun, Semua Waktu), dan metrik bisnis riil (paket terlaris, status piutang/DP, rata-rata transaksi, dan laba per acara).",
+  "updatedAt":  "2026-10-12T01:59:54.672286218Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

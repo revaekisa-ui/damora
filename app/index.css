@@ -1,0 +1,3336 @@
+/* Table styling */
+.invoice-table-tight {
+  line-height: 1.15 !important;
+}
+
+.invoice-table-tight th,
+.invoice-table-tight td {
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+  vertical-align: top !important;
+}
+
+/* Text gradient override for black text */
+.text-gradient {
+  color: #000000;
+  background: none;
+  background-clip: initial;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+}
+
+/* iOS/iPad: visually scale inputs smaller without reducing font-size (avoid auto-zoom) */
+@media (max-width: 1024px) {
+
+  html.ios #root .form-compact.form-compact--ios-scale input.input-field,
+  html.ios #root .form-compact.form-compact--ios-scale select.input-field,
+  html.ios #root .form-compact.form-compact--ios-scale textarea.input-field,
+  html.ios #root .form-compact.form-compact--ios-scale .input-with-icon input,
+  html.ios #root .form-compact.form-compact--ios-scale input[type="date"].input-field {
+    transform: none !important;
+    transform-origin: initial !important;
+    will-change: auto !important;
+    font-size: 16px !important;
+  }
+
+  /* Compact variant: shrink text and numbers for the Tim / Vendor payment slip */
+  .print-slip-compact {
+    font-size: 0.9rem;
+    /* ~14.4px base */
+  }
+
+  .print-slip-compact h1 {
+    font-size: 1.5rem;
+  }
+
+  .print-slip-compact h2 {
+    font-size: 1.1rem;
+  }
+
+  .print-slip-compact h3 {
+    font-size: 1rem;
+  }
+
+  .print-slip-compact p,
+  .print-slip-compact span,
+  .print-slip-compact li {
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .print-slip-compact table {
+    font-size: 0.85rem;
+  }
+
+  .print-slip-compact th,
+  .print-slip-compact td {
+    padding: 6px 8px;
+  }
+
+  .print-slip-compact .invoice-totals .font-bold {
+    font-size: 1rem;
+  }
+
+  .print-slip-compact .text-right,
+  .print-slip-compact .tabular-nums,
+  .print-slip-compact .amount {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 640px) {
+    .print-slip-compact {
+      font-size: 0.85rem;
+    }
+
+    .print-slip-compact table {
+      font-size: 0.8rem;
+    }
+  }
+
+
+  /* keep container spacing tight so scaled controls don't look spaced out */
+  .ios .form-compact.form-compact--ios-scale .input-group,
+  .ios .form-compact.form-compact--ios-scale .form-group {
+    margin-bottom: 8px !important;
+  }
+
+  /* shrink dropdown arrow visually */
+  .ios .form-compact.form-compact--ios-scale select.input-field {
+    background-size: 1em 1em !important;
+    background-position: right 0.6rem center !important;
+  }
+}
+
+/* Force the tiniest text on mobile (will cause iOS zoom on focus) */
+@media (max-width: 768px) {
+  .form-compact.form-compact--force-tiny input.input-field,
+  .form-compact.form-compact--force-tiny select.input-field,
+  .form-compact.form-compact--force-tiny textarea.input-field,
+  .form-compact.form-compact--force-tiny .input-with-icon input,
+  .form-compact.form-compact--force-tiny input[type="date"].input-field {
+    font-size: 13px !important;
+  }
+
+  .form-compact.form-compact--force-tiny input.input-field::placeholder,
+  .form-compact.form-compact--force-tiny textarea.input-field::placeholder {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .form-compact.form-compact--force-tiny input.input-field,
+  .form-compact.form-compact--force-tiny select.input-field,
+  .form-compact.form-compact--force-tiny textarea.input-field,
+  .form-compact.form-compact--force-tiny .input-with-icon input,
+  .form-compact.form-compact--force-tiny input[type="date"].input-field {
+    font-size: 12px !important;
+  }
+
+  .form-compact.form-compact--force-tiny input.input-field::placeholder,
+  .form-compact.form-compact--force-tiny textarea.input-field::placeholder {
+    font-size: 12px !important;
+  }
+}
+
+/* Enhanced Mobile Experience CSS */
+
+/* Touch feedback animations */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Enhanced button press animation */
+.button-press {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-press::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.button-press:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Enhanced card hover effects for touch devices */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Better text rendering */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Tim / Vendor Portal: Payment Slip Enhancements --- */
+/* Base styles for printable content */
+.printable-content {
+  background: #ffffff;
+  color: #0f172a;
+  /* slate-900 */
+}
+
+/* Compact typography rules for the Tim / Vendor payment slip */
+.print-slip-compact {
+  font-size: 0.9rem;
+  /* ~14.4px base */
+}
+
+.print-slip-compact h1 {
+  font-size: 1.5rem;
+}
+
+.print-slip-compact h2 {
+  font-size: 1.1rem;
+}
+
+.print-slip-compact h3 {
+  font-size: 1rem;
+}
+
+.print-slip-compact p,
+.print-slip-compact span,
+.print-slip-compact li {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.print-slip-compact table {
+  font-size: 0.85rem;
+}
+
+.print-slip-compact th,
+.print-slip-compact td {
+  padding: 6px 8px;
+}
+
+.print-slip-compact .invoice-totals .font-bold {
+  font-size: 1rem;
+}
+
+.print-slip-compact .text-right,
+.print-slip-compact .tabular-nums,
+.print-slip-compact .amount {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .print-slip-compact {
+    font-size: 0.85rem;
+  }
+
+  .print-slip-compact table {
+    font-size: 0.8rem;
+  }
+
+  .print-slip-compact .invoice-totals .font-bold {
+    font-size: 0.95rem;
+  }
+
+  .print-slip-compact .text-right,
+  .print-slip-compact .tabular-nums,
+  .print-slip-compact .amount {
+    font-size: 0.9rem;
+  }
+}
+
+
+/* Prevent awkward page breaks in key blocks */
+.avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Print-specific adjustments */
+
+/* Prevent text selection on UI elements */
+button,
+.button-primary,
+.button-secondary,
+nav,
+.nav-item,
+.stat-card-icon {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Mobile Tab Pills Enhancement */
+@media (max-width: 768px) {
+
+  /* Smooth scroll for horizontal tab navigation */
+  .scrollbar-hide {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Enhanced touch feedback for mobile tabs */
+  .mobile-tab-pill {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Smooth transitions for tab content */
+  .tab-content-mobile {
+    animation: fadeInUp 0.3s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Enhanced focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Avoid double focus outline for our custom form controls (.input-field).
+   These controls already render their own focus styling (border/ring/box-shadow). */
+.input-field:focus-visible,
+.input-field:focus {
+  outline: none;
+}
+
+/* Touch-friendly spacing */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-spacing {
+    margin: 8px;
+  }
+
+  /* Better readability on mobile */
+  .mobile-text-enhance {
+    line-height: 1.6;
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* Enhanced Mobile Optimization - Comprehensive mobile styles */
+@media (max-width: 768px) {
+
+  /* Make text smaller on mobile (1 level smaller proportionally) */
+  body {
+    font-size: 11px !important;
+  }
+
+  /* Smaller headings */
+  h1 {
+    font-size: 0.90rem !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: 0.82rem !important;
+    line-height: 1.25 !important;
+  }
+
+  h3 {
+    font-size: 0.75rem !important;
+    line-height: 1.25 !important;
+  }
+
+  h4 {
+    font-size: 0.68rem !important;
+    line-height: 1.3 !important;
+  }
+
+  h5,
+  h6 {
+    font-size: 0.64rem !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Smaller text elements */
+  .text-sm {
+    font-size: 0.58rem !important;
+  }
+
+  .text-xs {
+    font-size: 0.54rem !important;
+  }
+
+  .text-lg {
+    font-size: 0.68rem !important;
+  }
+
+  .text-xl {
+    font-size: 0.75rem !important;
+  }
+
+  .text-2xl {
+    font-size: 0.82rem !important;
+  }
+
+  .text-3xl {
+    font-size: 0.90rem !important;
+  }
+
+  /* Smaller icons */
+  .w-4.h-4 {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .w-5.h-5 {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .w-6.h-6 {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .w-8.h-8 {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Smaller numbers and stats */
+  .stat-card-value {
+    font-size: 0.78rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .stat-card-title {
+    font-size: 0.52rem !important;
+  }
+
+  /* Make modals wider on mobile */
+  .app-modal-dialog {
+    max-width: 96vw !important;
+    width: 96vw !important;
+    margin: 0 auto !important;
+  }
+
+  .chat-modal-dialog {
+    max-width: 96vw !important;
+    width: 96vw !important;
+    margin: 0 auto !important;
+  }
+
+  /* Smaller buttons on mobile */
+  .button-primary:not(.package-booking-button),
+  .button-secondary {
+    font-size: 0.58rem !important;
+    padding: 0.2rem 0.48rem !important;
+    min-height: 25px !important;
+    border-radius: 6px !important;
+  }
+
+  .button-primary svg,
+  .button-secondary svg {
+    width: 11.5px !important;
+    height: 11.5px !important;
+  }
+
+  /* Smaller input elements */
+  input,
+  textarea,
+  select {
+    font-size: 0.62rem !important;
+    padding: 4px 7px !important;
+  }
+
+  /* Smaller table text */
+  table th,
+  table td {
+    font-size: 0.55rem !important;
+    padding: 2px 3.5px !important;
+  }
+
+  /* Smaller navigation */
+  .bottom-nav {
+    padding: 4px 8px !important;
+    min-height: 50px !important;
+  }
+
+  .bottom-nav svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .bottom-nav span {
+    font-size: 0.52rem !important;
+  }
+
+  /* Tighter spacing on mobile */
+  .p-4 {
+    padding: 12px !important;
+  }
+
+  .p-6 {
+    padding: 16px !important;
+  }
+
+  .p-8 {
+    padding: 20px !important;
+  }
+
+  .m-4 {
+    margin: 12px !important;
+  }
+
+  .m-6 {
+    margin: 16px !important;
+  }
+
+  .space-y-4>*+* {
+    margin-top: 12px !important;
+  }
+
+  .space-y-6>*+* {
+    margin-top: 16px !important;
+  }
+
+  /* Smaller cards */
+  .stat-card {
+    padding: 16px !important;
+    min-height: 80px !important;
+  }
+
+  .stat-card-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* Projects kanban - smooth horizontal scroll on mobile */
+  .projects-kanban-scroll {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Form selects - compact on mobile */
+  .form-compact select,
+  .modal-content-area select {
+    min-height: 26px !important;
+  }
+
+  /* Compact modal content */
+  .modal-content-area {
+    padding: 6px 8px !important;
+  }
+
+  .modal-content-area h1,
+  .modal-content-area h2,
+  .modal-content-area h3 {
+    margin-bottom: 6px !important;
+  }
+
+  /* Smaller form elements */
+  .input-field {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+    padding: 4px 7px !important;
+    min-height: 26px !important;
+  }
+
+  .input-label {
+    font-size: calc(0.56rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  /* Compact grid spacing */
+  .grid-cols-1 {
+    gap: 8px !important;
+  }
+
+  .grid-cols-2 {
+    gap: 8px !important;
+  }
+
+  .grid-cols-3 {
+    gap: 8px !important;
+  }
+
+  /* Smaller page headers */
+  .page-header h1 {
+    font-size: 0.90rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .page-header p {
+    font-size: 0.58rem !important;
+  }
+
+  /* Fix mobile filter overflow issues */
+  .mobile-filter-section {
+    /* Stack items vertically on mobile */
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  .mobile-filter-section>div {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-filter-section input,
+  .mobile-filter-section select {
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 0.62rem !important;
+    padding: 4px 7px !important;
+  }
+
+  /* Fix date input overflow on mobile */
+  input[type="date"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix filter button container */
+  .filter-buttons-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .filter-buttons-container>* {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Fix search and filter row overflow */
+  .search-filter-row {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  .search-filter-row>* {
+    min-width: calc(50% - 6px) !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Fix button groups that overflow */
+  .button-group-overflow {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+
+  .button-group-overflow>* {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  /* Fix tab navigation overflow */
+  .tab-navigation {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .tab-navigation>* {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  /* Fix action buttons that overflow */
+  .action-buttons-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+
+  .action-buttons-row>* {
+    flex: 0 1 auto !important;
+    min-width: calc(33.333% - 6px) !important;
+  }
+
+  /* Fix client table actions overflow */
+  .client-actions-cell {
+    min-width: 120px !important;
+  }
+
+  .client-actions-cell .flex {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    justify-content: center !important;
+  }
+
+  .client-actions-cell button {
+    flex: 0 1 auto !important;
+    min-width: 32px !important;
+    padding: 6px !important;
+  }
+
+  /* Fix project summary cards overflow */
+  .project-summary-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .project-summary-card>div:first-child {
+    width: 100% !important;
+  }
+
+  .project-summary-card .button-group {
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Fix payment input section overflow */
+  .payment-input-section {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .payment-input-section>* {
+    width: 100% !important;
+  }
+
+  .payment-input-section button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Fix stats modal buttons overflow */
+  .stats-modal-actions {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    justify-content: center !important;
+  }
+
+  .stats-modal-actions>* {
+    flex: 0 1 auto !important;
+    min-width: calc(50% - 6px) !important;
+  }
+
+  /* Fix client form grid overflow */
+  .client-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .client-form-grid .input-group {
+    width: 100% !important;
+  }
+
+  /* Fix modal header buttons overflow */
+  .modal-header-buttons {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+  }
+
+  .modal-header-buttons>* {
+    flex: 0 1 auto !important;
+    min-width: calc(50% - 4px) !important;
+  }
+
+  /* Fix leads filter section overflow */
+  .leads-filter-section {
+    /* Stack items vertically on mobile */
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+
+  .leads-filter-section>div {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .leads-filter-section input,
+  .leads-filter-section select {
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 0.62rem !important;
+    padding: 4px 7px !important;
+  }
+
+  /* Fix leads filter button container */
+  .leads-filter-buttons {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .leads-filter-buttons>* {
+    flex: 0 1 auto !important;
+    min-width: calc(25% - 6px) !important;
+    max-width: calc(50% - 4px) !important;
+  }
+
+  /* Fix leads filter row with date inputs */
+  .leads-filter-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .leads-filter-row>* {
+    min-width: calc(50% - 4px) !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Fix source filter dropdown */
+  .leads-source-filter {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix leads action buttons */
+  .leads-action-buttons {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+
+  .leads-action-buttons>* {
+    flex: 0 1 auto !important;
+    min-width: 40px !important;
+    padding: 8px !important;
+  }
+
+  /* Fix leads column containers */
+  .leads-column-container {
+    width: calc(100vw - 2rem) !important;
+    max-width: 320px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Fix leads column header */
+  .leads-column-header {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+    padding: 12px !important;
+  }
+
+  .leads-column-header>* {
+    width: 100% !important;
+  }
+
+  /* Fix leads card layout */
+  .leads-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  .leads-card-header {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+
+  .leads-card-actions {
+    width: 100% !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Fix dashboard main layout */
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .dashboard-stats-grid>* {
+    width: 100% !important;
+  }
+
+  /* Fix dashboard widget containers */
+  .dashboard-widget-container {
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  /* Fix dashboard cards grid */
+  .dashboard-cards-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .dashboard-cards-grid>* {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Fix quick links widget */
+  .quick-links-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .quick-links-grid>* {
+    min-width: calc(50% - 6px) !important;
+    width: 100% !important;
+  }
+
+  /* Fix income chart widget */
+  .income-chart-container {
+    height: 300px !important;
+    width: 100% !important;
+  }
+
+  .income-chart-bars {
+    flex-direction: column !important;
+    height: 100% !important;
+    gap: 4px !important;
+  }
+
+  .income-chart-bars>* {
+    width: 100% !important;
+    height: auto !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* Fix card widget layout */
+  .card-widget-container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 160px !important;
+  }
+
+  .card-widget-container>* {
+    width: 100% !important;
+  }
+
+  /* Fix cards display in MyCardsWidget */
+  .cards-display-grid {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .cards-display-grid>* {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Fix calendar widget */
+  .calendar-widget-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .calendar-widget-items {
+    min-width: 600px !important;
+  }
+
+  .calendar-item {
+    flex: 0 0 auto !important;
+    min-width: 250px !important;
+  }
+
+  /* Fix project status widget */
+  .project-status-container {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Fix leads summary widget */
+  .leads-summary-stats {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .leads-summary-stats>* {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Fix client satisfaction widget */
+  .client-satisfaction-layout {
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .client-satisfaction-rating {
+    justify-content: center !important;
+  }
+
+  /* Fix asset summary widget */
+  .asset-summary-layout {
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Fix recent transactions widget */
+  .recent-transactions-list {
+    gap: 12px !important;
+  }
+
+  .recent-transactions-list>* {
+    padding: 12px !important;
+  }
+
+  /* Fix modal content overflow */
+  .dashboard-modal-content {
+    max-height: calc(100vh - 120px) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Fix stat cards layout */
+  .stat-card-mobile {
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  /* Fix invoice layout for mobile */
+  .print-invoice {
+    padding: 16px !important;
+  }
+
+  .print-invoice header {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice header>div:last-child {
+    text-align: left !important;
+  }
+
+  .print-invoice .doc-header-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice .doc-header-grid>div {
+    padding: 16px !important;
+  }
+
+  .print-invoice table {
+    font-size: 12px !important;
+  }
+
+  .print-invoice th,
+  .print-invoice td {
+    padding: 8px 4px !important;
+  }
+
+  .print-invoice .totals-section {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice .totals-section>div:first-child {
+    width: 100% !important;
+  }
+
+  .print-invoice .totals-section>div:last-child {
+    width: 100% !important;
+  }
+
+  .print-invoice .doc-footer-flex {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice .doc-footer-flex>div {
+    width: 100% !important;
+  }
+
+  .print-invoice footer {
+    margin-top: 24px !important;
+    padding-top: 16px !important;
+  }
+
+  .print-invoice footer>div {
+    margin-top: 12px !important;
+  }
+
+  /* Extra-compact invoice typography for small phones */
+  @media (max-width: 480px) {
+    .print-invoice {
+      padding: 12px !important;
+      font-size: 12px !important;
+      /* Base smaller text inside invoice */
+    }
+
+    .print-invoice header h1 {
+      font-size: 1rem !important;
+      /* Smaller Invoice title */
+      line-height: 1.2 !important;
+    }
+
+    /* Make address/phone/email lines smaller */
+    .print-invoice header p,
+    .print-invoice header span,
+    .print-invoice .doc-header-grid p,
+    .print-invoice .doc-header-grid span,
+    .print-invoice .contact-line,
+    .print-invoice .address-line {
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
+
+    /* Smaller numbers and monetary amounts */
+    .print-invoice .tabular-nums,
+    .print-invoice .amount,
+    .print-invoice .text-right {
+      font-size: 11px !important;
+    }
+
+    /* Tighter table text on very small screens */
+    .print-invoice table {
+      font-size: 11px !important;
+    }
+
+    .print-invoice th,
+    .print-invoice td {
+      padding: 6px 4px !important;
+    }
+
+    /* Totals section: reduce emphasis size */
+    .print-invoice .totals-section .font-bold {
+      font-size: 0.9rem !important;
+    }
+
+    .print-invoice .totals-section .text-sm {
+      font-size: 0.75rem !important;
+    }
+
+    /* Generic printable area fallback (for invoices without .print-invoice class) */
+    .printable-area {
+      font-size: 9px !important;
+      padding: 4px !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) h1 {
+      font-size: 0.78rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) h2 {
+      font-size: 0.72rem !important;
+      line-height: 1.2 !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) h3 {
+      font-size: 0.68rem !important;
+      line-height: 1.25 !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) h4,
+    .printable-area:not(:has(.invoice-document-mobile)) h5,
+    .printable-area:not(:has(.invoice-document-mobile)) h6 {
+      font-size: 0.62rem !important;
+      line-height: 1.25 !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) p,
+    .printable-area:not(:has(.invoice-document-mobile)) span,
+    .printable-area:not(:has(.invoice-document-mobile)) li {
+      font-size: 0.58rem !important;
+      line-height: 1.25 !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) table {
+      font-size: 8px !important;
+    }
+
+    .printable-area:not(:has(.invoice-document-mobile)) th,
+    .printable-area:not(:has(.invoice-document-mobile)) td {
+      padding: 3px 3px !important;
+    }
+
+    /* Contact/address lines commonly used in headers */
+    .printable-area:not(:has(.invoice-document-mobile)) .contact-line,
+    .printable-area:not(:has(.invoice-document-mobile)) .address-line,
+    .printable-area:not(:has(.invoice-document-mobile)) .meta-line {
+      font-size: 0.55rem !important;
+    }
+
+    /* Amounts and right-aligned numbers */
+    .printable-area:not(:has(.invoice-document-mobile)) .tabular-nums,
+    .printable-area:not(:has(.invoice-document-mobile)) .amount,
+    .printable-area:not(:has(.invoice-document-mobile)) .text-right {
+      font-size: 8px !important;
+    }
+  }
+
+  /* Fix receipt layout for mobile */
+  .print-receipt {
+    padding: 16px !important;
+  }
+
+  .print-receipt header h1 {
+    font-size: 18pt !important;
+  }
+
+  .print-receipt .printable-bg-green-light {
+    padding: 16px !important;
+  }
+
+  .print-receipt .printable-bg-green-light p {
+    font-size: 12pt !important;
+  }
+
+  .print-receipt .printable-bg-green-light p:first-child {
+    font-size: 14pt !important;
+  }
+
+  .print-receipt footer {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 16px !important;
+  }
+
+  .print-receipt footer>div:last-child {
+    width: 100% !important;
+  }
+
+  /* Fix signature section for mobile */
+  .signature-section {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 16px !important;
+  }
+
+  .signature-section>div {
+    width: 100% !important;
+  }
+
+  /* Fix invoice table styling */
+  .invoice-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 16px 0 !important;
+  }
+
+  .invoice-table-header th {
+    background-color: #f8fafc !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+  }
+
+  .invoice-table-body tr {
+    transition: background-color 0.2s ease !important;
+  }
+
+  .invoice-table-body tr:hover {
+    background-color: #f8fafc !important;
+  }
+
+  .invoice-table-body td {
+    vertical-align: top !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .invoice-item-description {
+    max-width: 300px !important;
+  }
+
+  .invoice-item-description p {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .invoice-item-description .text-xs {
+    color: #64748b !important;
+    font-style: italic !important;
+  }
+
+  /* Tabular numbers for better alignment */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: 'tnum' !important;
+  }
+
+  /* Mobile responsive invoice table - simple layout, no overlapping */
+  @media (max-width: 768px) {
+    .invoice-table {
+      font-size: 12px !important;
+    }
+
+    .invoice-table th,
+    .invoice-table td {
+      padding: 6px 4px !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .invoice-table th {
+      background-color: #f8fafc !important;
+      font-weight: 600 !important;
+    }
+
+    .invoice-item-description {
+      max-width: 100% !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+    }
+
+    .invoice-item-description p {
+      font-size: 12px !important;
+      line-height: 1.3 !important;
+    }
+
+    .invoice-item-description .text-xs {
+      font-size: 10px !important;
+      line-height: 1.2 !important;
+    }
+  }
+
+  /* Print styles for invoice table */
+
+  /* Fix responsive table headers */
+  .invoice-table th,
+  .invoice-table td {
+    position: relative !important;
+  }
+
+  .invoice-table th[data-label]:before,
+  .invoice-table td[data-label]:before {
+    content: attr(data-label) !important;
+    position: absolute !important;
+    left: 12px !important;
+    top: 12px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    background-color: #f8fafc !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    z-index: 10 !important;
+  }
+
+  @media (max-width: 640px) {
+
+    .invoice-table th:not(:first-child),
+    .invoice-table td:not(:first-child) {
+      text-align: right !important;
+    }
+
+    .invoice-table th:first-child:before,
+    .invoice-table td:first-child:before {
+      display: none !important;
+    }
+  }
+
+  .invoice-item-description .text-right {
+    text-align: right !important;
+  }
+
+  /* Fix invoice totals section (exclude .invoice-document-mobile so it keeps desktop layout) */
+  .invoice-totals:not(.invoice-document-mobile .invoice-totals) {
+    background-color: #f8fafc !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  .invoice-totals:not(.invoice-document-mobile .invoice-totals) .flex {
+    align-items: center !important;
+  }
+
+  .invoice-totals:not(.invoice-document-mobile .invoice-totals) .font-bold {
+    color: #1e293b !important;
+  }
+
+  .invoice-signature-section:not(.invoice-document-mobile .invoice-signature-section) {
+    background-color: #ffffff !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .invoice-signature-section:not(.invoice-document-mobile .invoice-signature-section) h4 {
+    color: #475569 !important;
+    font-size: 14px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Mobile responsive invoice totals */
+  @media (max-width: 768px) {
+    .invoice-totals:not(.invoice-document-mobile .invoice-totals) {
+      padding: 8px !important;
+      margin-bottom: 10px !important;
+    }
+
+    .invoice-totals:not(.invoice-document-mobile .invoice-totals) .text-sm {
+      font-size: 9px !important;
+    }
+
+    .invoice-totals:not(.invoice-document-mobile .invoice-totals) .font-bold {
+      font-size: 10px !important;
+    }
+
+    .invoice-signature-section:not(.invoice-document-mobile .invoice-signature-section) {
+      padding: 8px !important;
+    }
+
+    .invoice-signature-section:not(.invoice-document-mobile .invoice-signature-section) h4 {
+      font-size: 9px !important;
+    }
+  }
+
+  /* Print styles for invoice totals */
+
+  /* Ensure proper text alignment in invoice */
+  .text-left {
+    text-align: left !important;
+  }
+
+  .text-center {
+    text-align: center !important;
+  }
+
+  .text-right {
+    text-align: right !important;
+  }
+
+  /* Fix column headers for better alignment */
+  .invoice-table th:first-child {
+    width: 40% !important;
+  }
+
+  .invoice-table th:nth-child(2) {
+    width: 15% !important;
+  }
+
+  .invoice-table th:nth-child(3),
+  .invoice-table th:nth-child(4) {
+    width: 22.5% !important;
+  }
+
+  /* Tabular numbers for better alignment */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: 'tnum' !important;
+  }
+
+  /* Invoice item description styling */
+  .invoice-item-description {
+    max-width: 300px !important;
+    word-wrap: break-word !important;
+    hyphens: auto !important;
+  }
+
+  .invoice-item-description p {
+    margin: 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .invoice-item-description .text-xs {
+    color: #64748b !important;
+    font-style: italic !important;
+  }
+
+}
+
+/* Button styles for primary actions - Enhanced with better hover states and accessibility */
+@media (max-width: 480px) {
+  body {
+    font-size: 11px !important;
+  }
+
+  /* Even smaller text (1 level smaller proportionally) */
+  h1 {
+    font-size: 0.90rem !important;
+  }
+
+  h2 {
+    font-size: 0.82rem !important;
+  }
+
+  h3 {
+    font-size: 0.75rem !important;
+  }
+
+  .text-sm {
+    font-size: 0.58rem !important;
+  }
+
+  .text-xs {
+    font-size: 0.54rem !important;
+  }
+
+  /* Smaller icons */
+  .w-4.h-4 {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .w-5.h-5 {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  .w-6.h-6 {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  /* Make modals almost full width */
+  .app-modal-dialog,
+  .chat-modal-dialog {
+    max-width: 98vw !important;
+    width: 98vw !important;
+    margin: 0 1vw !important;
+  }
+
+  /* Even smaller buttons */
+  .button-primary:not(.package-booking-button),
+  .button-secondary {
+    font-size: 0.58rem !important;
+    padding: 0 7px !important;
+    min-height: 24px !important;
+  }
+
+  .button-primary svg,
+  .button-secondary svg {
+    width: 11px !important;
+    height: 11px !important;
+  }
+
+  /* Compact navigation */
+  .bottom-nav {
+    padding: 4px 6px !important;
+    min-height: 48px !important;
+  }
+
+  .bottom-nav svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Very compact spacing */
+  .p-4 {
+    padding: 6px 8px !important;
+  }
+
+  .p-6 {
+    padding: 8px 10px !important;
+  }
+
+  .p-8 {
+    padding: 10px 12px !important;
+  }
+
+  /* Ensure dashboard-cards-grid adjusts smoothly without overlapping on <480px */
+  .dashboard-cards-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .dashboard-cards-grid > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Loading skeleton animation */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+/* Enhanced accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .button-primary {
+    border: 2px solid currentColor;
+  }
+
+  .card-hover {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Top-level mobile overrides for invoice so they are not nested and will apply */
+@media (max-width: 768px) {
+
+  /* Invoice container spacing */
+  .print-invoice {
+    padding: 16px !important;
+  }
+
+  .print-invoice header {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice header>div:last-child {
+    text-align: left !important;
+  }
+
+  .print-invoice .doc-header-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice .doc-header-grid>div {
+    padding: 16px !important;
+  }
+
+  .print-invoice table {
+    font-size: 12px !important;
+  }
+
+  .print-invoice th,
+  .print-invoice td {
+    padding: 8px 4px !important;
+  }
+
+  .print-invoice .totals-section {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .print-invoice .doc-footer-flex {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Extra-compact invoice and generic printable area on small phones */
+  .print-invoice,
+  .printable-area {
+    padding: 4px !important;
+    font-size: 9px !important;
+  }
+
+  .print-invoice header h1,
+  .printable-area:not(:has(.invoice-document-mobile)) h1 {
+    font-size: 0.78rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .printable-area:not(:has(.invoice-document-mobile)) h2 {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .printable-area:not(:has(.invoice-document-mobile)) h3 {
+    font-size: 0.68rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .printable-area:not(:has(.invoice-document-mobile)) h4,
+  .printable-area:not(:has(.invoice-document-mobile)) h5,
+  .printable-area:not(:has(.invoice-document-mobile)) h6 {
+    font-size: 0.62rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .print-invoice header p,
+  .print-invoice header span,
+  .print-invoice .doc-header-grid p,
+  .print-invoice .doc-header-grid span,
+  .print-invoice .contact-line,
+  .print-invoice .address-line,
+  .printable-area:not(:has(.invoice-document-mobile)) p,
+  .printable-area:not(:has(.invoice-document-mobile)) span,
+  .printable-area:not(:has(.invoice-document-mobile)) li {
+    font-size: 0.58rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .print-invoice table,
+  .printable-area:not(:has(.invoice-document-mobile)) table {
+    font-size: 8px !important;
+  }
+
+  .print-invoice th,
+  .print-invoice td,
+  .printable-area:not(:has(.invoice-document-mobile)) th,
+  .printable-area:not(:has(.invoice-document-mobile)) td {
+    padding: 3px 3px !important;
+  }
+
+  .print-invoice .tabular-nums,
+  .print-invoice .amount,
+  .print-invoice .text-right,
+  .printable-area:not(:has(.invoice-document-mobile)) .tabular-nums,
+  .printable-area:not(:has(.invoice-document-mobile)) .amount,
+  .printable-area:not(:has(.invoice-document-mobile)) .text-right {
+    font-size: 8px !important;
+  }
+
+  /* Client Portal specific tightening */
+  .template-wrapper .print-invoice header h2 {
+    /* "Invoice" title */
+    font-size: 0.85rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .template-wrapper .print-invoice p,
+  .template-wrapper .print-invoice span,
+  .template-wrapper .print-invoice li {
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .template-wrapper .print-invoice .font-extrabold {
+    /* big amount in blue box */
+    font-size: 0.9rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .template-wrapper .print-invoice .font-bold {
+    font-size: 0.85rem !important;
+  }
+
+  .template-wrapper .print-invoice .invoice-table {
+    font-size: 9px !important;
+  }
+
+  .template-wrapper .print-invoice .tabular-nums,
+  .template-wrapper .print-invoice .amount,
+  .template-wrapper .print-invoice .text-right {
+    font-size: 10px !important;
+  }
+}
+
+/* Ultra-compact for very small phones */
+@media (max-width: 380px) {
+  .template-wrapper .print-invoice header h2 {
+    font-size: 0.8rem !important;
+  }
+
+  .template-wrapper .print-invoice p,
+  .template-wrapper .print-invoice span,
+  .template-wrapper .print-invoice li {
+    font-size: 0.6rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .template-wrapper .print-invoice header p,
+  .template-wrapper .print-invoice header span {
+    font-size: 0.6rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .template-wrapper .print-invoice .font-extrabold {
+    font-size: 0.85rem !important;
+  }
+
+  .template-wrapper .print-invoice .font-bold {
+    font-size: 0.8rem !important;
+  }
+
+  .template-wrapper .print-invoice .invoice-table {
+    font-size: 8px !important;
+  }
+
+  .template-wrapper .print-invoice th,
+  .template-wrapper .print-invoice td {
+    padding: 4px 3px !important;
+  }
+
+  /* extra-compact container padding on very small phones */
+  .print-invoice,
+  .printable-area {
+    padding: 6px !important;
+  }
+}
+
+/* Responsive foundation: keep overflow local and preserve usable touch targets. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  min-height: 36px;
+}
+
+.overflow-x-auto,
+.table-responsive,
+[class*='table-wrapper'] {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.overflow-x-auto > table:not(.invoice-table-tight),
+.table-responsive > table:not(.invoice-table-tight),
+[class*='table-wrapper']:not(.invoice-table-wrapper) > table {
+  min-width: min(640px, 100%);
+}
+
+table {
+  border: 1px solid var(--color-border) !important;
+}
+
+th,
+td {
+  border: 1px solid var(--color-border) !important;
+}
+
+.bottom-nav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  padding-bottom: var(--safe-area-inset-bottom, 0px);
+}
+
+.app-modal-dialog {
+  min-width: 0;
+  width: min(100%, 80rem);
+}
+
+.app-modal-footer {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea,
+  .input-field {
+    min-width: 0;
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  .app-modal-dialog {
+    width: 100%;
+  }
+
+  .app-modal-footer {
+    align-items: stretch;
+  }
+
+  .app-modal-footer > button,
+  .app-modal-footer > a,
+  .app-modal-footer > [role='button'] {
+    flex: 1 1 8rem;
+  }
+
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > h1,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > h2,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > h3,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > h4,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > p,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > label,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > button,
+  .app-modal-dialog :not(.invoice-document-mobile):not(.invoice-document-mobile *) > a {
+    overflow-wrap: anywhere;
+  }
+
+  .app-modal-dialog .whitespace-nowrap:not(.invoice-document-mobile .whitespace-nowrap) {
+    white-space: normal;
+  }
+
+  .button-primary,
+  .button-secondary,
+  .button-danger,
+  .button-success,
+  .btn-box-read,
+  .btn-box-edit,
+  .btn-box-delete,
+  .btn-box-wa,
+  .btn-box-add {
+    min-height: 24px;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-xs {
+    font-size: calc(0.54rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  .text-sm {
+    font-size: calc(0.58rem * var(--mobile-ui-scale, 1)) !important;
+  }
+}
+
+/* Enhanced print styles for modal-based documents (Invoice/Receipt/Contract) */
+/* A4 with Indonesian standard margins: 2.5cm left/right, 2cm top/bottom */
+@page {
+  size: A4 portrait;
+  margin: 2cm 2.5cm;
+}
+
+
+
+/* Button styles for primary actions - Enhanced with better hover states and accessibility */
+.button-primary {
+  background-color: hsl(var(--brand-accent));
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  text-decoration: none;
+  user-select: none;
+}
+
+.button-primary:hover {
+  background-color: hsl(var(--brand-accent-hover, var(--brand-accent)));
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.button-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.button-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--brand-accent-rgb, 59, 130, 246), 0.5);
+}
+
+.button-primary:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+
+.button-primary:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Button styles for secondary actions */
+.button-secondary {
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #1d4ed8;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  text-decoration: none;
+  user-select: none;
+}
+
+.button-secondary:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(37, 99, 235, 0.3);
+}
+
+.button-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background-color: #1e40af;
+}
+
+.button-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.5);
+}
+
+.button-secondary:disabled {
+  background-color: #93c5fd;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Mobile small phones: shrink input/select text size consistently (1 level smaller) */
+@media (max-width: 480px) {
+
+  html:not(.ios) input:not([type="checkbox"]):not([type="radio"]),
+  html:not(.ios) textarea,
+  html:not(.ios) select,
+  html:not(.ios) .input-field,
+  html:not(.ios) select.input-field {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  html:not(.ios) input::placeholder,
+  html:not(.ios) textarea::placeholder {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+  }
+}
+
+/* Also shrink floating labels and helper text on small phones (non-iOS) */
+@media (max-width: 480px) {
+  html:not(.ios) .input-label {
+    font-size: calc(0.56rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  html:not(.ios) .input-helper-text {
+    font-size: calc(0.52rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  /* Compact input/select spacing */
+  html:not(.ios) .input-field {
+    min-height: 26px !important;
+    padding: 2px 6px !important;
+    line-height: 1.25 !important;
+  }
+
+  html:not(.ios) select.input-field {
+    padding-right: 1.5rem !important;
+  }
+}
+
+/* Mobile Compact Form: shrink Text Field, Select, keep Textarea multi-line, and tighten form spacing */
+@media (max-width: 768px) {
+
+  /* Apply to forms wrapped with .form-compact to avoid global side effects */
+  .form-compact {
+    gap: 8px !important;
+  }
+
+  .form-compact .form-group,
+  .form-compact .input-group {
+    margin-bottom: 6px !important;
+  }
+
+  /* Text Field (single line) */
+  .form-compact input.input-field {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+    min-height: 28px !important;
+    padding: 0.65rem 0.45rem 0.18rem !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Dropdown / Select Field */
+  .form-compact select.input-field {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+    min-height: 28px !important;
+    padding: 0.65rem 1.4rem 0.18rem 0.45rem !important;
+    line-height: 1.25 !important;
+    background-position: right 0.4rem center !important;
+  }
+
+  /* Textarea (multi-line) */
+  .form-compact textarea.input-field {
+    font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important;
+    min-height: 54px !important;
+    padding: 0.65rem 0.45rem 0.25rem !important;
+    line-height: 1.3 !important;
+    resize: vertical !important;
+  }
+
+  /* Labels and helper text 1 level smaller but readable */
+  .form-compact .input-label {
+    font-size: calc(0.56rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  .form-compact .input-helper-text {
+    font-size: calc(0.52rem * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  /* Form container padding (optional) */
+  .form-compact .form-body,
+  .form-compact form {
+    padding: 6px !important;
+  }
+}
+
+/* Extra small phones: allow smaller typography on non-iOS only to avoid zoom */
+@media (max-width: 480px) {
+
+  html:not(.ios) .form-compact input.input-field,
+  html:not(.ios) .form-compact select.input-field {
+    font-size: 0.62rem !important;
+    min-height: 28px !important;
+    padding: 0.65rem 0.45rem 0.18rem !important;
+  }
+
+  html:not(.ios) .form-compact select.input-field {
+    padding-right: 1.4rem !important;
+    background-position: right 0.4rem center !important;
+  }
+
+  html:not(.ios) .form-compact textarea.input-field {
+    font-size: 0.62rem !important;
+    min-height: 54px !important;
+    padding: 0.65rem 0.45rem 0.25rem !important;
+    line-height: 1.3 !important;
+  }
+
+  html:not(.ios) .form-compact .input-label {
+    font-size: 0.56rem !important;
+  }
+
+  html:not(.ios) .form-compact .input-helper-text {
+    font-size: 0.52rem !important;
+  }
+}
+
+/* OPTIONAL: Force smaller input/select text even on iOS */
+@media (max-width: 768px) {
+
+  .form-compact.form-compact--force-small input.input-field,
+  .form-compact.form-compact--force-small select.input-field,
+  .form-compact.form-compact--force-small textarea.input-field,
+  .form-compact.form-compact--force-small .input-with-icon input,
+  .form-compact.form-compact--force-small input[type="date"].input-field {
+    font-size: 0.62rem !important;
+  }
+
+  .form-compact.form-compact--force-small input.input-field::placeholder,
+  .form-compact.form-compact--force-small textarea.input-field::placeholder {
+    font-size: 0.62rem !important;
+  }
+
+  .form-compact.form-compact--force-small .input-label {
+    font-size: 0.56rem !important;
+  }
+
+  .form-compact.form-compact--force-small .input-helper-text {
+    font-size: 0.52rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .form-compact.form-compact--force-small input.input-field,
+  .form-compact.form-compact--force-small select.input-field,
+  .form-compact.form-compact--force-small textarea.input-field,
+  .form-compact.form-compact--force-small .input-with-icon input,
+  .form-compact.form-compact--force-small input[type="date"].input-field {
+    font-size: 0.62rem !important;
+  }
+
+  .form-compact.form-compact--force-small input.input-field::placeholder,
+  .form-compact.form-compact--force-small textarea.input-field::placeholder {
+    font-size: 0.62rem !important;
+  }
+
+  .form-compact.form-compact--force-small .input-label {
+    font-size: 0.56rem !important;
+  }
+
+  .form-compact.form-compact--force-small .input-helper-text {
+    font-size: 0.52rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* ========================================================
+     MOBILE COMPACT DESIGN SYSTEM (SCALED DOWN 1 LEVEL PROPORTIONALLY)
+     Berlaku HANYA untuk mobile view (< 768px), tanpa merubah desktop/tablet.
+     Komponen: heading, title, subtitle, text biasa, label, description,
+     angka, nominal Rp, percentage, Stat Card & Dashboard, Card & Detail,
+     Table (header, isi, angka, nominal, status, action), Input/Select/Search/Form,
+     Badge/status, Text di semua Button, Text di Icon Button, Text di Tab,
+     Text di Filter/Dropdown, Text Navbar/Sidebar/Bottom Nav, Empty state,
+     alert, notification, tooltip.
+     ======================================================== */
+
+  /* 0. TYPOGRAPHY & TEXT (Kecil 1 Tingkat Proporsional) */
+  h1 { font-size: calc(0.90rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.2 !important; letter-spacing: -0.015em !important; }
+  h2 { font-size: calc(0.82rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; letter-spacing: -0.01em !important; }
+  h3 { font-size: calc(0.75rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; letter-spacing: -0.01em !important; }
+  h4 { font-size: calc(0.68rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  h5, h6 { font-size: calc(0.64rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+
+  .text-3xl { font-size: calc(0.90rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.2 !important; letter-spacing: -0.015em !important; }
+  .text-2xl { font-size: calc(0.82rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; letter-spacing: -0.01em !important; }
+  .text-xl  { font-size: calc(0.75rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; }
+  .text-lg  { font-size: calc(0.68rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  .text-base{ font-size: calc(0.64rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+  .text-sm  { font-size: calc(0.58rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  .text-xs  { font-size: calc(0.54rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; }
+  .text-\[15px\], .text-\[14px\] { font-size: calc(0.62rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  .text-\[13px\], .text-\[12px\] { font-size: calc(0.56rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; }
+  .text-\[11px\], .text-\[10px\] { font-size: calc(0.51rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.2 !important; }
+  .text-\[9px\], .text-\[8px\]   { font-size: calc(0.48rem * var(--mobile-ui-scale, 1)) !important; line-height: 1.15 !important; }
+
+  /* 1. BUTTONS, ICON BUTTONS, TABS & FILTERS */
+  button:not(.workflow-trigger):not(.checklist-item-toggle):not(.client-payment-toggle):not(.finance-add-pocket-card):not(.finance-add-account-card):not(.vendor-portfolio-card):not(.btn-box-read):not(.btn-box-edit):not(.btn-box-delete):not(.btn-box-wa):not(.btn-box-add):not(.rounded-full):not([class*="rounded-full"]):not(.bottom-nav button):not([class*="w-7"]):not([class*="w-8"]):not([class*="h-7"]):not([class*="h-8"]):not([class*="w-6"]):not([class*="h-6"]):not(.package-booking-button),
+  .button-primary:not(.package-booking-button),
+  .button-secondary,
+  .button-danger,
+  .button-success,
+  button.button-primary:not(.package-booking-button),
+  button.button-secondary {
+    min-height: 24px !important;
+    height: auto !important;
+    max-height: 28px !important;
+    padding: 0.18rem 0.45rem !important;
+    font-size: 0.58rem !important;
+    line-height: 1.15 !important;
+    border-radius: 5px !important;
+    letter-spacing: 0 !important;
+    font-weight: 600 !important;
+    gap: 3px !important;
+  }
+
+  /* Public package booking button — jangan dikecilkan */
+  button.package-booking-button,
+  .package-booking-button {
+    min-height: 54px !important;
+    max-height: none !important;
+    height: auto !important;
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    padding: 0.875rem 1.25rem !important;
+    border-radius: 0.875rem !important;
+    letter-spacing: 0.01em !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .vendor-public-profile #hero {
+    height: min(72svh, 700px) !important;
+    min-height: 520px !important;
+    max-height: 700px !important;
+  }
+
+  .vendor-public-profile #hero .vendor-profile-hero-content {
+    max-width: 100% !important;
+    padding: 0 20px 36px !important;
+  }
+
+  .vendor-public-profile #hero .vendor-profile-hero-title {
+    margin-bottom: 12px !important;
+    font-size: 30px !important;
+    line-height: 1.05 !important;
+  }
+
+  .vendor-public-profile #hero .vendor-profile-hero-subtitle {
+    margin-bottom: 20px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+
+  .vendor-public-profile #portfolio .vendor-portfolio-card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+  }
+
+  .vendor-public-profile #portfolio .vendor-portfolio-category {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  .vendor-public-profile #portfolio .vendor-portfolio-title {
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+
+  .app-modal-dialog button.client-payment-toggle {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 12px 16px !important;
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+    gap: 8px !important;
+    border-radius: 0 !important;
+  }
+
+  .app-modal-dialog button.checklist-item-toggle.w-5.h-5 {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  .btn-box-read,
+  .btn-box-edit,
+  .btn-box-delete,
+  .btn-box-wa,
+  .btn-box-add,
+  .action-cell button,
+  .table-action-btn {
+    min-height: 20px !important;
+    height: auto !important;
+    padding: 0.15rem 0.38rem !important;
+    font-size: 0.54rem !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+    gap: 2.5px !important;
+    border-radius: 4px !important;
+  }
+
+  .btn-box-read:has(> svg:only-child),
+  .btn-box-edit:has(> svg:only-child),
+  .btn-box-delete:has(> svg:only-child),
+  .btn-box-wa:has(> svg:only-child),
+  .btn-box-add:has(> svg:only-child),
+  .btn-box-read.w-8,
+  .btn-box-edit.w-8,
+  .btn-box-delete.w-8,
+  .btn-box-wa.w-8,
+  .btn-box-add.w-8,
+  .btn-box-read.w-7,
+  .btn-box-edit.w-7,
+  .btn-box-delete.w-7,
+  .btn-box-wa.w-7,
+  .btn-box-add.w-7,
+  .action-cell button:has(> svg:only-child),
+  .table-action-btn:has(> svg:only-child) {
+    min-width: 20px !important;
+    min-height: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+  }
+
+  .btn-box-read svg,
+  .btn-box-edit svg,
+  .btn-box-delete svg,
+  .btn-box-wa svg,
+  .btn-box-add svg,
+  .action-cell button svg {
+    width: 9.5px !important;
+    height: 9.5px !important;
+  }
+
+  /* Compact circular/icon-only action buttons (e.g. CategoryManager, StatusManager, Users) */
+  button.rounded-full:has(> svg:only-child):not(.bottom-nav button),
+  button[class*="rounded-full"]:has(> svg:only-child):not(.bottom-nav button) {
+    min-height: 20px !important;
+    min-width: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Tab & Filter Navigation Buttons */
+  [role="tab"],
+  .tab-btn,
+  .mobile-tab-pill,
+  .tab-navigation button,
+  div[class*="overflow-x-auto"] > button,
+  div[class*="overflow-x-auto"] > button.shrink-0,
+  div.flex.gap-2 > button.shrink-0,
+  div.flex.gap-2.scrollbar-hide > button.shrink-0,
+  nav:not(.bottom-nav):not(#sidebar nav) button {
+    min-height: 23px !important;
+    height: auto !important;
+    padding: 0.16rem 0.45rem !important;
+    font-size: 0.56rem !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+    gap: 3px !important;
+    white-space: nowrap !important;
+  }
+
+  /* 2. FIELDS, INPUTS, SELECTS & SEARCH */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  select,
+  .input-field,
+  select.input-field,
+  .input-with-icon input {
+    min-height: 26px !important;
+    height: 26px !important;
+    padding: 2px 6px !important;
+    font-size: 0.62rem !important;
+    border-width: 1px !important;
+    border-radius: 5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .input-field {
+    min-height: 30px !important;
+    height: auto !important;
+    padding: 0.68rem 0.45rem 0.18rem !important;
+  }
+
+  .input-with-icon input {
+    padding-left: 22px !important;
+    padding-right: 6px !important;
+    line-height: 24px !important;
+  }
+
+  .input-with-icon .input-icon {
+    width: 11px !important;
+    height: 11px !important;
+    left: 6px !important;
+  }
+
+  .login-form #email {
+    padding-left: 32px !important;
+    padding-right: 12px !important;
+  }
+
+  .login-form #password {
+    padding-left: 32px !important;
+    padding-right: 36px !important;
+  }
+
+  select,
+  select.input-field {
+    padding-right: 16px !important;
+    background-size: 0.7em 0.7em !important;
+    background-position: right 4px center !important;
+  }
+
+  textarea,
+  textarea.input-field {
+    min-height: 46px !important;
+    padding: 4px 6px !important;
+    font-size: 0.62rem !important;
+    border-width: 1px !important;
+    border-radius: 5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .input-label,
+  label.input-label[class~="!static"],
+  .input-label.form-label-static {
+    font-size: 0.56rem !important;
+    left: 6px !important;
+    line-height: 1.2 !important;
+  }
+
+  .input-field:focus + .input-label,
+  .input-field:not(:placeholder-shown) + .input-label {
+    font-size: 0.48rem !important;
+    top: 1px !important;
+  }
+
+  .input-helper-text {
+    font-size: 0.52rem !important;
+    line-height: 1.25 !important;
+  }
+
+  details {
+    padding: 5px 7px !important;
+    border-width: 1px !important;
+    border-radius: 5px !important;
+  }
+
+  /* 3. TABLES & TABLE TEXT */
+  table {
+    border-width: 1px !important;
+    font-size: 0.55rem !important;
+    line-height: 1.15 !important;
+  }
+
+  table th,
+  table td,
+  th,
+  td {
+    border-width: 1px !important;
+    padding: 2px 3.5px !important;
+    font-size: 0.55rem !important;
+    line-height: 1.15 !important;
+  }
+
+  table thead th,
+  thead th {
+    font-size: 0.52rem !important;
+    padding: 2.5px 3.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.01em !important;
+  }
+
+  .finance-add-pocket-card,
+  .finance-add-account-card {
+    width: 100%;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 200px !important;
+    padding: 20px !important;
+    border-radius: 14px !important;
+    gap: 6px !important;
+  }
+
+  .finance-add-account-card {
+    aspect-ratio: 1.586;
+  }
+
+  .finance-add-pocket-card > span:first-of-type,
+  .finance-add-account-card > span:first-of-type {
+    font-size: 14px !important;
+    line-height: 1.3 !important;
+  }
+
+  .finance-add-pocket-card > span:last-of-type {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  table td p,
+  table th p,
+  td p,
+  th p,
+  td div,
+  td a {
+    font-size: 0.55rem !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+
+  table td .badge,
+  table td .status-badge,
+  table td span[class*="rounded"] {
+    font-size: 0.48rem !important;
+    padding: 1px 3px !important;
+    border-radius: 2px !important;
+    line-height: 1.1 !important;
+  }
+
+  table td span:not([class*="rounded"]) {
+    font-size: 0.55rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .mobile-row {
+    border-bottom-width: 1px !important;
+    padding: 2.5px 0 !important;
+    gap: 3px !important;
+  }
+
+  .mobile-row-label {
+    min-width: 55px !important;
+    font-size: 0.52rem !important;
+  }
+
+  .mobile-row-value {
+    min-width: 0 !important;
+    font-size: 0.56rem !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* 4. CARDS, BADGES & WIDGETS */
+  .status-badge {
+    font-size: 0.48rem !important;
+    padding: 1px 4px !important;
+    line-height: 1.15 !important;
+  }
+
+  main [class*="bg-white"][class*="rounded-2xl"][class*="border"],
+  main [class*="bg-brand-surface"][class*="rounded-2xl"][class*="border"],
+  main [class*="bg-white/5"][class*="rounded-2xl"][class*="border"],
+  .bg-brand-surface,
+  .dashboard-card,
+  .mobile-table-card {
+    border-radius: 7px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    padding: 5.5px 7.5px !important;
+  }
+
+  main [class*="bg-white"][class*="rounded-2xl"][class*="border"][class*="p-4"],
+  main [class*="bg-white"][class*="rounded-2xl"][class*="border"][class*="p-5"],
+  main [class*="bg-white"][class*="rounded-2xl"][class*="border"][class*="p-6"],
+  main [class*="bg-white"][class*="rounded-2xl"][class*="border"][class*="p-8"],
+  main [class*="bg-brand-surface"][class*="rounded-2xl"][class*="border"][class*="p-4"],
+  main [class*="bg-brand-surface"][class*="rounded-2xl"][class*="border"][class*="p-5"],
+  main [class*="bg-brand-surface"][class*="rounded-2xl"][class*="border"][class*="p-6"],
+  main [class*="bg-brand-surface"][class*="rounded-2xl"][class*="border"][class*="p-8"] {
+    padding: 5.5px 7.5px !important;
+  }
+
+  /* 5. NUMBERS, METRICS & STAT CARDS */
+  .modern-stat-card h4,
+  h4.font-extrabold,
+  p.font-extrabold,
+  .text-2xl.font-extrabold,
+  .text-xl.font-extrabold,
+  .text-2xl.font-black,
+  .text-xl.font-black {
+    font-size: 0.78rem !important;
+    line-height: 1.15 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .stat-card-number,
+  .stat-card-value,
+  .metric-value {
+    font-size: 0.78rem !important;
+    line-height: 1.15 !important;
+    font-variant-numeric: tabular-nums !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  /* 6. DETAIL PAGES & MODALS */
+  .app-modal-dialog {
+    border-radius: 8px !important;
+  }
+
+  .app-modal-dialog > div:first-child {
+    padding: 5.5px 8.5px !important;
+  }
+
+  .app-modal-dialog #modal-title {
+    font-size: calc(0.95rem * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.25 !important;
+    font-weight: 700 !important;
+  }
+
+  .modal-content-area {
+    padding: 5.5px 7.5px !important;
+  }
+
+  .app-modal-footer {
+    padding: 4.5px 7.5px !important;
+    gap: 4px !important;
+  }
+
+  .app-modal-footer button {
+    min-height: 23px !important;
+    height: 23px !important;
+    font-size: 0.58rem !important;
+    padding: 0 7px !important;
+  }
+
+  /* Modal detail tabs / chips */
+  .app-modal-dialog button[class*="rounded-lg"],
+  .app-modal-dialog button[class*="rounded-xl"] {
+    min-height: 22px !important;
+    padding: 2px 6px !important;
+    font-size: 0.54rem !important;
+  }
+
+  .app-modal-dialog .text-xl {
+    font-size: 0.72rem !important;
+  }
+
+  .app-modal-dialog .text-lg {
+    font-size: 0.66rem !important;
+  }
+
+  .app-modal-dialog .text-base {
+    font-size: 0.62rem !important;
+  }
+
+  .app-modal-dialog .text-sm {
+    font-size: 0.56rem !important;
+  }
+
+  .app-modal-dialog .text-xs {
+    font-size: 0.52rem !important;
+  }
+
+  /* Section cards and infofields inside details */
+  .SectionCard,
+  .bg-slate-50.p-6 {
+    padding: 5.5px 7.5px !important;
+    border-radius: 6px !important;
+  }
+
+  /* 7. STANDARD SPACING SCALED DOWN */
+  .space-y-6 > * + * {
+    margin-top: 0.45rem !important;
+  }
+  .space-y-5 > * + * {
+    margin-top: 0.35rem !important;
+  }
+  .space-y-4 > * + * {
+    margin-top: 0.3rem !important;
+  }
+  .gap-4, .gap-5, .gap-6 {
+    gap: 0.35rem !important;
+  }
+}
+
+.input-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-bottom: 12px !important;
+}
+
+.input-group > .input-label,
+.input-group > label.input-label,
+.input-group > .form-label,
+.input-group > label.form-label,
+.input-field + .input-label,
+.input-field + label.input-label,
+textarea + .input-label,
+textarea + label.input-label,
+select + .input-label,
+select + label.input-label,
+input + .input-label,
+input + label.input-label {
+  order: -1 !important;
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  white-space: normal !important;
+}
+
+.input-field:focus + .input-label,
+.input-field:not(:placeholder-shown) + .input-label,
+textarea:focus + .input-label,
+textarea:not(:placeholder-shown) + .input-label,
+select:focus + .input-label,
+select:not(:placeholder-shown) + .input-label {
+  order: -1 !important;
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 768px) {
+  html { font-size: 16px !important; }
+  .vendor-public-profile { --mobile-ui-scale: var(--profile-mobile-ui-scale, 1); }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) :is(p, span, label, small, strong, a, li, td, th, option):not([class*="text-"]) {
+    font-size: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.45 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h1 { font-size: calc(32px * var(--mobile-ui-scale, 1)) !important; line-height: 1.2 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h2 { font-size: calc(26px * var(--mobile-ui-scale, 1)) !important; line-height: 1.25 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h3 { font-size: calc(22px * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h4 { font-size: calc(19px * var(--mobile-ui-scale, 1)) !important; line-height: 1.3 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h5,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) h6 { font-size: calc(17px * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-3xl { font-size: calc(30px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-2xl { font-size: calc(24px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-xl { font-size: calc(20px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-lg { font-size: calc(18px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-base { font-size: calc(16px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-sm { font-size: calc(14px * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-xs { font-size: calc(12px * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[15px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[14px]"] { font-size: calc(14px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[13px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[12px]"] { font-size: calc(12px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[11px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[10px]"] { font-size: calc(11px * var(--mobile-ui-scale, 1)) !important; }
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[9px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[8px]"] { font-size: calc(9px * var(--mobile-ui-scale, 1)) !important; }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="text-"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"][class*="text-"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .button-primary,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .button-secondary,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .btn-primary,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .btn-secondary,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .btn-outline,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .btn-ghost,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .tab-btn,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="tab"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .mobile-tab-pill,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .tab-navigation button {
+    font-size: calc(14px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.35 !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main button[class*="text-"],
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main nav button[class*="text-"],
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main [role="tab"] {
+    font-size: min(calc(14px * var(--mobile-ui-scale, 1)), 16px) !important;
+    line-height: 1.35 !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main .client-report-tab-switcher.flex > button[class*="text-"] {
+    font-size: calc(14px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.35 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="text-"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"][class*="text-"] {
+    padding: calc(7px * var(--mobile-ui-scale, 1)) calc(11px * var(--mobile-ui-scale, 1)) !important;
+    border-radius: calc(8px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="text-"]:has(svg):not([class*="flex-col"]):not(.dashboard-action-card):not(.finance-add-pocket-card),
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"][class*="text-"]:has(svg):not([class*="flex-col"]):not(.dashboard-action-card):not(.finance-add-pocket-card) {
+    flex-shrink: 0 !important;
+    gap: calc(6px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button:not(.bottom-nav button),
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"]:not(.bottom-nav *) {
+    min-height: max(39px, calc(39px * var(--mobile-ui-scale, 1))) !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: calc(7px * var(--mobile-ui-scale, 1)) calc(13px * var(--mobile-ui-scale, 1)) !important;
+    border-radius: calc(10px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="text-"]:not(.bottom-nav button) {
+    min-height: max(39px, calc(39px * var(--mobile-ui-scale, 1))) !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: calc(7px * var(--mobile-ui-scale, 1)) calc(11px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button svg,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"] svg {
+    width: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    height: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    max-width: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    max-height: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    flex-shrink: 0 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="w-11"][class*="h-6"] {
+    width: calc(44px * var(--mobile-ui-scale, 1)) !important;
+    min-width: calc(44px * var(--mobile-ui-scale, 1)) !important;
+    height: calc(24px * var(--mobile-ui-scale, 1)) !important;
+    min-height: calc(24px * var(--mobile-ui-scale, 1)) !important;
+    max-height: calc(24px * var(--mobile-ui-scale, 1)) !important;
+    padding: 0 !important;
+    border-radius: 9999px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="w-11"][class*="h-6"] > span {
+    width: calc(20px * var(--mobile-ui-scale, 1)) !important;
+    height: calc(20px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="w-11"][class*="h-6"] > span[class*="translate-x-5"] {
+    transform: translateX(calc(20px * var(--mobile-ui-scale, 1))) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) select,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-field,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-with-icon input {
+    min-height: max(44px, calc(40px * var(--mobile-ui-scale, 1))) !important;
+    height: auto !important;
+    padding: calc(7px * var(--mobile-ui-scale, 1)) calc(11px * var(--mobile-ui-scale, 1)) !important;
+    font-size: calc(14px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.35 !important;
+    border-radius: calc(8px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea {
+    min-height: max(72px, calc(72px * var(--mobile-ui-scale, 1))) !important;
+    height: auto !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea.input-field,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea:not(.input-field) {
+    min-height: max(72px, calc(72px * var(--mobile-ui-scale, 1))) !important;
+    height: auto !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-group input.input-field:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]) {
+    padding: calc(16px * var(--mobile-ui-scale, 1)) calc(11px * var(--mobile-ui-scale, 1)) calc(3px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) label.input-label,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) label.form-label,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-helper-text,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-label,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) label.input-label[class~="!static"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .input-label.form-label-static {
+    font-size: calc(14px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.3 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .modern-stat-card h4,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .stat-card-number,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .stat-card-value,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .metric-value {
+    font-size: min(calc(18px * var(--mobile-ui-scale, 1)), 20px) !important;
+    line-height: 1.15 !important;
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="min-h-[90px]"][class~="sm:min-h-0"][class~="rounded-xl"][class~="sm:rounded-2xl"][class~="p-2.5"] {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    padding: calc(10px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="min-h-[90px]"][class~="sm:min-h-0"][class~="rounded-xl"][class~="sm:rounded-2xl"][class~="p-2.5"] > div:first-child {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    margin: 0 0 calc(8px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="min-h-[90px]"][class~="sm:min-h-0"][class~="rounded-xl"][class~="sm:rounded-2xl"][class~="p-2.5"] > div:last-child {
+    width: 100% !important;
+    flex: none !important;
+    padding-right: 0 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="grid-cols-2"][class~="lg:grid-cols-4"] > div[class~="flex"][class~="items-center"][class~="gap-3"][class~="bg-brand-surface"] {
+    position: relative !important;
+    display: block !important;
+    min-height: 88px !important;
+    height: auto !important;
+    padding: 8px 10px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="grid-cols-2"][class~="lg:grid-cols-4"] > div[class~="flex"][class~="items-center"][class~="gap-3"][class~="bg-brand-surface"] > div:first-child {
+    position: absolute !important;
+    top: 8px !important;
+    left: 10px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="grid-cols-2"][class~="lg:grid-cols-4"] > div[class~="flex"][class~="items-center"][class~="gap-3"][class~="bg-brand-surface"] > div.min-w-0 {
+    width: 100% !important;
+    padding-top: 34px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="grid-cols-2"][class~="lg:grid-cols-4"] p.text-lg.font-black {
+    font-size: min(calc(18px * var(--mobile-ui-scale, 1)), 17px) !important;
+    line-height: 1.15 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="grid-cols-2"][class~="lg:grid-cols-4"] p[class*="text-[10px]"] {
+    font-size: min(calc(11px * var(--mobile-ui-scale, 1)), 12px) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) div[class~="bg-brand-bg/80"][class~="overflow-x-auto"] > button[class~="flex-1"][class~="sm:flex-none"] {
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    min-width: max-content !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) div[class~="overflow-x-auto"] > button[class*="text-"] {
+    font-size: min(calc(14px * var(--mobile-ui-scale, 1)), 16px) !important;
+    line-height: 1.35 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class~="rounded-xl"][class~="sm:rounded-2xl"][class~="p-2.5"] h4[class~="text-xs"][class~="sm:text-2xl"].font-extrabold.tabular-nums {
+    font-size: min(calc(16px * var(--mobile-ui-scale, 1)), 17px) !important;
+    line-height: 1.15 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table th,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td {
+    font-size: calc(12px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.3 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td p,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td span,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td div,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td a,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table th p,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table th span {
+    font-size: calc(12px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.3 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td [class*="text-[11px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td [class*="text-[10px]"] {
+    font-size: calc(11px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td span[class*="rounded"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) table td .status-badge {
+    padding: calc(2px * var(--mobile-ui-scale, 1)) calc(6px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.2 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button > span:not([class*="text-"]) {
+    font-size: inherit !important;
+    line-height: inherit !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[8px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), [role="dialog"]:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[9px]"] {
+    font-size: calc(9px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  [role="dialog"] .text-xs { font-size: calc(12px * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+  [role="dialog"] .text-sm { font-size: calc(14px * var(--mobile-ui-scale, 1)) !important; line-height: 1.35 !important; }
+  [role="dialog"] .text-base { font-size: calc(16px * var(--mobile-ui-scale, 1)) !important; }
+  [role="dialog"] .text-lg { font-size: calc(18px * var(--mobile-ui-scale, 1)) !important; }
+  [role="dialog"] .text-xl { font-size: calc(20px * var(--mobile-ui-scale, 1)) !important; }
+  [role="dialog"] .text-2xl { font-size: calc(24px * var(--mobile-ui-scale, 1)) !important; }
+
+  [role="dialog"] .grid.grid-cols-2 > div p.text-2xl.font-bold {
+    font-size: min(calc(20px * var(--mobile-ui-scale, 1)), 18px) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
+  [role="dialog"] .grid.grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  [role="dialog"] .grid.grid-cols-3 > :last-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  [role="dialog"] .grid.grid-cols-3 > div p.text-2xl.font-bold {
+    font-size: min(calc(16px * var(--mobile-ui-scale, 1)), 14px) !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) p.text-xs.font-semibold.truncate {
+    overflow: visible !important;
+    overflow-wrap: anywhere !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) .dashboard-action-card > div:last-child p:first-child {
+    font-size: min(calc(11px * var(--mobile-ui-scale, 1)), 12px) !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) .dashboard-action-card > div:last-child p:last-child {
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+
+  #root div[class~="bg-[#EEF2F7]"][class~="rounded-xl"][class~="p-1"] > button[class~="text-xs"] {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    white-space: nowrap !important;
+  }
+
+  .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) #modal-title:empty {
+    display: none !important;
+  }
+
+  .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) > div:first-child:has(#modal-title:empty) {
+    padding-block: calc(6px * var(--mobile-ui-scale, 1)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) section.pt-3.border-t.border-slate-200:has(> .space-y-3 > section.rounded-xl > h4 + ul) h4 {
+    font-size: calc(13px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.3 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) section.pt-3.border-t.border-slate-200:has(> .space-y-3 > section.rounded-xl > h4 + ul) ul {
+    font-size: calc(11px * var(--mobile-ui-scale, 1)) !important;
+    line-height: 1.45 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-pill {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-header-area {
+    min-height: 112px !important;
+    height: 112px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-badge-text {
+    display: inline-block !important;
+    max-width: 120px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-overflow: clip !important;
+    line-height: 1.2 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-region-badge,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-order-label {
+    font-size: 7px !important;
+    line-height: 1.2 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-toolbar {
+    gap: 2px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-action-button {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    padding: 0 !important;
+    background: rgba(244, 246, 249, 0.9) !important;
+    border: 1px solid rgba(90, 106, 133, 0.08) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-action-button svg {
+    width: 10px !important;
+    height: 10px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-name {
+    font-size: calc(18px * var(--mobile-ui-scale, 1)) !important;
+    font-weight: 800 !important;
+    line-height: 1.3 !important;
+    color: #2A3547 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .package-card-price {
+    font-size: calc(20px * var(--mobile-ui-scale, 1)) !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    color: var(--color-accent, #5D87FF) !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"] {
+    min-height: max(39px, calc(39px * var(--mobile-ui-scale, 1))) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[aria-label]:not([class*="w-11"][class*="h-6"]),
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"][aria-label] {
+    min-width: max(44px, calc(40px * var(--mobile-ui-scale, 1))) !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main .transactions-mobile-actions button[aria-label]:not([class*="w-11"][class*="h-6"]) {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="range"]),
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) select,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea {
+    min-height: max(44px, calc(40px * var(--mobile-ui-scale, 1))) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) input[type="file"] {
+    min-height: 44px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) a[class*="flex"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) a[class*="button-"] {
+    min-width: max(44px, calc(40px * var(--mobile-ui-scale, 1))) !important;
+    min-height: max(44px, calc(40px * var(--mobile-ui-scale, 1))) !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  #root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)) main nav[aria-label="breadcrumb"] a {
+    display: inline-flex !important;
+    min-height: 44px !important;
+    align-items: center !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) textarea {
+    min-height: max(72px, calc(72px * var(--mobile-ui-scale, 1))) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) input[type="range"] {
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button[class*="w-11"][class*="h-6"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(44px * var(--mobile-ui-scale, 1));
+    height: calc(44px * var(--mobile-ui-scale, 1));
+    transform: translate(-50%, -50%);
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) button svg,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [role="button"] svg {
+    width: calc(16px * var(--mobile-ui-scale, 1)) !important;
+    height: calc(16px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) .text-xs,
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[10px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[11px]"] {
+    font-size: calc(12px * var(--mobile-ui-scale, 1)) !important;
+  }
+
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[8px]"],
+  :is(#root:not(:has(main[data-mobile-ui-scale-excluded="true"], #invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer)), .app-modal-dialog:not(:has(#invoice, .invoice-document-mobile, .print-invoice, .printable-content, .contract-document, .pdf-viewer))) [class*="text-[9px]"] {
+    font-size: calc(9px * var(--mobile-ui-scale, 1)) !important;
+  }
+}
