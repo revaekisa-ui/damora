@@ -131,7 +131,7 @@ export function generateExcelTemplate(type: MigrationDataType = 'all'): void {
   }
 
   const guideData = [
-    { 'PANDUAN': 'PETUNJUK IMPORT EXCEL Vena Pictures' },
+    { 'PANDUAN': 'PETUNJUK IMPORT EXCEL Filda Makeup' },
     { 'PANDUAN': '1. Sheet "Data Pengantin": isi Nama Pengantin, Email, Nomor HP, Status Pengantin (Aktif/Calon Pengantin/Tidak Aktif/Hilang), Tipe Pengantin (Langsung/Vendor), dan Alamat.' },
     { 'PANDUAN': '2. Sheet "Data Keuangan Transaksi": isi Tanggal, Keterangan, Tipe (Pemasukan/Pengeluaran), Nominal, Kategori, dan Metode Pembayaran.' },
     { 'PANDUAN': '3. Sheet "Keuangan Tim & Honor": isi Nama Tim, Peran, Nomor HP, Nomor Rekening, Total Honor, dan Status Bayar.' },
@@ -142,7 +142,7 @@ export function generateExcelTemplate(type: MigrationDataType = 'all'): void {
   wsGuide['!cols'] = [{ wch: 110 }];
   XLSX.utils.book_append_sheet(wb, wsGuide, 'Petunjuk Pengisian');
 
-  const fileName = type === 'all' ? 'Template_Migrasi_Vena_Pictures.xlsx' : `Template_${type}_Vena_Pictures.xlsx`;
+  const fileName = type === 'all' ? 'Template_Migrasi_Filda_Makeup.xlsx' : `Template_${type}_Filda_Makeup.xlsx`;
   XLSX.writeFile(wb, fileName);
 }
 

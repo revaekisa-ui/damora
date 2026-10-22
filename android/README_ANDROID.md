@@ -1,10 +1,10 @@
-# 📱 Android Project - Vena Pictures
+# 📱 Android Project - Filda Makeup
 
-Project ini adalah bagian Android dari aplikasi Vena Pictures yang dibangun dengan Capacitor.
+Project ini adalah bagian Android dari aplikasi Filda Makeup yang dibangun dengan Capacitor.
 
 ## 📋 Informasi Project
 
-- **App Name:** Vena Pictures
+- **App Name:** Filda Makeup
 - **Package Name:** com.weddfin.app
 - **Capacitor Version:** 8.5.0
 - **Gradle Version:** 9.0.1

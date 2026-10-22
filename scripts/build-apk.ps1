@@ -1,5 +1,5 @@
 # ========================================
-# Build APK Script - Vena Pictures
+# Build APK Script - Filda Makeup
 # ========================================
 # Script untuk build APK Debug atau Release
 # ========================================
@@ -11,7 +11,7 @@ param(
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "   Build APK - Vena Pictures" -ForegroundColor Cyan
+Write-Host "   Build APK - Filda Makeup" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

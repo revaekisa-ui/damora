@@ -188,7 +188,7 @@ const Header: React.FC<HeaderProps> = ({
                         />
                     )}
                     <span className="text-sm font-extrabold text-[#2A3547] tracking-tight truncate">
-                        {profile?.companyName || 'Vena Pictures'}
+                        {profile?.companyName || 'Filda Makeup'}
                     </span>
                 </div>
 

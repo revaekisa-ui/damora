@@ -1,6 +1,6 @@
 # Panduan Backup Database Supabase
 
-Dokumentasi lengkap untuk backup dan restore database Supabase project Vena Pictures.
+Dokumentasi lengkap untuk backup dan restore database Supabase project Filda Makeup.
 
 ## 📋 Ringkasan
 
@@ -275,5 +275,5 @@ console.log(clients);
 ---
 
 **Last Updated**: 1 Maret 2026
-**Project**: Vena Pictures Dashboard
+**Project**: Filda Makeup Dashboard
 **Database**: dvpzxkrfomvrvndgsshk.supabase.co

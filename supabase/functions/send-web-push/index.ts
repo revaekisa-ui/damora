@@ -97,7 +97,7 @@ serve(async (req: Request) => {
     }
 
     const pushPayload = JSON.stringify({
-      title: title || "Vena Pictures",
+      title: title || "Filda Makeup",
       body: message || "Ada pembaruan baru di aplikasi.",
       icon: icon || "/pwa-192x192.png",
       badge: "/pwa-192x192.png",

@@ -909,7 +909,7 @@ export const ExcelMigrationModal: React.FC<ExcelMigrationModalProps> = ({
                   Import Data Berhasil!
                 </h3>
                 <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  Semua data dari file Excel Anda telah sukses dimasukkan ke dalam sistem manajemen Vena Pictures.
+                  Semua data dari file Excel Anda telah sukses dimasukkan ke dalam sistem manajemen Filda Makeup.
                 </p>
               </div>
 

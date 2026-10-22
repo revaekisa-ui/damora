@@ -166,7 +166,7 @@ describe('profile booking template envelope', () => {
       fullName: 'Admin',
       email: 'admin@vena.com',
       phone: '081200000000',
-      companyName: 'Vena Pictures',
+      companyName: 'Filda Makeup',
       address: 'Studio address',
       bankAccount: 'Business account',
       authorizedSigner: 'Admin',
