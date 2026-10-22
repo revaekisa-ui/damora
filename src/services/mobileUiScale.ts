@@ -28,6 +28,35 @@ let inFlightUserId: string | null = null;
 let loadToken = 0;
 let bootstrapPromise: Promise<void> | null = null;
 
+type ProfileScaleRow = { id: string; mobile_ui_scale: number | string | null };
+
+/**
+ * Find the profile row that carries this account's preference.
+ *
+ * Rows created before the auth link (or reused across accounts) have an
+ * `admin_user_id` that matches nobody, so fall back to the active row the rest of
+ * the app reads (see `getProfile`) instead of failing the save outright.
+ */
+async function findProfileRowForScale(userId: string): Promise<ProfileScaleRow | null> {
+    const { data: owned, error: ownedError } = await supabase
+        .from('profiles')
+        .select('id, mobile_ui_scale')
+        .eq('admin_user_id', userId)
+        .maybeSingle();
+
+    if (ownedError && ownedError.code !== 'PGRST116') throw ownedError;
+    if (owned) return owned as ProfileScaleRow;
+
+    const { data: active, error: activeError } = await supabase
+        .from('profiles')
+        .select('id, mobile_ui_scale')
+        .limit(1)
+        .maybeSingle();
+
+    if (activeError && activeError.code !== 'PGRST116') throw activeError;
+    return (active as ProfileScaleRow) ?? null;
+}
+
 /**
  * Load the scale stored in the `profiles` table.
  * Returns `undefined` whenever there is no reliable value (no session, no profile
@@ -46,23 +75,12 @@ export async function loadRemoteMobileUiScale(userId?: string): Promise<number |
             if (!targetUserId) return undefined;
         }
 
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('mobile_ui_scale')
-            .eq('admin_user_id', targetUserId)
-            .maybeSingle();
-
-        if (error) {
-            // PGRST116 = zero rows. Treat it like "not loaded yet" so the cached
-            // preference survives instead of being reset to the default.
-            if (error.code === 'PGRST116') return undefined;
-            throw error;
-        }
+        const row = await findProfileRowForScale(targetUserId);
 
         // The profile row is not available (yet) — do not touch the cached value.
-        if (!data) return undefined;
+        if (!row) return undefined;
 
-        const value = data.mobile_ui_scale;
+        const value = row.mobile_ui_scale;
         // A stored NULL is a deliberate reset to the default, so it is applied.
         if (value === null || value === undefined) return MOBILE_UI_SCALE_DEFAULT;
 
@@ -87,13 +105,13 @@ export async function saveRemoteMobileUiScale(value: number): Promise<number | u
     if (!sessionData?.session) throw new Error('Sesi akun Supabase tidak ditemukan.');
 
     const userId = sessionData.session.user.id;
+    const row = await findProfileRowForScale(userId);
+    if (!row) throw new Error('Profil akun tidak ditemukan; preferensi tidak disimpan.');
 
-    // Use update — the profile row is always created at account setup.
-    // RLS ensures we can only update the current user's own row.
     const { data, error } = await supabase
         .from('profiles')
         .update({ mobile_ui_scale: scale })
-        .eq('admin_user_id', userId)
+        .eq('id', row.id)
         .select('mobile_ui_scale')
         .maybeSingle();
     if (error) throw error;
