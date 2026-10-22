@@ -10,7 +10,6 @@ import {
     Region,
     PhysicalItem,
     DurationOption,
-    WorkflowItem,
     PackageTermItem,
     RegionPricelistPdf,
 } from '../../types';
@@ -39,7 +38,6 @@ import { DuplicateAddOnModal } from './components/DuplicateAddOnModal';
 import { DuplicateAttireModal } from './components/DuplicateAttireModal';
 import { DuplicateCatalogGroupModal } from './components/DuplicateCatalogGroupModal';
 import { SharePackageModal } from './components/SharePackageModal';
-import { WorkflowModal } from './components/WorkflowModal';
 import { PackageTermsModal } from './components/PackageTermsModal';
 import { RegionPricelistModal } from './components/RegionPricelistModal';
 import { buildPublicShareUrl, getPackageShareIdentifier } from '../../utils/publicRouting';
@@ -629,7 +627,6 @@ export const Packages: React.FC<PackagesProps> = ({
     const [editingAttire, setEditingAttire] = useState<Attire | null>(null);
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
     const [isPricelistModalOpen, setIsPricelistModalOpen] = useState(false);
-    const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     // ── Attire CRUD Handlers ──
@@ -1346,8 +1343,8 @@ export const Packages: React.FC<PackagesProps> = ({
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `${pkg.name} - ${profile?.companyName || 'Vena Pictures'}`,
-                    text: `Lihat paket ${pkg.name} dari ${profile?.companyName || 'Vena Pictures'}`,
+                    title: `${pkg.name} - ${profile?.companyName || 'Filda Makeup'}`,
+                    text: `Lihat paket ${pkg.name} dari ${profile?.companyName || 'Filda Makeup'}`,
                     url: shareUrl,
                 });
                 showNotification(`Paket "${pkg.name}" berhasil dibagikan!`);
@@ -1596,35 +1593,6 @@ export const Packages: React.FC<PackagesProps> = ({
         }
     };
 
-    // ── Workflows Handler (for Public Catalog) ──
-    const handleSaveWorkflows = async (updatedWorkflows: WorkflowItem[]) => {
-        try {
-            const weddingWf = updatedWorkflows[0] || { title: 'Wedding Timeline', timeline: [] as string[] };
-            const smallEventWf = updatedWorkflows[1] || { title: 'Event Timeline', timeline: [] as string[] };
-
-            const updated = await upsertProfile({
-                id: profile.id,
-                publicPageConfig: {
-                    ...profile.publicPageConfig,
-                    workflows: updatedWorkflows,
-                    weddingWorkflow: {
-                        title: weddingWf.title,
-                        timeline: weddingWf.timeline,
-                    },
-                    smallEventWorkflow: {
-                        title: smallEventWf.title,
-                        timeline: smallEventWf.timeline,
-                    },
-                },
-            });
-            setProfile(updated);
-            showNotification('Workflow berhasil disimpan.');
-        } catch (err) {
-            console.error('Error saving workflows:', err);
-            throw err;
-        }
-    };
-
     // ── Regional Pricelist PDF Handler ──
     const handleSaveRegionPricelists = async (updatedList: RegionPricelistPdf[]) => {
         try {
@@ -1692,16 +1660,6 @@ export const Packages: React.FC<PackagesProps> = ({
                     >
                         <Upload className="w-4 h-4 text-[#5A6A85]" />
                         <span className="hidden xs:inline sm:inline">Pricelist</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => setIsWorkflowModalOpen(true)}
-                        className="shrink-0 whitespace-nowrap py-2 px-3 rounded-xl border border-[#EAEFF4] bg-white hover:bg-[#F4F6F9] text-[#5A6A85] font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
-                        title="Kelola Workflow & Timeline (Katalog Publik)"
-                    >
-                        <List className="w-4 h-4 text-[#5A6A85]" />
-                        <span className="hidden xs:inline sm:inline">Workflow</span>
                     </button>
 
                     <button
@@ -2286,15 +2244,6 @@ export const Packages: React.FC<PackagesProps> = ({
                 onSaveRegionPricelists={handleSaveRegionPricelists}
                 showNotification={showNotification}
                 availableRegions={unionRegions}
-            />
-
-            {/* ── Workflow Modal (CRUD) ── */}
-            <WorkflowModal
-                isOpen={isWorkflowModalOpen}
-                onClose={() => setIsWorkflowModalOpen(false)}
-                profile={profile}
-                onSaveWorkflows={handleSaveWorkflows}
-                showNotification={showNotification}
             />
         </div>
     );

@@ -54,7 +54,6 @@ export const UI_TEXT_OPTIONS: UiTextOption[] = [
     { key: 'project.detail.tab.meetings', label: 'Tab pertemuan', defaultText: 'Meeting', group: 'Detail Acara' },
     { key: 'project.detail.tab.team', label: 'Tab tim & paket', defaultText: 'Tim & Paket', group: 'Detail Acara' },
     { key: 'project.detail.tab.terms', label: 'Tab syarat', defaultText: 'Syarat & Ketentuan', group: 'Detail Acara' },
-    { key: 'project.detail.tab.workflow', label: 'Tab alur kerja', defaultText: 'Workflow', group: 'Detail Acara' },
     { key: 'project.detail.tab.files', label: 'Tab file', defaultText: 'File & Link', group: 'Detail Acara' },
     { key: 'project.detail.section.main', label: 'Bagian informasi utama', defaultText: 'Informasi Utama', group: 'Detail Acara' },
     { key: 'project.detail.section.status', label: 'Bagian status dan progres', defaultText: 'Status & Progres Pengerjaan', group: 'Detail Acara' },

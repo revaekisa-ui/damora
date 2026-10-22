@@ -30,8 +30,6 @@ import { formatCurrency, getStatusClass, getProgressForStatus } from '../utils/p
 import { EditFormData, ProjectEditSection } from '../hooks/useProjectEditMode';
 import { getPackageTerms } from '../../packages/packageTerms';
 import PackageTermsDisplay from '../../packages/components/PackageTermsDisplay';
-import WorkflowDisplay from '../../packages/components/WorkflowDisplay';
-import { getWorkflows } from '../../packages/workflows';
 import { customizeUiText, useUiTextOverrides } from '../../../utils/uiTextCustomization';
 import { useChatTemplates } from '../../../hooks/useChatTemplates';
 import Modal from '../../../shared/ui/Modal';
@@ -162,7 +160,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
   const [paymentProofToView, setPaymentProofToView] = useState<TeamPaymentRecord | null>(null);
   const [isPreparingPaymentProof, setIsPreparingPaymentProof] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [mobileSectionTab, setMobileSectionTab] = useState<'info' | 'meetings' | 'team' | 'checklist' | 'terms' | 'workflow' | 'files'>('info');
+  const [mobileSectionTab, setMobileSectionTab] = useState<'info' | 'meetings' | 'team' | 'checklist' | 'terms' | 'files'>('info');
 
   const startSectionEdit = (section: ProjectEditSection) => {
     setEditingSection(section);
@@ -729,7 +727,6 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
 
   const pkg = packages.find(p => p.id === selectedProject.packageId) ?? null;
   const packageTerms = getPackageTerms(profile.publicPageConfig?.packageTerms);
-  const workflows = getWorkflows(profile.publicPageConfig);
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -1057,7 +1054,6 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
                 { id: 'meetings', label: customizeUiText('project.detail.tab.meetings', 'Meeting', uiTextOverrides) },
                 { id: 'team', label: `${customizeUiText('project.detail.tab.team', 'Tim & Paket', uiTextOverrides)} (${selectedProject.team?.length || 0})` },
                 { id: 'terms', label: customizeUiText('project.detail.tab.terms', 'Syarat & Ketentuan', uiTextOverrides) },
-                { id: 'workflow', label: customizeUiText('project.detail.tab.workflow', 'Workflow', uiTextOverrides) },
                 { id: 'files', label: customizeUiText('project.detail.tab.files', 'File & Link', uiTextOverrides) },
               ] as const).map(tab => {
                 const active = mobileSectionTab === tab.id;
@@ -1495,12 +1491,6 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({
           {mobileSectionTab === 'terms' && (
             <section className="pt-3 border-t border-slate-200">
               <PackageTermsDisplay terms={packageTerms} packageName={pkg?.name || selectedProject.packageName} showHeader={false} />
-            </section>
-          )}
-
-          {mobileSectionTab === 'workflow' && (
-            <section className="pt-3 border-t border-slate-200">
-              <WorkflowDisplay workflows={workflows} projectName={selectedProject.projectName} showHeader={false} />
             </section>
           )}
 

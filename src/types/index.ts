@@ -607,13 +607,6 @@ export interface SecuritySettings {
   twoFactorEnabled: boolean;
 }
 
-export interface WorkflowItem {
-  id: string;
-  title: string;
-  timeline: string[];
-  description?: string;
-}
-
 export interface PackageTermItem {
   id: string;
   title: string;
@@ -647,15 +640,6 @@ export interface PublicPageConfig {
   };
   pricelistPdfUrl?: string; // URL untuk PDF pricelist yang di-upload (legacy single)
   regionPricelists?: RegionPricelistPdf[]; // CRUD Pricelist PDF per wilayah/daerah
-  weddingWorkflow?: {
-    title: string;
-    timeline: string[];
-  };
-  smallEventWorkflow?: {
-    title: string;
-    timeline: string[];
-  };
-  workflows?: WorkflowItem[]; // Dynamic CRUD workflows for public page & package catalog
   packageTerms?: PackageTermItem[]; // Dynamic CRUD terms and conditions for packages
   projectStatusConfig?: ProjectStatusConfig[];
   hiddenPackageRegions?: string[];

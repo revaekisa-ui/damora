@@ -25,8 +25,6 @@ import { downloadInvoicePdf, getLatestInvoicePaymentDate } from '../../finance/u
 import { downloadReceiptPdf } from '../utils/receiptPdf';
 import PackageTermsDisplay from '../../packages/components/PackageTermsDisplay';
 import { getPackageTerms } from '../../packages/packageTerms';
-import WorkflowDisplay from '../../packages/components/WorkflowDisplay';
-import { getWorkflows } from '../../packages/workflows';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -260,7 +258,6 @@ const ClientPortal: React.FC<ClientPortalProps> = ({
     { key: 'dokumen', label: 'Link File', active: 'tab-active-mono' },
     ...(!isVendorClient ? [{ key: 'keuangan', label: 'Invoice', active: 'tab-active-mono' }] : []),
     ...(!isVendorClient ? [{ key: 'syarat-paket', label: 'Syarat & Ketentuan', active: 'tab-active-mono' }] : []),
-    ...(!isVendorClient ? [{ key: 'workflow', label: 'Workflow', active: 'tab-active-mono' }] : []),
     { key: 'testimoni', label: 'Testimoni', active: 'tab-active-mono' },
   ];
 
@@ -370,13 +367,6 @@ const ClientPortal: React.FC<ClientPortalProps> = ({
             packageName={Array.from(new Set(clientProjects.map(project =>
               packages.find(pkg => pkg.id === project.packageId)?.name || project.packageName,
             ).filter((name): name is string => !!name))).join(', ') || undefined}
-            showHeader={false}
-          />
-        )}
-        {activeTab === 'workflow' && !isVendorClient && (
-          <WorkflowDisplay
-            workflows={getWorkflows(profile.publicPageConfig)}
-            projectName={clientProjects.map(project => project.projectName).filter(Boolean).join(', ') || undefined}
             showHeader={false}
           />
         )}
@@ -1005,7 +995,7 @@ const GalleryTab: React.FC<{ projects: Project[]; packages?: Package[] }> = ({ p
                 Semua file tersimpan aman di Google Drive dan dapat diakses langsung tanpa batas waktu.
               </span>
               <span className="text-zinc-400 text-[10px]">
-                Sinkronisasi Cloud Vena Pictures
+                Sinkronisasi Cloud Filda Makeup
               </span>
             </div>
           </div>

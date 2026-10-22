@@ -9,12 +9,11 @@ import { createLead as createLeadRow, updateLead as updateLeadRow } from '../../
 import { uploadDpProof } from '../../../services/storage';
 import { createTransaction } from '../../../services/transactions';
 import RupiahInput from '../../../shared/form/RupiahInput';
-import { Download, MapPin, CheckCircle2, ListOrdered, ShieldCheck } from 'lucide-react';
+import { Download, MapPin, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { toPublicNameSlug } from '../../../utils/publicRouting';
 import { mergeTransaction, mergeById } from '../utils/publicBookingWrites';
 import { hydrateForm, readPackagesDraft, writePackagesDraft, clearPublicDrafts } from '../utils/publicDraftStore';
 import { getPackageTerms } from '../../packages/packageTerms';
-import { getWorkflows } from '../../packages/workflows';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -199,9 +198,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [promoFeedback, setPromoFeedback] = useState({ type: '', message: '' });
     const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
-    const [isWorkflowOpen, setIsWorkflowOpen] = useState(false);
     const [isTermsOpen, setIsTermsOpen] = useState(false);
-    const [openWorkflowId, setOpenWorkflowId] = useState<string | null>(null);
 
     // Note: We avoid early returns before all hooks to keep hook order stable across renders.
 
@@ -280,11 +277,6 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
         'Wisuda': "Rayakan pencapaian akademik Anda dengan layanan spesial dari kami.",
         'Keluarga': "Menciptakan momen berharga dan layanan terbaik untuk kebahagiaan keluarga Anda."
     };
-
-    const activeWorkflows = useMemo(
-        () => getWorkflows(userProfile?.publicPageConfig),
-        [userProfile?.publicPageConfig],
-    );
 
     const activePackageTerms = useMemo(
         () => getPackageTerms(userProfile?.publicPageConfig?.packageTerms, selectedRegion || undefined),
@@ -878,7 +870,7 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                         <section className="mb-8 md:mb-10 widget-animate -mx-4" style={{ animationDelay: '100ms' }}>
                             <div className="text-center mb-4">
                                 <h3 className="text-2xl font-bold text-brand-text-light">Pricelist</h3>
-                                <p className="text-sm text-brand-text-secondary mt-1">Pricelist {userProfile?.companyName || 'Vena Pictures'}</p>
+                                <p className="text-sm text-brand-text-secondary mt-1">Pricelist {userProfile?.companyName || 'Filda Makeup'}</p>
                             </div>
                             <div className="space-y-2 sm:space-y-3">
                                 {publicPageConfig?.galleryImages?.map((imgSrc, index) => (
@@ -895,94 +887,12 @@ const PublicPackages: React.FC<PublicPackagesProps> = ({ userProfile: initialUse
                         </section>
                     )}
 
-                    <section className="mb-12 md:mb-16 grid md:grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 widget-animate" style={{ animationDelay: '200ms' }}>
-                        {/* ── Workflow & Timeline Layanan ── */}
-                        <div
-                            className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border p-3 md:p-4 sm:p-6 cursor-pointer hover:border-brand-accent/50 transition-all"
-                            onClick={() => {
-                                const nextState = !isWorkflowOpen;
-                                setIsWorkflowOpen(nextState);
-                                setIsTermsOpen(false);
-                                if (nextState && !openWorkflowId && activeWorkflows.length > 0) {
-                                    setOpenWorkflowId(activeWorkflows[0].id);
-                                }
-                            }}
-                        >
-                            <div className="flex justify-between items-center text-left">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-xl bg-brand-accent/15 flex items-center justify-center text-brand-accent">
-                                        <ListOrdered className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg md:text-xl font-bold text-gradient workflow-title">
-                                            Workflow & Timeline Layanan
-                                        </h3>
-                                        <p className="text-xs text-brand-text-secondary workflow-subtitle">
-                                            {activeWorkflows.length} Alur Kerja Tersedia
-                                        </p>
-                                    </div>
-                                </div>
-                                <ChevronDownIcon className={`w-6 h-6 transition-transform text-brand-text-secondary ${isWorkflowOpen ? 'rotate-180' : ''}`} />
-                            </div>
-
-                            <div className={`transition-all duration-500 ease-in-out grid ${isWorkflowOpen ? 'grid-rows-[1fr] mt-4 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                                <div className="overflow-hidden">
-                                    <div className="space-y-3">
-                                        {activeWorkflows.map((wf, wfIdx) => {
-                                            const isExpanded = openWorkflowId === wf.id || (openWorkflowId === null && wfIdx === 0);
-                                            return (
-                                                <div key={wf.id || wfIdx} className="border border-brand-border rounded-xl overflow-hidden bg-brand-bg/40">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setOpenWorkflowId(isExpanded ? '' : wf.id);
-                                                        }}
-                                                        className="w-full flex justify-between items-center text-left p-3 hover:bg-brand-bg/80 transition-colors workflow-trigger"
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-5 h-5 rounded-md bg-brand-accent/20 text-brand-accent flex items-center justify-center text-xs font-bold">
-                                                                {wfIdx + 1}
-                                                            </span>
-                                                            <h4 className="font-semibold text-brand-text-light text-sm workflow-label">
-                                                                {wf.title}
-                                                            </h4>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] bg-brand-surface text-brand-text-secondary px-2 py-0.5 rounded-full border border-brand-border workflow-meta">
-                                                                {wf.timeline.length} Tahapan
-                                                            </span>
-                                                            <ChevronDownIcon className={`w-4 h-4 transition-transform text-brand-text-secondary ${isExpanded ? 'rotate-180' : ''}`} />
-                                                        </div>
-                                                    </button>
-                                                    <div className={`transition-all duration-300 ease-in-out grid ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                                                        <div className="overflow-hidden">
-                                                            <div className="p-3 pt-1 space-y-2 border-t border-brand-border/60">
-                                                                {wf.timeline.map((item, itemIdx) => (
-                                                                    <div key={itemIdx} className="flex items-start gap-2.5 text-sm text-brand-text-secondary workflow-copy">
-                                                                        <span className="w-4 h-4 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center text-[10px] font-bold mt-0.5 shrink-0">
-                                                                            {itemIdx + 1}
-                                                                        </span>
-                                                                        <span className="leading-snug">{item}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                    <section className="mb-12 md:mb-16 widget-animate" style={{ animationDelay: '200ms' }}>
                         {/* ── Syarat & Ketentuan Paket ── */}
                         <div
                             className="bg-brand-surface rounded-2xl shadow-lg border border-brand-border p-3 md:p-4 sm:p-6 cursor-pointer hover:border-brand-accent/50 transition-all"
                             onClick={() => {
                                 setIsTermsOpen(!isTermsOpen);
-                                setIsWorkflowOpen(false);
                             }}
                         >
                             <div className="flex justify-between items-center text-left">
