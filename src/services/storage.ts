@@ -81,6 +81,9 @@ export async function compressImage(
           for (let resizeAttempt = 0; resizeAttempt < 10; resizeAttempt++) {
             canvas.width = currentWidth;
             canvas.height = currentHeight;
+            // JPEG has no alpha channel, so an unfilled canvas turns transparent sources solid black.
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, currentWidth, currentHeight);
             ctx.drawImage(img, 0, 0, currentWidth, currentHeight);
 
             for (const qualityStep of qualities) {

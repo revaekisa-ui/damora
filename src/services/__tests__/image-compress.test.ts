@@ -17,6 +17,7 @@ describe('compressImage', () => {
     const originalCreateElement = document.createElement.bind(document);
 
     const drawImage = vi.fn();
+    const fillRect = vi.fn();
     const toBlob = vi.fn((callback) => {
       callback(new Blob(['compressed-image'], { type: 'image/jpeg' }));
     });
@@ -24,7 +25,7 @@ describe('compressImage', () => {
     const canvasMock = {
       width: 0,
       height: 0,
-      getContext: vi.fn(() => ({ drawImage })),
+      getContext: vi.fn(() => ({ drawImage, fillRect })),
       toBlob,
     } as unknown as HTMLCanvasElement;
 
@@ -55,6 +56,7 @@ describe('compressImage', () => {
 
       expect(result.type).toBe('image/jpeg');
       expect(result.name).toBe('sample.jpg');
+      expect(fillRect).toHaveBeenCalled();
       expect(drawImage).toHaveBeenCalled();
       expect(toBlob).toHaveBeenCalled();
     } finally {
@@ -72,7 +74,7 @@ describe('compressImage', () => {
     const canvasMock = {
       width: 0,
       height: 0,
-      getContext: vi.fn(() => ({ drawImage: vi.fn() })),
+      getContext: vi.fn(() => ({ drawImage: vi.fn(), fillRect: vi.fn() })),
       toBlob,
     } as unknown as HTMLCanvasElement;
 
