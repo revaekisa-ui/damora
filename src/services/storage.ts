@@ -116,6 +116,66 @@ export async function compressImage(
   });
 }
 
+/**
+ * Unggah aset publik (cover paket, logo/TTD profil, PDF pricelist) ke bucket
+ * Storage dan kembalikan URL publiknya. Dengan menyimpan URL — bukan base64 —
+ * di kolom database, setiap query tidak lagi ikut mengirim blob gambar/PDF,
+ * sehingga egress database turun drastis dan baris tabel tetap ringan.
+ */
+async function uploadPublicAsset(
+  file: File,
+  folder: string,
+  options: { compress?: { maxWidth: number; maxBytes: number } } = {},
+): Promise<string> {
+  const processedFile = options.compress
+    ? await compressImage(file, options.compress.maxWidth, 0.8, options.compress.maxBytes)
+    : file;
+  const ext = (processedFile.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+
+  const { data, error } = await supabase.storage.from(GALLERY_BUCKET).upload(path, processedFile, {
+    cacheControl: '31536000',
+    upsert: false,
+    contentType: processedFile.type || undefined,
+  });
+  if (error) throw error;
+
+  const { data: publicUrl } = supabase.storage.from(GALLERY_BUCKET).getPublicUrl(data.path);
+  return publicUrl.publicUrl;
+}
+
+export const uploadPackageCover = (file: File): Promise<string> =>
+  uploadPublicAsset(file, 'packages/covers', { compress: { maxWidth: 1200, maxBytes: 300 * 1024 } });
+
+// Logo & TTD dibiarkan apa adanya (tidak dikompres) agar transparansi PNG tetap utuh.
+export const uploadProfileLogo = (file: File): Promise<string> =>
+  uploadPublicAsset(file, 'profiles/logo');
+
+export const uploadProfileSignature = (file: File): Promise<string> =>
+  uploadPublicAsset(file, 'profiles/signature');
+
+export const uploadPricelistPdf = (file: File): Promise<string> =>
+  uploadPublicAsset(file, 'pricelists');
+
+/**
+ * Mengunggah `data:` URL (mis. hasil tanda tangan dari kanvas) ke Storage dan
+ * mengembalikan URL publiknya. Nilai yang sudah berupa URL dikembalikan apa
+ * adanya sehingga aman dipanggil berulang.
+ *
+ * Dipakai di lapisan service agar kolom `*_signature` tidak lagi menyimpan
+ * blob base64 — setiap query tidak ikut mengunduh gambar tanda tangan.
+ */
+export async function uploadDataUrlAsset(dataUrl: string, folder: string): Promise<string> {
+  if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl;
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  const subtype = (blob.type.split('/')[1] || 'png').split('+')[0].replace(/[^a-z0-9]/gi, '') || 'png';
+  const file = new File([blob], `signature-${Date.now()}.${subtype}`, {
+    type: blob.type || 'image/png',
+  });
+  return uploadPublicAsset(file, folder);
+}
+
 export async function uploadGalleryImage(file: File, compress: boolean = true): Promise<string> {
   // Validate file type
   if (!file.type.startsWith('image/')) {

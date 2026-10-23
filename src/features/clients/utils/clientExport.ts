@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { downloadCSV } from '../../../utils/export';
 import { PaymentStatus, TransactionType } from '../../../types';
-import type { Contract, TeamProjectPayment, Transaction } from '../../../types';
+import type { TeamProjectPayment, Transaction } from '../../../types';
 import type { ClientWithSummary } from '../hooks/useClients';
 
 type CellValue = string | number | boolean | Date | null | undefined;
@@ -38,7 +38,6 @@ interface SummaryRow {
 
 interface ExportContext {
     companyName?: string;
-    contracts?: Contract[];
 }
 
 interface ClientExportPayload {
@@ -166,42 +165,6 @@ const getPaymentContribution = (transaction: Transaction) => {
 const deriveProjectPaidAmount = (projectAmountPaid: number, projectIncomeTransactions: Transaction[]) => {
     if (projectIncomeTransactions.length === 0) return toNumber(projectAmountPaid);
     return projectIncomeTransactions.reduce((sum, transaction) => sum + getPaymentContribution(transaction), 0);
-};
-
-const getPrimaryContract = (
-    clientId: string,
-    projectId: string | null,
-    contractsByProjectId: Map<string, Contract>,
-    contractsByClientId: Map<string, Contract[]>,
-) => {
-    if (projectId) {
-        const projectContract = contractsByProjectId.get(projectId);
-        if (projectContract) return projectContract;
-    }
-    const clientContracts = contractsByClientId.get(clientId) || [];
-    return clientContracts[0];
-};
-
-const buildContractLookup = (contracts: Contract[] = []) => {
-    const contractsByProjectId = new Map<string, Contract>();
-    const contractsByClientId = new Map<string, Contract[]>();
-
-    contracts.forEach((contract) => {
-        if (contract.projectId && !contractsByProjectId.has(contract.projectId)) {
-            contractsByProjectId.set(contract.projectId, contract);
-        }
-        if (!contract.clientId) return;
-        const clientContracts = contractsByClientId.get(contract.clientId) || [];
-        clientContracts.push(contract);
-        clientContracts.sort((left, right) => {
-            const rightDate = Date.parse(right.signingDate || right.createdAt || '') || 0;
-            const leftDate = Date.parse(left.signingDate || left.createdAt || '') || 0;
-            return rightDate - leftDate;
-        });
-        contractsByClientId.set(contract.clientId, clientContracts);
-    });
-
-    return { contractsByProjectId, contractsByClientId };
 };
 
 const buildStatusCounts = (items: string[]) =>
@@ -475,12 +438,6 @@ interface ProjectSheetContext {
     project: ClientWithSummary['projects'][number] | null;
 }
 
-const buildClientDisplayName = (contract: Contract | undefined, clientName: string) => {
-    if (!contract) return clientName;
-    const parts = [contract.clientName1, contract.clientName2].filter(Boolean);
-    return parts.length > 0 ? parts.join(' & ') : clientName;
-};
-
 const buildAddOnDescription = (project: ClientWithSummary['projects'][number] | null) => {
     if (!project) return '';
     const entries = [
@@ -509,7 +466,6 @@ const buildClientExportPayload = (
 ): ClientExportPayload => {
     const generatedAt = new Date();
     const companyName = context.companyName || 'Vena';
-    const { contractsByProjectId, contractsByClientId } = buildContractLookup(context.contracts || []);
 
     const projectEntries = clients.flatMap((client) => client.projects.map((project) => ({ client, project })));
     const projectIds = new Set(projectEntries.map(({ project }) => project.id));
@@ -546,19 +502,13 @@ const buildClientExportPayload = (
     // ── Sheet: Pengantin & Acara Pernikahan (satu baris per proyek) ────────
     const eventRows: ExportRow[] = [];
     const buildEventRow = ({ client, project }: ProjectSheetContext): ExportRow => {
-        const contract = getPrimaryContract(
-            client.id,
-            project ? project.id : null,
-            contractsByProjectId,
-            contractsByClientId,
-        );
         const totalPayment = project ? (projectPaymentMap.get(project.id) || 0) : 0;
         const totalContract = project ? toNumber(project.totalCost) : 0;
 
         return {
             clientId: client.id,
-            groomName: contract?.clientName1 || client.name,
-            brideName: contract?.clientName2 || '',
+            groomName: client.name,
+            brideName: '',
             whatsapp: client.whatsapp || client.phone || '',
             email: client.email || '',
             address: client.homeAddress || client.address || '',
@@ -601,16 +551,13 @@ const buildClientExportPayload = (
         .map((transaction) => {
             const project = projectById.get(transaction.projectId!);
             const client = project ? clientById.get(project.clientId) : undefined;
-            const contract = project && client
-                ? getPrimaryContract(client.id, project.id, contractsByProjectId, contractsByClientId)
-                : undefined;
             const paymentKind = inferPaymentKind(transaction);
             const proofUrl = paymentKind === 'DP' ? (project?.dpProofUrl || '') : '';
 
             return {
                 transactionId: transaction.id,
                 paymentDate: parseDateValue(transaction.date),
-                clientName: buildClientDisplayName(contract, client?.name || project?.clientName || ''),
+                clientName: client?.name || project?.clientName || '',
                 projectName: project?.projectName || '',
                 paymentKind,
                 paymentMethod: transaction.method || '',
@@ -629,9 +576,6 @@ const buildClientExportPayload = (
         .map((transaction) => {
             const project = projectById.get(transaction.projectId!);
             const client = project ? clientById.get(project.clientId) : undefined;
-            const contract = project && client
-                ? getPrimaryContract(client.id, project.id, contractsByProjectId, contractsByClientId)
-                : undefined;
             const noteParts = [
                 transaction.cardId ? `Kartu: ${transaction.cardId}` : '',
                 transaction.pocketId ? `Kantong: ${transaction.pocketId}` : '',
@@ -639,7 +583,7 @@ const buildClientExportPayload = (
 
             return {
                 expenseId: transaction.id,
-                clientName: buildClientDisplayName(contract, client?.name || project?.clientName || ''),
+                clientName: client?.name || project?.clientName || '',
                 projectName: project?.projectName || '',
                 expenseDate: parseDateValue(transaction.date),
                 category: transaction.category || '',

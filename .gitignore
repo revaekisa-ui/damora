@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+scripts/_*
 
 # Environment files - IMPORTANT: Don't commit sensitive keys
 .env
@@ -67,14 +68,4 @@ codemagic.yaml.enc
 backups/
 *.sql
 *.sql.gz
-!supabase/migrations/20261006100000_remove_legacy_password_from_users.sql
-!supabase/migrations/20261006101500_enable_app_realtime_tables.sql
-!supabase/migrations/20261015200000_add_mobile_ui_scale_to_profiles.sql
-!supabase/migrations/20261016120000_add_lead_sources_to_profiles.sql
-!supabase/migrations/20261006175600_bio_link_pages.sql
-!supabase/migrations/20261008090000_allow_projects_without_event_date.sql
-!supabase/migrations/20261008140000_add_vendor_profile_page_banner.sql
-!supabase/migrations/20261008150000_grant_bio_link_page_access.sql
-!supabase/migrations/20261014120000_ui_text_overrides.sql
-!supabase/migrations/20261014120000_enable_bio_link_pages_realtime.sql
-!supabase/migrations/20261015100000_google_calendar_feed_tokens.sql
+!supabase/migrations/*.sql

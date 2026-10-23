@@ -1,8 +1,12 @@
 import supabase from '../lib/supabaseClient';
+import { uploadDataUrlAsset } from './storage';
 import { Profile, ProjectStatusConfig } from '../types';
 import { MOBILE_UI_SCALE_DEFAULT, normalizeMobileUiScale } from '../utils/mobileUiScale';
 
 const TABLE = 'profiles';
+
+export const PROFILE_COLUMNS = 'id, admin_user_id, full_name, email, phone, company_name, website, instagram, address, bank_account, authorized_signer, id_number, bio, income_categories, expense_categories, project_types, event_types, asset_categories, sop_categories, package_categories, lead_sources, project_status_config, notification_settings, security_settings, briefing_template, terms_and_conditions, logo_base64, signature_base64, brand_color, public_page_config, package_share_template, booking_form_template, chat_templates, billing_templates, invoice_share_template, receipt_share_template, expense_share_template, portal_share_template, checklist_templates, contract_template, mobile_ui_scale';
+
 const TEMPLATE_ENVELOPE_KEYS = [
   'bookingFormTemplate',
   'chatTemplates',
@@ -164,7 +168,7 @@ function toRow(p: Partial<Profile>): any {
 }
 
 export async function getProfile(): Promise<Profile | null> {
-  const { data, error } = await supabase.from(TABLE).select('*').limit(1).maybeSingle();
+  const { data, error } = await supabase.from(TABLE).select(PROFILE_COLUMNS).limit(1).maybeSingle();
   if (error && error.code !== 'PGRST116') throw error;
   return data ? fromRow(data) : null;
 }
@@ -217,7 +221,31 @@ function isMissingProjectStatusColumn(error: any): boolean {
     && /project_status_config/i.test(String(error?.message || ''));
 }
 
-export async function upsertProfile(input: Partial<Profile> & { id?: string }): Promise<Profile> {  // Declare payload variable at function scope
+export async function upsertProfile(rawInput: Partial<Profile> & { id?: string }): Promise<Profile> {
+  let logoBase64 = rawInput.logoBase64;
+  if (logoBase64 && logoBase64.startsWith('data:')) {
+    try {
+      logoBase64 = await uploadDataUrlAsset(logoBase64, 'profiles/logo');
+    } catch (e) {
+      console.warn('[upsertProfile] Failed to upload logo dataUrl to storage:', e);
+    }
+  }
+
+  let signatureBase64 = rawInput.signatureBase64;
+  if (signatureBase64 && signatureBase64.startsWith('data:')) {
+    try {
+      signatureBase64 = await uploadDataUrlAsset(signatureBase64, 'profiles/signature');
+    } catch (e) {
+      console.warn('[upsertProfile] Failed to upload signature dataUrl to storage:', e);
+    }
+  }
+
+  const input = {
+    ...rawInput,
+    ...(logoBase64 !== undefined ? { logoBase64 } : {}),
+    ...(signatureBase64 !== undefined ? { signatureBase64 } : {}),
+  };
+
   let bookingFormTemplatePayload: string | undefined = undefined;
 
   // If any of the templates are provided, merge into booking_form_template JSON envelope

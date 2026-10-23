@@ -10,7 +10,6 @@ import { listPackages } from '../services/packages';
 import { listAddOns } from '../services/addOns';
 import { listAttire } from '../services/attire';
 import { listCalendarEvents } from '../services/calendarEvents';
-import { listContracts } from '../services/contracts';
 import { listPromoCodes } from '../services/promoCodes';
 import { getProfile } from '../services/profile';
 import { listAllTeamPayments } from '../services/teamProjectPayments';
@@ -35,17 +34,17 @@ export interface DomainQueryOptions {
   enabled?: boolean;
 }
 
-export const useClientsQuery = (options: DomainQueryOptions = {}) => useQuery({
+export const useClientsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['clients'],
-    queryFn: () => listClients({ limit: 5000 }),
-    staleTime: 30 * 1000,
+    queryFn: () => listClients({ limit: options.limit || DEFAULT_LIMIT }),
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
-export const useProjectsQuery = (options: DomainQueryOptions = {}) => useQuery({
+export const useProjectsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['projects'],
-    queryFn: () => listProjectsWithRelations({ limit: 5000 }),
-    staleTime: 30 * 1000,
+    queryFn: () => listProjectsWithRelations({ limit: options.limit || DEFAULT_LIMIT }),
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
@@ -60,37 +59,38 @@ export const useProjectPackageIdsQuery = (options: DomainQueryOptions = {}) => u
     enabled: options.enabled !== false,
 });
 
-export const useTransactionsQuery = (options: DomainQueryOptions = {}) => useQuery({    queryKey: ['transactions'],
-    queryFn: () => listTransactions({ limit: DEFAULT_LIMIT }),
-    staleTime: 30 * 1000,
+export const useTransactionsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
+    queryKey: ['transactions'],
+    queryFn: () => listTransactions({ limit: options.limit || DEFAULT_LIMIT }),
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
-export const useTeamMembersQuery = (options: DomainQueryOptions = {}) => useQuery({
+export const useTeamMembersQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['teamMembers'],
-    queryFn: () => listTeamMembers({ limit: DEFAULT_LIMIT }),
-    staleTime: 30 * 1000,
+    queryFn: () => listTeamMembers({ limit: options.limit || DEFAULT_LIMIT }),
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
-export const useLeadsQuery = (options: DomainQueryOptions = {}) => useQuery({
+export const useLeadsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['leads'],
-    queryFn: () => listLeads({ limit: 5000 }),
-    staleTime: 30 * 1000,
+    queryFn: () => listLeads({ limit: options.limit || DEFAULT_LIMIT }),
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useCardsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['cards'],
     queryFn: () => listCards().then(res => res.map(normalizeCard)),
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const usePocketsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['pockets'],
     queryFn: () => listPockets(),
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
@@ -129,38 +129,31 @@ export const useCalendarEventsQuery = (options: DomainQueryOptions = {}) => useQ
 // Migrated from useAuxiliaryData's useEffect+useState pattern.
 // React Query is the single source of truth for these too.
 
-export const useContractsQuery = (options: DomainQueryOptions = {}) => useQuery({
-    queryKey: ['contracts'],
-    queryFn: () => listContracts(),
-    staleTime: 30 * 1000,
-    enabled: options.enabled !== false,
-});
-
 export const usePromoCodesQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['promoCodes'],
     queryFn: () => listPromoCodes(),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useProfileQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['profile'],
     queryFn: () => getProfile(),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTeamProjectPaymentsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['teamProjectPayments'],
     queryFn: () => listAllTeamPayments(),
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTeamPaymentRecordsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['teamPaymentRecords'],
     queryFn: () => listTeamPaymentRecords(),
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 

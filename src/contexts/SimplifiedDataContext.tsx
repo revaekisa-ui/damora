@@ -3,16 +3,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 import { normalizeTransaction } from '../services/transactions';
 import { normalizeClient } from '../services/clients';
+import { normalizeProject } from '../services/projects';
 import { normalizeLead } from '../services/leads';
-import { normalizePocket } from '../services/pockets';
-import { normalizeCard } from '../services/cards';
-import { normalizeTeamMember } from '../services/teamMembers';
-import { normalizePackage } from '../services/packages';
-import { normalizeAddOn } from '../services/addOns';
-import { normalizeAttire } from '../services/attire';
-import { normalizeClientFeedback } from '../services/clientFeedback';
-import { normalizeCalendarEvent } from '../services/calendarEvents';
-import { normalizeProfileRow } from '../services/profile';
+import { debounce } from '../utils/debounce';
 import {
   useClientsQuery,
   useProjectsQuery,
@@ -210,7 +203,6 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] }),
       refetchClientFeedback(),
       refetchDashboardStats(),
-      queryClient.invalidateQueries({ queryKey: ['contracts'] }),
       queryClient.invalidateQueries({ queryKey: ['promoCodes'] }),
       queryClient.invalidateQueries({ queryKey: ['profile'] }),
       queryClient.invalidateQueries({ queryKey: ['teamProjectPayments'] }),
@@ -219,20 +211,21 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
     ]);
   }, [queryClient, refetchClients, refetchProjects, refetchTeamMembers, refetchTransactions, refetchClientFeedback, refetchDashboardStats]);
 
-  // ─── Realtime: Supabase → React Query cache (no double state) ──────────
+  // ─── Realtime: Supabase → React Query cache (Optimized: Selective & Idle Disconnect) ──
   useEffect(() => {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || isLightPublic) {
       return;
     }
 
-    // Pengunjung halaman publik tidak membutuhkan sinkronisasi live; menahan
-    // socket + 18 listener juga mencegah setiap perubahan di sisi vendor
-    // memicu invalidate/refetch berulang di tab pengunjung.
-    if (isLightPublic) {
-      return;
-    }
+    let channel: any = null;
+    let isConnected = false;
+    let idleTimer: any = null;
+    const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 menit tidak ada aktivitas
 
-    const channel = supabase.channel('global-realtime-channel');
+    // Debounce invalidasi untuk mencegah badai request saat terjadi perubahan beruntun
+    const debouncedInvalidate = debounce((key: string) => {
+      void queryClient.invalidateQueries({ queryKey: [key] });
+    }, 1000);
 
     const makeHandler = <T extends { id: string }>(
       queryKey: string,
@@ -240,10 +233,10 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       options: { sortByDateDesc?: boolean; tempIdPrefixes?: string[]; amountMatchField?: keyof T; invalidateQueryKeys?: string[] } = {},
     ) => (payload: any) => {
       options.invalidateQueryKeys?.forEach((key) => {
-        void queryClient.invalidateQueries({ queryKey: [key] });
+        debouncedInvalidate(key);
       });
       if (!queryClient.getQueryData<T[]>([queryKey])) {
-        void queryClient.invalidateQueries({ queryKey: [queryKey] });
+        debouncedInvalidate(queryKey);
         return;
       }
 
@@ -256,6 +249,7 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
           const idx = old.findIndex((it) => it.id === next.id);
           if (idx !== -1) {
             const copy = old.slice();
+            // Gabungkan dengan data lama agar relasi yang tidak ada di payload realtime tidak hilang
             copy[idx] = { ...copy[idx], ...next };
             return copy;
           }
@@ -285,97 +279,97 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       });
     };
 
-    const addOnsRealtimeHandler = makeHandler<AddOn>('addOns', normalizeAddOn);
+    // Handler khusus proyek untuk menggabungkan relasi lama dengan data baru
+    const projectsRealtimeHandler = makeHandler<Project>('projects', (row) => ({
+      ...normalizeProject(row),
+    }), { invalidateQueryKeys: ['dashboardStats'] });
 
-    channel
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' },
-        makeHandler<Transaction>('transactions', normalizeTransaction, {
-          sortByDateDesc: true,
-          tempIdPrefixes: ['TRN-PAY-', 'TRN-DP-'],
-          amountMatchField: 'amount' as keyof Transaction,
-          invalidateQueryKeys: ['dashboardStats'],
-        }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' },
-        makeHandler<Client>('clients', normalizeClient, { invalidateQueryKeys: ['dashboardStats'] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['projects'] });
-        void queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cards' },
-        makeHandler<Card>('cards', normalizeCard, { invalidateQueryKeys: ['dashboardStats'] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pockets' },
-        makeHandler<FinancialPocket>('pockets', normalizePocket, { invalidateQueryKeys: ['dashboardStats'] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' },
-        makeHandler<Lead>('leads', normalizeLead, { invalidateQueryKeys: ['dashboardStats'] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'team_members' },
-        makeHandler<TeamMember>('teamMembers', normalizeTeamMember, { invalidateQueryKeys: ['projects'] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'packages' },
-        makeHandler<Package>('packages', normalizePackage))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'add_ons' }, (payload: any) => {
-        // Snapshot add-on pada proyek hanya menyimpan nama & harga. Perubahan
-        // kolom lain (region, deskripsi, urutan) tidak perlu memuat ulang
-        // dataset proyek yang besar.
-        const row = payload.new;
-        let isDisplayChange = true;
-        if (payload.eventType === 'UPDATE' && row) {
-          const next = normalizeAddOn(row);
-          const prev = queryClient.getQueryData<AddOn[]>(['addOns'])?.find((a) => a.id === next.id);
-          if (prev) {
-            isDisplayChange = prev.name !== next.name || Number(prev.price) !== Number(next.price);
+    const connectRealtime = () => {
+      if (isConnected || document.visibilityState === 'hidden') return;
+
+      channel = supabase.channel('selective-realtime-channel');
+
+      // Selective subscription: hanya subscribe ke 5 tabel kritis operasional live
+      channel
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' },
+          makeHandler<Transaction>('transactions', normalizeTransaction, {
+            sortByDateDesc: true,
+            tempIdPrefixes: ['TRN-PAY-', 'TRN-DP-'],
+            amountMatchField: 'amount' as keyof Transaction,
+            invalidateQueryKeys: ['dashboardStats'],
+          }))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' },
+          makeHandler<Client>('clients', normalizeClient, { invalidateQueryKeys: ['dashboardStats'] }))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, (payload: any) => {
+          projectsRealtimeHandler(payload);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' },
+          makeHandler<Lead>('leads', normalizeLead, { invalidateQueryKeys: ['dashboardStats'] }))
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          debouncedInvalidate('notifications');
+        })
+        .subscribe((status: string, subscribeError: any) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('[Realtime] Subscription unavailable; continuing without live sync.', { status, subscribeError });
           }
+        });
+
+      isConnected = true;
+    };
+
+    const disconnectRealtime = () => {
+      if (!isConnected || !channel) return;
+      supabase.removeChannel(channel);
+      channel = null;
+      isConnected = false;
+    };
+
+    const resetIdleTimer = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+
+      if (document.visibilityState === 'visible') {
+        if (!isConnected) {
+          connectRealtime();
+          // Segarkan query utama saat reconnect setelah idle/tab hidden
+          debouncedInvalidate('transactions');
+          debouncedInvalidate('projects');
+          debouncedInvalidate('clients');
+          debouncedInvalidate('leads');
+          debouncedInvalidate('dashboardStats');
         }
-        if (isDisplayChange) {
-          void queryClient.invalidateQueries({ queryKey: ['projects'] });
-        }
-        addOnsRealtimeHandler(payload);
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'attire' },
-        makeHandler<Attire>('attire', normalizeAttire))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'client_feedback' },
-        makeHandler<ClientFeedback>('clientFeedback', normalizeClientFeedback))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' },
-        makeHandler<CalendarEvent>('calendarEvents', normalizeCalendarEvent))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_add_ons' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['projects'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_team_assignments' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['projects'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wedding_day_checklists' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['projects'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'promo_codes' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['promoCodes'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload: any) => {
-        const row = payload.eventType === 'DELETE' ? null : payload.new;
-        const cached = queryClient.getQueryData<Profile>(['profile']);
-        if (!row || !cached || row.id !== cached.id) {
-          void queryClient.invalidateQueries({ queryKey: ['profile'] });
-          return;
-        }
-        queryClient.setQueryData<Profile>(['profile'], normalizeProfileRow(row));
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'team_project_payments' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['teamProjectPayments'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'team_payment_records' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['teamPaymentRecords'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      })
-      .subscribe((status, subscribeError) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[Realtime] Subscription unavailable; continuing without live sync.', { status, subscribeError });
-        }
-      });
+
+        idleTimer = setTimeout(() => {
+          disconnectRealtime();
+        }, IDLE_TIMEOUT_MS);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (idleTimer) clearTimeout(idleTimer);
+        disconnectRealtime();
+      } else {
+        resetIdleTimer();
+      }
+    };
+
+    // User activity listeners untuk mendeteksi keaktifan user
+    const activityEvents = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetIdleTimer, { passive: true });
+    });
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Initial connection saat mount
+    resetIdleTimer();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (idleTimer) clearTimeout(idleTimer);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetIdleTimer);
+      });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      disconnectRealtime();
     };
   }, [queryClient, isLightPublic]);
 

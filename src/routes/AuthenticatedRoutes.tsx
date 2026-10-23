@@ -20,7 +20,6 @@ import {
   NavigationAction,
   Notification,
   PromoCode,
-  Contract,
   PaymentStatus,
   TransactionType,
 } from "../types";
@@ -56,9 +55,6 @@ const VendorProfileAdmin = lazy(() => import("../pages/admin/VendorProfilePage")
 const BioLinksAdmin = lazy(() => import("../pages/admin/BioLinksPage"));
 const ClientReports = lazy(() => import("../features/clients/components/ClientKPI"));
 const PromoCodes = lazy(() => import("../features/promo/PromoCodes"));
-const Contracts = lazy(() =>
-  import("../pages/contracts/ContractsPage").then((m) => ({ default: m.default })),
-);
 const GalleryUpload = lazy(() => import("../features/public/components/GalleryUpload"));
 const InvoicePage = lazy(() => import("../pages/finance/InvoicePage"));
 const ExcelMigrationPage = lazy(() =>
@@ -110,8 +106,6 @@ export interface AuthenticatedRoutesProps {
   notifications: Notification[];
   promoCodes: PromoCode[];
   setPromoCodes: React.Dispatch<React.SetStateAction<PromoCode[]>>;
-  contracts: Contract[];
-  setContracts: React.Dispatch<React.SetStateAction<Contract[]>>;
   teamProjectPayments: TeamProjectPayment[];
   setTeamProjectPayments: React.Dispatch<React.SetStateAction<TeamProjectPayment[]>>;
   teamPaymentRecords: TeamPaymentRecord[];
@@ -162,8 +156,6 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
   handleSetProfile,
   promoCodes,
   setPromoCodes,
-  contracts,
-  setContracts,
   teamProjectPayments,
   setTeamProjectPayments,
   teamPaymentRecords,
@@ -312,8 +304,6 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
             setPockets={setPockets}
             promoCodes={promoCodes}
             setPromoCodes={setPromoCodes}
-            contracts={contracts}
-            setContracts={setContracts}
             appData={appData}
             initialAction={initialAction}
             setInitialAction={setInitialAction}
@@ -602,33 +592,6 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
           packages={packages}
           addOns={addOns}
           attire={attire}
-        />
-      );
-
-    case ViewType.CONTRACTS:
-      return (
-        <Contracts
-          contracts={contracts}
-          setContracts={setContracts}
-          clients={clients}
-          projects={projects}
-          profile={profile}
-          showNotification={showNotification}
-          initialAction={initialAction}
-          setInitialAction={setInitialAction}
-          packages={packages}
-          onSignContract={(contractId, signatureDataUrl, signer) => {
-            setContracts((prev) =>
-              prev.map((c) =>
-                c.id === contractId
-                  ? {
-                      ...c,
-                      [signer === "vendor" ? "vendorSignature" : "clientSignature"]: signatureDataUrl,
-                    }
-                  : c,
-              ),
-            );
-          }}
         />
       );
 

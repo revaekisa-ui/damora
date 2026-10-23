@@ -5,6 +5,8 @@ import { publicNamePatternsFromSlug } from '../utils/publicRouting';
 
 const TABLE = 'team_members';
 
+export const TEAM_MEMBER_COLUMNS = 'id, name, role, email, phone, avatar_url, standard_fee, no_rek, bank_name, specialization, location, emergency_contact, rating, performance_notes, portal_access_id, category, created_at, updated_at';
+
 export function normalizeTeamMember(row: any): TeamMember {
   return normalize(row);
 }
@@ -74,7 +76,7 @@ export async function listTeamMembers(options: { limit?: number; offset?: number
 
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -92,14 +94,14 @@ export async function listTeamMembersPaginated(page: number = 1, limit: number =
   // Get total count
   const { count, error: countError } = await supabase
     .from(TABLE)
-    .select('*', { count: 'exact', head: true });
+    .select('id', { count: 'exact', head: true });
 
   if (countError) throw countError;
 
   // Get paginated data
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -119,7 +121,7 @@ export async function createTeamMember(payload: Omit<TeamMember, 'id'>): Promise
   const { data, error } = await supabase
     .from(TABLE)
     .insert([denormalize(payload)])
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .single();
   if (error) throw error;
   return normalize(data);
@@ -130,7 +132,7 @@ export async function updateTeamMember(id: string, patch: Partial<TeamMember>): 
     .from(TABLE)
     .update(denormalize(patch))
     .eq('id', id)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .single();
   if (error) throw error;
   return normalize(data);
@@ -144,7 +146,7 @@ export async function deleteTeamMember(id: string): Promise<void> {
 export async function getTeamMember(id: string): Promise<TeamMember | null> {
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .eq('id', id)
     .maybeSingle();
   if (error) return null;
@@ -156,7 +158,7 @@ export async function getTeamMemberByPortalAccessId(accessId: string): Promise<T
   const cleanId = accessId.trim();
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .eq('portal_access_id', cleanId)
     .maybeSingle();
   if (data) return normalize(data);
@@ -164,7 +166,7 @@ export async function getTeamMemberByPortalAccessId(accessId: string): Promise<T
 
   const { data: byId } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(TEAM_MEMBER_COLUMNS)
     .eq('id', cleanId)
     .maybeSingle();
   if (byId) return normalize(byId);
@@ -173,7 +175,7 @@ export async function getTeamMemberByPortalAccessId(accessId: string): Promise<T
   if (patterns === null) {
     const { data: byName, error: nameError } = await supabase
       .from(TABLE)
-      .select('*')
+      .select(TEAM_MEMBER_COLUMNS)
       .eq('name', cleanId)
       .limit(2);
     return nameError || byName?.length !== 1 ? null : normalize(byName[0]);
@@ -184,7 +186,7 @@ export async function getTeamMemberByPortalAccessId(accessId: string): Promise<T
   for (const pattern of patterns) {
     const { data: candidates, error: patternError } = await supabase
       .from(TABLE)
-      .select('*')
+      .select(TEAM_MEMBER_COLUMNS)
       .ilike('name', pattern)
       .limit(2);
     if (patternError) return null;

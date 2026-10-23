@@ -323,6 +323,7 @@ export const uploadGalleryPdf = async (
         .from('gallery-images')
         .upload(fileName, file, {
             contentType: 'application/pdf',
+            cacheControl: '31536000',
             upsert: true
         });
 
@@ -367,9 +368,13 @@ export const deleteGalleryImage = async (galleryId: string, imageId: string): Pr
     let imagePath: string | undefined;
     try {
         const url = new URL(imageToDelete.url);
-        imagePath = url.pathname.split('/').pop() || undefined;
+        imagePath = url.pathname.includes('/gallery-images/')
+            ? url.pathname.split('/gallery-images/')[1]
+            : url.pathname.split('/').pop() || undefined;
     } catch {
-        const fallbackPath = (imageToDelete.url || '').split('/').pop();
+        const fallbackPath = (imageToDelete.url || '').includes('/gallery-images/')
+            ? (imageToDelete.url || '').split('/gallery-images/')[1]
+            : (imageToDelete.url || '').split('/').pop();
         imagePath = fallbackPath || undefined;
     }
 

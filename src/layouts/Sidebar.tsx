@@ -76,7 +76,6 @@ const NAV_MENUS: NavMenuItem[] = [
     items: [
       { view: ViewType["Calon Pengantin"], label: 'Calon Pengantin', icon: TargetIcon },
       { view: ViewType.BOOKING, label: 'Data Booking', icon: ClipboardListIcon },
-      { view: ViewType.CONTRACTS, label: 'Kontrak', icon: FileTextIcon },
       { view: ViewType.CLIENT_REPORTS, label: 'KPI & Testimoni', icon: ChartPieIcon },
     ],
   },

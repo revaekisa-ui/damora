@@ -6,6 +6,8 @@ import Settings from './SettingsPage';
 const mocks = vi.hoisted(() => ({
     upsertProfile: vi.fn(),
     updatePackage: vi.fn(),
+    uploadProfileLogo: vi.fn(),
+    uploadProfileSignature: vi.fn(),
 }));
 
 vi.mock('../../services/profile', async importOriginal => ({
@@ -13,6 +15,11 @@ vi.mock('../../services/profile', async importOriginal => ({
     upsertProfile: mocks.upsertProfile,
 }));
 vi.mock('../../services/packages', () => ({ updatePackage: mocks.updatePackage }));
+vi.mock('../../services/storage', () => ({
+    uploadGalleryImage: vi.fn(),
+    uploadProfileLogo: mocks.uploadProfileLogo,
+    uploadProfileSignature: mocks.uploadProfileSignature,
+}));
 
 describe('Settings package category rename', () => {
     beforeEach(() => {
@@ -93,6 +100,8 @@ describe('Settings company logo upload', () => {
             logoBase64: '',
         } as any;
         mocks.upsertProfile.mockImplementation(async (patch: Record<string, unknown>) => ({ ...profile, ...patch }));
+        mocks.uploadProfileLogo.mockResolvedValue('https://cdn.example.test/logo.png');
+        mocks.uploadProfileSignature.mockResolvedValue('https://cdn.example.test/signature.png');
 
         render(
             <Settings
@@ -119,15 +128,15 @@ describe('Settings company logo upload', () => {
 
         expect(saveButton.hasAttribute('disabled')).toBe(true);
         const preview = await screen.findByAltText('Logo preview');
-        expect(preview.getAttribute('src')).toMatch(/^data:image\/png;base64,/);
-        expect((await screen.findByAltText('TTD preview')).getAttribute('src')).toMatch(/^data:image\/png;base64,/);
+        expect(preview.getAttribute('src')).toBe('https://cdn.example.test/logo.png');
+        expect((await screen.findByAltText('TTD preview')).getAttribute('src')).toBe('https://cdn.example.test/signature.png');
         await waitFor(() => expect(saveButton.hasAttribute('disabled')).toBe(false));
 
         fireEvent.click(saveButton);
         await waitFor(() => expect(mocks.upsertProfile).toHaveBeenCalledWith(expect.objectContaining({
             id: 'profile-logo',
-            logoBase64: expect.stringMatching(/^data:image\/png;base64,/),
-            signatureBase64: expect.stringMatching(/^data:image\/png;base64,/),
+            logoBase64: 'https://cdn.example.test/logo.png',
+            signatureBase64: 'https://cdn.example.test/signature.png',
         })));
     });
 });

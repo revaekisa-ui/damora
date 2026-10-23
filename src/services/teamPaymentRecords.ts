@@ -1,7 +1,23 @@
 import supabase from '../lib/supabaseClient';
 import { TeamPaymentRecord } from '../types';
+import { uploadDataUrlAsset } from './storage';
 
 const TABLE = 'team_payment_records';
+
+/**
+ * Tanda tangan slip pembayaran disimpan sebagai URL Storage, bukan base64, agar
+ * kolom vendor_signature tidak ikut terunduh di setiap query daftar.
+ */
+async function resolveSignature(value: string | null | undefined): Promise<string | null | undefined> {
+  if (typeof value === 'string' && value.startsWith('data:')) {
+    try {
+      return await uploadDataUrlAsset(value, 'team-payments/signatures');
+    } catch (e) {
+      console.warn('[teamPaymentRecords] Gagal mengunggah tanda tangan ke Storage, memakai nilai inline:', e);
+    }
+  }
+  return value;
+}
 
 function fromRow(row: any): TeamPaymentRecord {
   return {
@@ -39,9 +55,13 @@ export async function listTeamPaymentRecords(): Promise<TeamPaymentRecord[]> {
 }
 
 export async function createTeamPaymentRecord(payload: Omit<TeamPaymentRecord, 'id'>): Promise<TeamPaymentRecord> {
+  const row = toRow(payload);
+  if (payload.vendorSignature !== undefined) {
+    row.vendor_signature = await resolveSignature(payload.vendorSignature);
+  }
   const { data, error } = await supabase
     .from(TABLE)
-    .insert(toRow(payload))
+    .insert(row)
     .select('*')
     .single();
   if (error) throw error;
@@ -49,9 +69,13 @@ export async function createTeamPaymentRecord(payload: Omit<TeamPaymentRecord, '
 }
 
 export async function updateTeamPaymentRecord(id: string, patch: Partial<TeamPaymentRecord>): Promise<TeamPaymentRecord> {
+  const row = toRow(patch);
+  if (patch.vendorSignature !== undefined) {
+    row.vendor_signature = await resolveSignature(patch.vendorSignature);
+  }
   const { data, error } = await supabase
     .from(TABLE)
-    .update(toRow(patch))
+    .update(row)
     .eq('id', id)
     .select('*')
     .single();

@@ -5,7 +5,6 @@ import {
     Card,
     Client,
     ClientFeedback,
-    Contract,
     FinancialPocket,
     Lead,
     NavigationAction,
@@ -54,8 +53,6 @@ interface DataPengantinHubProps {
     setPockets: React.Dispatch<React.SetStateAction<FinancialPocket[]>>;
     promoCodes: PromoCode[];
     setPromoCodes: React.Dispatch<React.SetStateAction<PromoCode[]>>;
-    contracts: Contract[];
-    setContracts: React.Dispatch<React.SetStateAction<Contract[]>>;
     appData: any;
     initialAction: NavigationAction | null;
     setInitialAction: React.Dispatch<React.SetStateAction<NavigationAction | null>>;

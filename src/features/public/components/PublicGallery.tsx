@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { CalendarDays, Image as ImageIcon, X } from 'lucide-react';
 import { Gallery, GalleryImage, Profile } from '../../../types';
 import { getPublicGallery } from '../../../services/galleries';
@@ -35,6 +35,7 @@ const PublicGallery: React.FC<PublicGalleryProps> = ({ galleryId }) => {
     const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+    const cachedPdfRef = useRef<{ url: string; blob: Blob } | null>(null);
 
     const urlLeadId = useMemo(() => {
         try {
@@ -154,12 +155,18 @@ const PublicGallery: React.FC<PublicGalleryProps> = ({ galleryId }) => {
 
         setIsDownloadingPdf(true);
         try {
-            const response = await fetch(gallery.pdf_url);
-            if (!response.ok) {
-                throw new Error(`PDF download failed with status ${response.status}`);
+            let pdfBlob: Blob;
+            if (cachedPdfRef.current && cachedPdfRef.current.url === gallery.pdf_url) {
+                pdfBlob = cachedPdfRef.current.blob;
+            } else {
+                const response = await fetch(gallery.pdf_url);
+                if (!response.ok) {
+                    throw new Error(`PDF download failed with status ${response.status}`);
+                }
+                pdfBlob = await response.blob();
+                cachedPdfRef.current = { url: gallery.pdf_url, blob: pdfBlob };
             }
 
-            const pdfBlob = await response.blob();
             const downloadUrl = URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             const fileName = gallery.pdf_name?.trim() || 'Pricelist';

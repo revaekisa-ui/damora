@@ -17,7 +17,6 @@ export const UI_TEXT_OPTIONS: UiTextOption[] = [
     { key: 'nav.leads', label: 'Calon Pengantin', defaultText: 'Calon Pengantin', group: 'Menu' },
     { key: 'nav.booking', label: 'Booking', defaultText: 'Booking', group: 'Menu' },
     { key: 'nav.clients', label: 'Data Pengantin', defaultText: 'Data Pengantin', group: 'Menu' },
-    { key: 'nav.contracts', label: 'Kontrak', defaultText: 'Kontrak', group: 'Menu' },
     { key: 'nav.reports', label: 'Testimoni', defaultText: 'Testimoni', group: 'Menu' },
     { key: 'nav.team', label: 'Tim & Vendor', defaultText: 'Tim & Vendor', group: 'Menu' },
     { key: 'nav.finance', label: 'Keuangan', defaultText: 'Keuangan', group: 'Menu' },

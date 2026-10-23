@@ -15,52 +15,70 @@ interface DashboardStats {
   expense: number;
 }
 
+/**
+ * Statistik dashboard diambil dengan query hitung (count) di sisi server,
+ * bukan dengan menarik seluruh baris tabel lalu menghitung di klien.
+ * `head: true` mengembalikan jumlah baris tanpa payload data, sehingga egress
+ * hanya berupa angka — bukan seluruh kolom proyek/klien/leads.
+ */
 export const useDashboardStats = (options: { enabled?: boolean } = {}) => useQuery({
   queryKey: ['dashboardStats'],
   enabled: options.enabled !== false,
   queryFn: async (): Promise<DashboardStats> => {
+    const countOf = async (table: string, apply?: (q: any) => any) => {
+      let query = supabase.from(table).select('id', { count: 'exact', head: true });
+      if (apply) query = apply(query);
+      const { count, error } = await query;
+      if (error) throw error;
+      return count || 0;
+    };
+
     const [
-      { data: pData, error: pErr },
-      { data: cData, error: cErr },
-      { data: lData, error: lErr },
-      { count: tmCount, error: tmErr },
-      { data: tData, count: tCount, error: tErr }
+      projects,
+      activeProjects,
+      clients,
+      activeClients,
+      leads,
+      discussionLeads,
+      followUpLeads,
+      teamMembers,
+      tData,
+      transactions,
     ] = await Promise.all([
-      supabase.from('projects').select('status'),
-      supabase.from('clients').select('status'),
-      supabase.from('leads').select('status'),
-      supabase.from('team_members').select('*', { count: 'exact', head: true }),
-      supabase.from('transactions').select('type, amount', { count: 'exact' })
+      countOf('projects'),
+      countOf('projects', q => q.not('status', 'in', '("Selesai","Dibatalkan")')),
+      countOf('clients'),
+      countOf('clients', q => q.eq('status', 'Aktif')),
+      countOf('leads'),
+      countOf('leads', q => q.in('status', ['Discussion', 'Sedang Diskusi'])),
+      countOf('leads', q => q.in('status', ['Follow Up', 'Menunggu Follow Up'])),
+      countOf('team_members'),
+      supabase.from('transactions').select('type, amount'),
+      countOf('transactions'),
     ]);
 
-    if (pErr || cErr || lErr || tmErr || tErr) throw (pErr || cErr || lErr || tmErr || tErr);
+    if (tData.error) throw tData.error;
 
-    const activeProjects = (pData || []).filter(p => p.status !== 'Selesai' && p.status !== 'Dibatalkan').length;
-    const activeClients = (cData || []).filter(c => c.status === 'Aktif').length;
-    const discussionLeads = (lData || []).filter(l => l.status === 'Discussion' || l.status === 'Sedang Diskusi').length;
-    const followUpLeads = (lData || []).filter(l => l.status === 'Follow Up' || l.status === 'Menunggu Follow Up').length;
-
-    let rev = 0;
-    let exp = 0;
-    (tData || []).forEach(row => {
-      if (row.type === 'Pemasukan') rev += Number(row.amount || 0);
-      else if (row.type === 'Pengeluaran') exp += Number(row.amount || 0);
+    let revenue = 0;
+    let expense = 0;
+    (tData.data || []).forEach(row => {
+      if (row.type === 'Pemasukan') revenue += Number(row.amount || 0);
+      else if (row.type === 'Pengeluaran') expense += Number(row.amount || 0);
     });
 
     return {
-      projects: pData?.length || 0,
+      projects,
       activeProjects,
-      clients: cData?.length || 0,
+      clients,
       activeClients,
-      leads: lData?.length || 0,
+      leads,
       discussionLeads,
       followUpLeads,
-      teamMembers: tmCount || 0,
-      transactions: tCount || 0,
-      revenue: rev,
-      expense: exp,
+      teamMembers,
+      transactions,
+      revenue,
+      expense,
     };
   },
-  staleTime: 30 * 1000,
-  refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+  staleTime: 60 * 1000,
 });

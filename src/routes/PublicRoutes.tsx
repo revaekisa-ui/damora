@@ -37,7 +37,6 @@ const PublicFeedbackForm = lazy(() => import("../features/public/components/Publ
 const SuggestionForm = lazy(() => import("../features/public/components/SuggestionForm"));
 const PublicGallery = lazy(() => import("../features/public/components/PublicGallery"));
 const PublicRouter = lazy(() => import("../features/public/components/PublicRouter"));
-const PublicContract = lazy(() => import("../features/public/components/PublicContract"));
 const ChecklistPortal = lazy(() => import("../features/projects/components/ChecklistPortal"));
 const PublicInvoice = lazy(() => import("../features/public/components/PublicInvoice"));
 const PublicReceipt = lazy(() => import("../features/public/components/PublicReceipt"));
@@ -59,7 +58,6 @@ const RESERVED_ROOT_SLUGS = new Set<string>([
   "gallery",
   "invoice",
   "receipt",
-  "contract",
   "feedback",
   "suggestion-form",
   "test-signature",
@@ -107,8 +105,6 @@ export function isPublicRoutePath(route: string): boolean {
     r.startsWith("/suggestion-form") ||
     r.startsWith("/gallery/") ||
     r.startsWith("/public/") ||
-    r.startsWith("/portal/contract/") ||
-    r.startsWith("/contract/") ||
     r.startsWith("/checklist-portal/") ||
     r.startsWith("/project/") ||
     r.startsWith("/portal/invoice/") ||
@@ -427,28 +423,6 @@ export const PublicRoutes: React.FC<PublicRoutesProps> = ({
           }}
           addNotification={addNotification}
         />
-      </Suspense>
-    );
-  }
-
-  if (r.startsWith("/portal/contract/") || r.startsWith("/contract/")) {
-    const raw = r.startsWith("/portal/contract/")
-      ? r.split("/portal/contract/")[1] || ""
-      : r.split("/contract/")[1] || "";
-    const contractId = decodeURIComponent((raw.split(/[?#]/)[0] || "").split("/")[0] || "").trim();
-    return (
-      <Suspense
-        fallback={
-          <div className="flex flex-col items-center justify-center py-20 min-h-screen">
-            <div className="relative flex justify-center items-center">
-              <div className="absolute border-4 border-brand-accent/20 rounded-full w-12 h-12"></div>
-              <div className="animate-spin border-4 border-transparent border-t-brand-accent rounded-full w-12 h-12"></div>
-            </div>
-            <p className="mt-4 text-sm font-medium text-slate-600">Memuat Kontrak...</p>
-          </div>
-        }
-      >
-        <PublicContract contractId={contractId} />
       </Suspense>
     );
   }

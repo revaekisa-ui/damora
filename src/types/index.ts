@@ -87,7 +87,6 @@ export enum ViewType {
   MARKETING = 'Marketing',
   GALLERY = 'Pricelist Upload',
   SETTINGS = 'Pengaturan',
-  CONTRACTS = 'Kontrak',
   VENDOR_PROFILE = 'Profil Vendor',
   BIO_LINKS = 'Link Publik',
   INVOICES = 'Daftar Invoice',
@@ -503,44 +502,6 @@ export interface CustomCost {
   id: string;
   description: string;
   amount: number;
-}
-
-export interface Contract {
-  id: string;
-  contractNumber: string;
-  clientId: string;
-  projectId: string;
-  signingDate: string;
-  signingLocation: string;
-  serviceTitle?: string; // e.g. "JASA CORPORATE / EVENT"
-  clientName1: string;
-  clientAddress1: string;
-  clientPhone1: string;
-  clientName2?: string;
-  clientAddress2?: string;
-  clientPhone2?: string;
-  shootingDuration: string;
-  guaranteedPhotos: string;
-  albumDetails: string;
-  digitalFilesFormat: string;
-  otherItems: string;
-  personnelCount: string;
-  deliveryTimeframe: string;
-  dpDate: string;
-  finalPaymentDate: string;
-  cancellationPolicy: string;
-  jurisdiction: string;
-  pasal1Content?: string;
-  pasal2Content?: string;
-  pasal3Content?: string;
-  pasal4Content?: string;
-  pasal5Content?: string;
-  closingText?: string;
-  vendorSignature?: string;
-  clientSignature?: string;
-  includeMeterai?: boolean;
-  meteraiPlacement?: 'client' | 'both';
-  createdAt: string;
 }
 
 export enum TransactionType {

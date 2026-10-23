@@ -63,7 +63,7 @@ describe('profile booking template envelope', () => {
             single: async () => {
               if ('project_status_config' in updates && !hasProjectStatusColumn) {
                 return {
-                  data: null,
+                  data: null as any,
                   error: { code: 'PGRST204', message: "Could not find the 'project_status_config' column of 'profiles' in the schema cache" },
                 };
               }
@@ -128,7 +128,7 @@ describe('profile booking template envelope', () => {
       color: '#2563eb',
       defaultProgress: 40,
       note: 'Sedang dikerjakan',
-      subStatuses: [],
+      subStatuses: [] as any[],
     }];
     const { getProfile, upsertProfile } = await import('../profile');
 

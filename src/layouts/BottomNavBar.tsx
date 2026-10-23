@@ -36,7 +36,6 @@ export const MoreMenuSheet: React.FC<{
         { view: ViewType["Calon Pengantin"], label: "Calon Pengantin", icon: StarIcon },
         { view: ViewType.BOOKING, label: "Booking", icon: CalendarIcon },
         { view: ViewType.TEAM, label: "Tim / Vendor", icon: BriefcaseIcon },
-        { view: ViewType.CONTRACTS, label: "Kontrak", icon: FileTextIcon },
       ],
     },
     {
@@ -222,7 +221,6 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
     ViewType["Calon Pengantin"],
     ViewType.BOOKING,
     ViewType.TEAM,
-    ViewType.CONTRACTS,
     ViewType.PACKAGES,
     ViewType.CLIENT_REPORTS,
     ViewType.CALENDAR,

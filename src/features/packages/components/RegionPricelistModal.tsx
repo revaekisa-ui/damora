@@ -13,6 +13,7 @@ import {
     Check,
     RotateCcw
 } from 'lucide-react';
+import { uploadPricelistPdf } from '../../../services/storage';
 
 interface RegionPricelistModalProps {
     isOpen: boolean;
@@ -41,7 +42,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
     const [formTitle, setFormTitle] = useState('');
     const [formButtonLabel, setFormButtonLabel] = useState('');
     const [formFile, setFormFile] = useState<File | null>(null);
-    const [formBase64, setFormBase64] = useState<string>('');
+    const [formPdfUrl, setFormPdfUrl] = useState<string>('');
     const [isSaving, setIsSaving] = useState(false);
 
     // Merge default REGIONS with available regions
@@ -89,7 +90,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
         setFormTitle('');
         setFormButtonLabel('');
         setFormFile(null);
-        setFormBase64('');
+        setFormPdfUrl('');
     };
 
     if (!isOpen) return null;
@@ -115,7 +116,7 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
         setFormTitle(item.title);
         setFormButtonLabel(item.buttonLabel || '');
         setFormFile(null);
-        setFormBase64(item.pdfUrl);
+        setFormPdfUrl(item.pdfUrl);
     };
 
     const handleCancelForm = () => {
@@ -136,17 +137,10 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
 
         setFormFile(file);
 
-        // Convert to Base64
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const result = reader.result as string;
-            setFormBase64(result);
-            if (!formTitle && !editingItem) {
-                const cleanName = file.name.replace(/\.[^/.]+$/, '');
-                setFormTitle(`Pricelist ${cleanName}`);
-            }
-        };
-        reader.readAsDataURL(file);
+        if (!formTitle && !editingItem) {
+            const cleanName = file.name.replace(/\.[^/.]+$/, '');
+            setFormTitle(`Pricelist ${cleanName}`);
+        }
     };
 
     const handleRegionChange = (val: string) => {
@@ -176,58 +170,63 @@ export const RegionPricelistModal: React.FC<RegionPricelistModalProps> = ({
             return;
         }
 
-        const effectivePdfUrl = formBase64 || editingItem?.pdfUrl;
-        if (!effectivePdfUrl) {
-            alert('Silakan pilih file PDF yang ingin diupload.');
-            return;
-        }
-
-        const regionMatch = regionOptions.find(r => r.value === activeRegionValue);
-        const resolvedRegionLabel = regionMatch ? regionMatch.label : activeRegionValue.toUpperCase();
-
-        const formatSize = (bytes: number) => {
-            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-        };
-
-        let updatedList: RegionPricelistPdf[];
-
-        if (editingItem) {
-            // Update existing
-            updatedList = pricelists.map(item => {
-                if (item.id === editingItem.id) {
-                    return {
-                        ...item,
-                        region: activeRegionValue,
-                        regionLabel: resolvedRegionLabel,
-                        title: formTitle.trim(),
-                        buttonLabel: formButtonLabel.trim() || undefined,
-                        pdfUrl: effectivePdfUrl,
-                        fileName: formFile ? formFile.name : item.fileName,
-                        fileSize: formFile ? formatSize(formFile.size) : item.fileSize,
-                        updatedAt: new Date().toISOString()
-                    };
-                }
-                return item;
-            });
-        } else {
-            // Add new
-            const newItem: RegionPricelistPdf = {
-                id: `pr-${Date.now()}`,
-                region: activeRegionValue,
-                regionLabel: resolvedRegionLabel,
-                title: formTitle.trim(),
-                buttonLabel: formButtonLabel.trim() || undefined,
-                pdfUrl: effectivePdfUrl,
-                fileName: formFile?.name || 'pricelist.pdf',
-                fileSize: formFile ? formatSize(formFile.size) : 'File PDF',
-                updatedAt: new Date().toISOString()
-            };
-            updatedList = [newItem, ...pricelists];
-        }
-
         setIsSaving(true);
         try {
+            // PDF baru diunggah ke Storage; database hanya menyimpan URL-nya
+            // agar baris profil tidak lagi membawa blob base64 berukuran MB.
+            let effectivePdfUrl = formPdfUrl || editingItem?.pdfUrl || '';
+            if (formFile) {
+                effectivePdfUrl = await uploadPricelistPdf(formFile);
+            }
+            if (!effectivePdfUrl) {
+                alert('Silakan pilih file PDF yang ingin diupload.');
+                return;
+            }
+
+            const regionMatch = regionOptions.find(r => r.value === activeRegionValue);
+            const resolvedRegionLabel = regionMatch ? regionMatch.label : activeRegionValue.toUpperCase();
+
+            const formatSize = (bytes: number) => {
+                if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+                return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+            };
+
+            let updatedList: RegionPricelistPdf[];
+
+            if (editingItem) {
+                // Update existing
+                updatedList = pricelists.map(item => {
+                    if (item.id === editingItem.id) {
+                        return {
+                            ...item,
+                            region: activeRegionValue,
+                            regionLabel: resolvedRegionLabel,
+                            title: formTitle.trim(),
+                            buttonLabel: formButtonLabel.trim() || undefined,
+                            pdfUrl: effectivePdfUrl,
+                            fileName: formFile ? formFile.name : item.fileName,
+                            fileSize: formFile ? formatSize(formFile.size) : item.fileSize,
+                            updatedAt: new Date().toISOString()
+                        };
+                    }
+                    return item;
+                });
+            } else {
+                // Add new
+                const newItem: RegionPricelistPdf = {
+                    id: `pr-${Date.now()}`,
+                    region: activeRegionValue,
+                    regionLabel: resolvedRegionLabel,
+                    title: formTitle.trim(),
+                    buttonLabel: formButtonLabel.trim() || undefined,
+                    pdfUrl: effectivePdfUrl,
+                    fileName: formFile?.name || 'pricelist.pdf',
+                    fileSize: formFile ? formatSize(formFile.size) : 'File PDF',
+                    updatedAt: new Date().toISOString()
+                };
+                updatedList = [newItem, ...pricelists];
+            }
+
             await onSaveRegionPricelists(updatedList);
             setPricelists(updatedList);
             showNotification(editingItem ? 'Pricelist berhasil diperbarui.' : 'Pricelist wilayah berhasil ditambahkan.');

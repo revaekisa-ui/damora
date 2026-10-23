@@ -6,7 +6,6 @@ import {
   Profile,
   Notification,
   PromoCode,
-  Contract,
   ClientFeedback,
 } from "../types";
 import { createTeamPaymentRecord } from "../services/teamPaymentRecords";
@@ -17,7 +16,6 @@ import {
 } from "../services/notifications";
 import { createClient } from "../services/clients";
 import {
-  useContractsQuery,
   usePromoCodesQuery,
   useProfileQuery,
   useTeamProjectPaymentsQuery,
@@ -51,8 +49,6 @@ export interface UseAuxiliaryDataReturn {
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   promoCodes: PromoCode[];
   setPromoCodes: React.Dispatch<React.SetStateAction<PromoCode[]>>;
-  contracts: Contract[];
-  setContracts: React.Dispatch<React.SetStateAction<Contract[]>>;
   notification: string;
   showNotification: (message: string, duration?: number) => void;
   addNotification: (
@@ -86,14 +82,12 @@ export function useAuxiliaryData({
 
   // ─── Domain data via React Query ───────────────────────────────────────
   const vendorOnly = { enabled: !skipVendorOnlyData };
-  const { data: contractsData } = useContractsQuery(vendorOnly);
   const { data: promoCodesData } = usePromoCodesQuery();
   const { data: profileData } = useProfileQuery();
   const { data: teamPaymentsData, isLoading: teamPaymentsLoading } = useTeamProjectPaymentsQuery(vendorOnly);
   const { data: teamPaymentRecordsData } = useTeamPaymentRecordsQuery(vendorOnly);
   const { data: notificationsData } = useNotificationsQuery(vendorOnly);
 
-  const contracts = contractsData ?? [];
   const promoCodes = promoCodesData ?? [];
   const profile = profileData ?? EMPTY_PROFILE;
   const teamProjectPayments = teamPaymentsData ?? [];
@@ -117,13 +111,6 @@ export function useAuxiliaryData({
   }, []);
 
   // ─── Cache setters (write to React Query cache, no duplicate state) ────
-  const setContracts = useCallback<React.Dispatch<React.SetStateAction<Contract[]>>>((action) => {
-    queryClient.setQueryData<Contract[]>(['contracts'], (old) => {
-      const prev = old ?? [];
-      return typeof action === 'function' ? (action as (p: Contract[]) => Contract[])(prev) : action;
-    });
-  }, [queryClient]);
-
   const setPromoCodes = useCallback<React.Dispatch<React.SetStateAction<PromoCode[]>>>((action) => {
     queryClient.setQueryData<PromoCode[]>(['promoCodes'], (old) => {
       const prev = old ?? [];
@@ -320,8 +307,6 @@ export function useAuxiliaryData({
     setNotifications,
     promoCodes,
     setPromoCodes,
-    contracts,
-    setContracts,
     notification,
     showNotification,
     addNotification,

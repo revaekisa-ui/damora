@@ -225,9 +225,6 @@ export function resolveCanonicalRoute(pathname?: string, hash?: string, search?:
     if (rawHash.startsWith('#/receipt/')) {
       return rawHash.replace('#/receipt/', '#/portal/receipt/');
     }
-    if (rawHash.startsWith('#/contract/')) {
-      return rawHash.replace('#/contract/', '#/portal/contract/');
-    }
     if (rawHash.startsWith('#/project/')) {
       return rawHash.replace('#/project/', '#/checklist-portal/');
     }
@@ -254,7 +251,6 @@ export function isPublicRoute(route: string): boolean {
     '#/portal',
     '#/invoice',
     '#/receipt',
-    '#/contract',
     '#/gallery',
     '#/checklist-portal',
     '#/freelancer-portal',
@@ -279,7 +275,7 @@ export function isPublicRoute(route: string): boolean {
  * and hash format (https://domain.com/#/portal/xxx).
  */
 export function buildPublicShareUrl(
-  type: 'portal' | 'invoice' | 'receipt' | 'contract' | 'gallery' | 'checklist' | 'freelancer' | 'booking' | 'packages' | 'lead' | 'feedback' | 'public',
+  type: 'portal' | 'invoice' | 'receipt' | 'gallery' | 'checklist' | 'freelancer' | 'booking' | 'packages' | 'lead' | 'feedback' | 'public',
   identifier?: string,
   options: { cleanUrl?: boolean; query?: Record<string, string> } = {}
 ): string {
@@ -297,9 +293,6 @@ export function buildPublicShareUrl(
       break;
     case 'receipt':
       pathPart = id ? `portal/receipt/${id}` : 'portal/receipt';
-      break;
-    case 'contract':
-      pathPart = id ? `portal/contract/${id}` : 'portal/contract';
       break;
     case 'gallery':
       pathPart = id ? `gallery/${id}` : 'gallery';

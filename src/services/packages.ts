@@ -1,4 +1,5 @@
 import supabase from '../lib/supabaseClient';
+import { uploadDataUrlAsset } from './storage';
 import { Package, PhysicalItem, DurationOption } from '../types';
 
 const TABLE = 'packages';
@@ -68,7 +69,17 @@ export async function listPackages(): Promise<Package[]> {
   return (data || []).map(normalize);
 }
 
-export async function createPackage(payload: Omit<Package, 'id' | 'createdAt'>): Promise<Package> {
+export async function createPackage(rawPayload: Omit<Package, 'id' | 'createdAt'>): Promise<Package> {
+  let coverImage = rawPayload.coverImage;
+  if (coverImage && coverImage.startsWith('data:')) {
+    try {
+      coverImage = await uploadDataUrlAsset(coverImage, 'packages/covers');
+    } catch (e) {
+      console.warn('[packages.create] Failed to upload coverImage to storage:', e);
+    }
+  }
+  const payload = coverImage !== rawPayload.coverImage ? { ...rawPayload, coverImage } : rawPayload;
+
   // First try verbose payload
   let { data, error } = await supabase
     .from(TABLE)
@@ -94,7 +105,17 @@ export async function createPackage(payload: Omit<Package, 'id' | 'createdAt'>):
   return normalize(data);
 }
 
-export async function updatePackage(id: string, patch: Partial<Package>): Promise<Package> {
+export async function updatePackage(id: string, rawPatch: Partial<Package>): Promise<Package> {
+  let coverImage = rawPatch.coverImage;
+  if (coverImage && coverImage.startsWith('data:')) {
+    try {
+      coverImage = await uploadDataUrlAsset(coverImage, 'packages/covers');
+    } catch (e) {
+      console.warn('[packages.update] Failed to upload coverImage to storage:', e);
+    }
+  }
+  const patch = coverImage !== rawPatch.coverImage ? { ...rawPatch, coverImage } : rawPatch;
+
   let { data, error } = await supabase
     .from(TABLE)
     .update(denormalize(patch))

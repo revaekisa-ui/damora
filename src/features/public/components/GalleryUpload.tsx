@@ -444,6 +444,13 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ userProfile, showNotifica
 
         if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
             showNotification('File PDF saja yang dapat diupload');
+            e.target.value = '';
+            return;
+        }
+
+        if (file.size > 15 * 1024 * 1024) {
+            showNotification(`File PDF terlalu besar (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maksimal 15 MB.`);
+            e.target.value = '';
             return;
         }
 

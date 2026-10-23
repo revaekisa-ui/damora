@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Packages } from './Packages';
+import { PhysicalItem } from '../../types';
 import * as packageService from '../../services/packages';
 import * as addOnService from '../../services/addOns';
 import * as attireService from '../../services/attire';
@@ -21,8 +22,8 @@ describe('Packages catalog layout', () => {
       price: 5000000,
       category: 'Wedding',
       region: 'pricelist wedding 2026',
-      physicalItems: [],
-      digitalItems: [],
+      physicalItems: [] as PhysicalItem[],
+      digitalItems: [] as string[],
       processingTime: '7 hari',
     }];
     const addOns = [{ id: 'addon-custom', name: 'Album', price: 500000, region: 'pricelist wedding 2026' }];
@@ -75,8 +76,8 @@ describe('Packages catalog layout', () => {
       price: 6500000,
       category: 'Wedding',
       region: 'banten',
-      physicalItems: [],
-      digitalItems: [],
+      physicalItems: [] as PhysicalItem[],
+      digitalItems: [] as string[],
       processingTime: '',
       durationOptions: [
         { label: 'Akad', price: 6500000, default: true },

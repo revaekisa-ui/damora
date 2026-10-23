@@ -24,7 +24,6 @@ import {
     TeamMember,
     TeamProjectPayment,
     TeamPaymentRecord,
-    Contract,
 } from '../../types';
 import Modal from '../../shared/ui/Modal';
 import DonutChart from '../../shared/ui/DonutChart';
@@ -77,7 +76,6 @@ interface ClientsProps {
     teamProjectPayments: TeamProjectPayment[];
     setTeamProjectPayments: React.Dispatch<React.SetStateAction<TeamProjectPayment[]>>;
     teamPaymentRecords?: TeamPaymentRecord[];
-    contracts?: Contract[];
     handleNavigation: (view: ViewType, action: NavigationAction) => void;
     clientFeedback: ClientFeedback[];
     promoCodes: PromoCode[];
@@ -123,7 +121,6 @@ export const Clients: React.FC<ClientsProps> = ({
     teamProjectPayments,
     setTeamProjectPayments,
     teamPaymentRecords = [],
-    contracts,
     handleNavigation,
     promoCodes,
     setPromoCodes,
@@ -307,8 +304,8 @@ export const Clients: React.FC<ClientsProps> = ({
 
     // Konteks export: nama perusahaan + kontrak (untuk nama pengantin pria/wanita).
     const exportContext = useMemo(
-        () => ({ companyName: userProfile.companyName, contracts }),
-        [userProfile.companyName, contracts],
+        () => ({ companyName: userProfile.companyName }),
+        [userProfile.companyName],
     );
 
     const handleDownloadExcel = async () => {

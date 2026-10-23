@@ -3,6 +3,7 @@ import { Project, AddOn, PaymentStatus, BookingStatus, AssignedTeamMember } from
 import { upsertAssignmentsForProject, listAssignmentsByProject } from './projectTeamAssignments';
 import { listChecklistByProject } from './weddingDayChecklist';
 import { publicNamePatternsFromSlug } from '../utils/publicRouting';
+import { uploadDataUrlAsset } from './storage';
 
 const PROJECTS = 'projects';
 const PROJECT_ADD_ONS = 'project_add_ons';
@@ -148,7 +149,7 @@ export async function listProjectsPaginated(
 
   // Build query with search and filters
   let query = supabase.from(PROJECTS).select('*', { count: 'exact' });
-  let countQuery = supabase.from(PROJECTS).select('*', { count: 'exact', head: true });
+  let countQuery = supabase.from(PROJECTS).select('id', { count: 'exact', head: true });
 
   // Apply search
   if (searchQuery && searchQuery.trim()) {
@@ -332,6 +333,17 @@ export async function updateProject(projectId: string, input: UpdateProjectInput
   const validClientId = isUuid(input.clientId) ? input.clientId : null;
   const validPackageId = isUuid(packageId) ? packageId : null;
 
+  // Tanda tangan invoice disimpan sebagai URL Storage, bukan base64, agar kolom
+  // invoice_signature tidak membengkakkan tiap query daftar proyek.
+  let invoiceSignature = input.invoiceSignature;
+  if (typeof invoiceSignature === 'string' && invoiceSignature.startsWith('data:')) {
+    try {
+      invoiceSignature = await uploadDataUrlAsset(invoiceSignature, 'projects/signatures');
+    } catch (e) {
+      console.warn('[projects.update] Gagal mengunggah tanda tangan ke Storage, memakai nilai inline:', e);
+    }
+  }
+
   const payload: Record<string, unknown> = {
     ...(input.projectName !== undefined ? { project_name: input.projectName } : {}),
     ...(input.clientName !== undefined ? { client_name: input.clientName } : {}),
@@ -375,7 +387,7 @@ export async function updateProject(projectId: string, input: UpdateProjectInput
     ...(input.confirmedSubStatuses !== undefined ? { confirmed_sub_statuses: input.confirmedSubStatuses } : {}),
     ...(input.clientSubStatusNotes !== undefined ? { client_sub_status_notes: input.clientSubStatusNotes } : {}),
     ...(input.subStatusConfirmationSentAt !== undefined ? { sub_status_confirmation_sent_at: input.subStatusConfirmationSentAt } : {}),
-    ...(input.invoiceSignature !== undefined ? { invoice_signature: input.invoiceSignature || null } : {}),
+    ...(invoiceSignature !== undefined ? { invoice_signature: invoiceSignature || null } : {}),
     ...(input.isEditingConfirmedByClient !== undefined ? { is_editing_confirmed_by_client: input.isEditingConfirmedByClient } : {}),
     ...(input.isPrintingConfirmedByClient !== undefined ? { is_printing_confirmed_by_client: input.isPrintingConfirmedByClient } : {}),
     ...(input.isDeliveryConfirmedByClient !== undefined ? { is_delivery_confirmed_by_client: input.isDeliveryConfirmedByClient } : {}),
@@ -790,7 +802,7 @@ export async function listProjectsWithRelations(options: { limit?: number; offse
   try {
     const { data: teamData, error: teamError } = await supabase
       .from('project_team_assignments')
-      .select('*')
+      .select('project_id, member_id, member_name, member_role, fee, sub_job')
       .in('project_id', projectIds);
 
     if (!teamError && teamData) {
@@ -882,7 +894,7 @@ export async function listProjectsWithRelations(options: { limit?: number; offse
  * Hanya id paket dari proyek terbaru, untuk lencana "Paling Populer" di halaman
  * publik. Jauh lebih ringan daripada memuat seluruh kolom + relasi proyek.
  */
-export async function listProjectPackageIds(limit = 5000): Promise<string[]> {
+export async function listProjectPackageIds(limit = 100): Promise<string[]> {
   const { data, error } = await supabase
     .from(PROJECTS)
     .select('package_id')

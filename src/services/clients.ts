@@ -5,6 +5,8 @@ import { publicNamePatternsFromSlug } from '../utils/publicRouting';
 
 const TABLE = 'clients';
 
+export const CLIENT_COLUMNS = 'id, name, avatar_url, email, phone, whatsapp, since, instagram, status, client_type, last_contact, portal_access_id, address, home_address, created_at, updated_at';
+
 export async function syncClientStatusFromProjects(clientId: string): Promise<void> {
   // 1) Read current client status; do not override LEAD / LOST.
   const { data: clientRow, error: clientErr } = await supabase
@@ -41,12 +43,12 @@ export async function syncClientStatusFromProjects(clientId: string): Promise<vo
 }
 
 export async function listClients(options: { limit?: number; offset?: number } = {}): Promise<Client[]> {
-  const limit = options.limit || 1000; // Default 1000, effectively all
+  const limit = options.limit || 100;
   const offset = options.offset || 0
 
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(CLIENT_COLUMNS)
     .order('since', { ascending: false })
     .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
@@ -71,8 +73,8 @@ export async function listClientsPaginated(
   const offset = (page - 1) * limit;
 
   // Build query with search and filters
-  let query = supabase.from(TABLE).select('*', { count: 'exact' });
-  let countQuery = supabase.from(TABLE).select('*', { count: 'exact', head: true });
+  let query = supabase.from(TABLE).select(CLIENT_COLUMNS);
+  let countQuery = supabase.from(TABLE).select('id', { count: 'exact', head: true });
 
   // Apply search
   if (searchQuery && searchQuery.trim()) {
@@ -117,7 +119,7 @@ export async function listClientsPaginated(
 export async function getClient(id: string): Promise<Client | null> {
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(CLIENT_COLUMNS)
     .eq('id', id)
     .single();
   if (error) {
@@ -132,7 +134,7 @@ export async function getClientByPortalAccessId(accessId: string): Promise<Clien
   const cleanId = accessId.trim();
   const { data, error } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(CLIENT_COLUMNS)
     .eq('portal_access_id', cleanId)
     .maybeSingle();
   if (data) return normalizeClient(data);
@@ -140,7 +142,7 @@ export async function getClientByPortalAccessId(accessId: string): Promise<Clien
 
   const { data: byId } = await supabase
     .from(TABLE)
-    .select('*')
+    .select(CLIENT_COLUMNS)
     .eq('id', cleanId)
     .maybeSingle();
   if (byId) return normalizeClient(byId);
@@ -149,7 +151,7 @@ export async function getClientByPortalAccessId(accessId: string): Promise<Clien
   if (patterns === null) {
     const { data: byName, error: nameError } = await supabase
       .from(TABLE)
-      .select('*')
+      .select(CLIENT_COLUMNS)
       .eq('name', cleanId)
       .limit(2);
     return nameError || byName?.length !== 1 ? null : normalizeClient(byName[0]);
@@ -160,7 +162,7 @@ export async function getClientByPortalAccessId(accessId: string): Promise<Clien
   for (const pattern of patterns) {
     const { data: candidates, error: patternError } = await supabase
       .from(TABLE)
-      .select('*')
+      .select(CLIENT_COLUMNS)
       .ilike('name', pattern)
       .limit(2);
     if (patternError) return null;
@@ -191,7 +193,7 @@ export async function createClient(payload: Omit<Client, 'id'>): Promise<Client>
   const { data, error } = await supabase
     .from(TABLE)
     .insert([denormalizeClient(safePayload)])
-    .select()
+    .select(CLIENT_COLUMNS)
     .single();
   if (error) throw error;
   return normalizeClient(data);
@@ -222,7 +224,7 @@ export async function updateClient(id: string, patch: Partial<Client>): Promise<
     .from(TABLE)
     .update(denormalizeClient(safePatch))
     .eq('id', id)
-    .select()
+    .select(CLIENT_COLUMNS)
     .single();
   if (error) throw error;
   return normalizeClient(data);

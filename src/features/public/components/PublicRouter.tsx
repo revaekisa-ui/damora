@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { getClientByPortalAccessId } from '../../../services/clients';
 import { getPublicGallery } from '../../../services/galleries';
 import { getProjectWithRelations } from '../../../services/projects';
-import { getContract } from '../../../services/contracts';
 import { getTransaction } from '../../../services/transactions';
 import { getTeamMemberByPortalAccessId } from '../../../services/teamMembers';
 import { toPublicNameSlug } from '../../../utils/publicRouting';
@@ -10,7 +9,6 @@ import { toPublicNameSlug } from '../../../utils/publicRouting';
 import ClientPortal from '../../clients/components/ClientPortal';
 import PublicGallery from './PublicGallery';
 import ChecklistPortal from '../../projects/components/ChecklistPortal';
-import PublicContract from './PublicContract';
 import PublicReceipt from './PublicReceipt';
 import FreelancerPortal from '../../team/components/FreelancerPortal';
 
@@ -34,7 +32,6 @@ type ResolvedTarget =
   | { type: 'client'; data: Client }
   | { type: 'gallery'; id: string }
   | { type: 'project'; data: Project }
-  | { type: 'contract'; id: string }
   | { type: 'transaction'; id: string }
   | { type: 'freelancer'; data: TeamMember }
   | null;
@@ -110,14 +107,6 @@ export const PublicRouter: React.FC<PublicRouterProps> = ({
         const project = await getProjectWithRelations(cleanSlug).catch((): null => null);
         if (project && isMounted) {
           setResolved({ type: 'project', data: project });
-          setLoading(false);
-          return;
-        }
-
-        // 4. Check if it's a contract
-        const contract = await getContract(cleanSlug).catch((): null => null);
-        if (contract && isMounted) {
-          setResolved({ type: 'contract', id: contract.id });
           setLoading(false);
           return;
         }
@@ -217,10 +206,6 @@ export const PublicRouter: React.FC<PublicRouterProps> = ({
 
   if (resolved?.type === 'project') {
     return <ChecklistPortal projectId={resolved.data.id} />;
-  }
-
-  if (resolved?.type === 'contract') {
-    return <PublicContract contractId={resolved.id} />;
   }
 
   if (resolved?.type === 'transaction') {

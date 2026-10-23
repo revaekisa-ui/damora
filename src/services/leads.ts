@@ -3,8 +3,10 @@ import { Lead, LeadStatus, ContactChannel } from '../types';
 
 const TABLE = 'leads';
 
+export const LEAD_COLUMNS = 'id, name, contact_channel, location, status, date, notes, whatsapp, address, event_date, created_at, updated_at';
+
 export async function listLeads(options: { limit?: number, offset?: number } = {}): Promise<Lead[]> {
-  let query = supabase.from(TABLE).select('*').order('date', { ascending: false }).order('id', { ascending: false });
+  let query = supabase.from(TABLE).select(LEAD_COLUMNS).order('date', { ascending: false }).order('id', { ascending: false });
 
   if (options.limit !== undefined) {
     const from = options.offset || 0;
@@ -18,13 +20,13 @@ export async function listLeads(options: { limit?: number, offset?: number } = {
 }
 
 export async function createLead(payload: Omit<Lead, 'id'>): Promise<Lead> {
-  const { data, error } = await supabase.from(TABLE).insert([denormalizeLead(payload)]).select('*').single();
+  const { data, error } = await supabase.from(TABLE).insert([denormalizeLead(payload)]).select(LEAD_COLUMNS).single();
   if (error) throw error;
   return normalizeLead(data);
 }
 
 export async function updateLead(id: string, patch: Partial<Lead>): Promise<Lead> {
-  const { data, error } = await supabase.from(TABLE).update(denormalizeLead(patch)).eq('id', id).select('*').single();
+  const { data, error } = await supabase.from(TABLE).update(denormalizeLead(patch)).eq('id', id).select(LEAD_COLUMNS).single();
   if (error) throw error;
   return normalizeLead(data);
 }

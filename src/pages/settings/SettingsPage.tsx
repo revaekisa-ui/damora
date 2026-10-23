@@ -1,17 +1,16 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Eye, EyeOff, Copy, Monitor, UploadCloud, LoaderCircle, DatabaseBackup, Bell } from 'lucide-react';
+import { Eye, EyeOff, Copy, Monitor, UploadCloud, LoaderCircle, Bell } from 'lucide-react';
 import { Profile, Transaction, Project, User, ViewType, ProjectStatusConfig, SubStatusConfig, Package, ChatTemplate, ChecklistTemplate, Lead } from '../../types';
 
 import Modal from '../../shared/ui/Modal';
 import ToggleSwitch from '../../shared/ui/ToggleSwitch';
 import CategoryManager from './components/CategoryManager';
-import BackupDataPanel from './components/BackupDataPanel';
 import UiTextCustomizationPanel from './components/UiTextCustomizationPanel';
 import WebPushNotificationPanel from './components/WebPushNotificationPanel';
 import { PencilIcon, PlusIcon, Trash2Icon, KeyIcon, UsersIcon, ListIcon, FolderKanbanIcon, FileTextIcon, SettingsIcon, MessageSquareIcon, RefreshCwIcon, NAV_ITEMS, DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES, DEFAULT_PROJECT_TYPES, DEFAULT_EVENT_TYPES, DEFAULT_PACKAGE_CATEGORIES, DEFAULT_LEAD_SOURCES, DEFAULT_PROJECT_STATUS_SUGGESTIONS, DEFAULT_BRIEFING_TEMPLATE, DEFAULT_TERMS_AND_CONDITIONS, DEFAULT_PACKAGE_SHARE_TEMPLATE, DEFAULT_BOOKING_FORM_TEMPLATE, CHAT_TEMPLATES, DEFAULT_BILLING_TEMPLATES, DEFAULT_INVOICE_SHARE_TEMPLATE, DEFAULT_RECEIPT_SHARE_TEMPLATE, DEFAULT_EXPENSE_SHARE_TEMPLATE, DEFAULT_PORTAL_SHARE_TEMPLATE } from '../../constants';
 import { upsertProfile, buildProfilePatch } from '../../services/profile';
 import { updatePackage } from '../../services/packages';
-import { uploadGalleryImage } from '../../services/storage';
+import { uploadGalleryImage, uploadProfileLogo, uploadProfileSignature } from '../../services/storage';
 import { listUsers, createUser, updateUser, deleteUser } from '../../services/users';
 import { validateTemplate, processTemplate } from '../../services/chatTemplatesOffline';
 import { DEFAULT_CHECKLIST_TEMPLATES } from '../../services/weddingDayChecklist';
@@ -1160,13 +1159,6 @@ const emptyUserForm = {
     permissions: [] as ViewType[],
 };
 
-const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-});
-
 // --- Checklist Template Settings Component ---
 const ChecklistTemplateSettings: React.FC<{
     profile: Profile;
@@ -1695,18 +1687,11 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
         setIsReadingLogo(true);
         setSaveError('');
         try {
-            const logoBase64 = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => typeof reader.result === 'string'
-                    ? resolve(reader.result)
-                    : reject(new Error('File logo tidak dapat dibaca.'));
-                reader.onerror = () => reject(reader.error || new Error('File logo tidak dapat dibaca.'));
-                reader.readAsDataURL(file);
-            });
-            setLocalProfile(prev => ({ ...prev, logoBase64 }));
+            const logoUrl = await uploadProfileLogo(file);
+            setLocalProfile(prev => ({ ...prev, logoBase64: logoUrl }));
         } catch (error) {
-            console.error('[Settings] Logo read failed:', error);
-            setSaveError('Gagal membaca file logo. Silakan pilih file lain.');
+            console.error('[Settings] Logo upload failed:', error);
+            setSaveError('Gagal mengunggah file logo. Silakan pilih file lain.');
         } finally {
             setIsReadingLogo(false);
         }
@@ -1733,18 +1718,11 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
         setIsReadingSignature(true);
         setSaveError('');
         try {
-            const signatureBase64 = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => typeof reader.result === 'string'
-                    ? resolve(reader.result)
-                    : reject(new Error('File TTD tidak dapat dibaca.'));
-                reader.onerror = () => reject(reader.error || new Error('File TTD tidak dapat dibaca.'));
-                reader.readAsDataURL(file);
-            });
-            setLocalProfile(prev => ({ ...prev, signatureBase64 }));
+            const signatureUrl = await uploadProfileSignature(file);
+            setLocalProfile(prev => ({ ...prev, signatureBase64: signatureUrl }));
         } catch (error) {
-            console.error('[Settings] Signature read failed:', error);
-            setSaveError('Gagal membaca file TTD. Silakan pilih file lain.');
+            console.error('[Settings] Signature upload failed:', error);
+            setSaveError('Gagal mengunggah file TTD. Silakan pilih file lain.');
         } finally {
             setIsReadingSignature(false);
         }
@@ -2111,7 +2089,6 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
         { id: 'uiText', label: 'Kustomisasi Teks', icon: FileTextIcon, adminOnly: false },
         { id: 'projectStatus', label: 'Progres Acara Pernikahan Pengantin', icon: FolderKanbanIcon, adminOnly: true },
         { id: 'checklistTemplate', label: 'Template Checklist Hari H', icon: FileTextIcon, adminOnly: false },
-        { id: 'backup', label: 'Backup Data', icon: DatabaseBackup, adminOnly: true },
     ];
 
     const renderTabContent = () => {
@@ -2564,9 +2541,6 @@ const Settings: React.FC<SettingsProps> = ({ profile, setProfile, transactions, 
                         }}
                     />
                 );
-            case 'backup':
-                if (currentUser?.role !== 'Admin') return <p className="text-sm md:text-base text-brand-text-secondary">Anda tidak memiliki akses ke halaman ini.</p>;
-                return <BackupDataPanel />;
             case 'webPush':
                 return <WebPushNotificationPanel profile={profile} currentUser={currentUser} />;
             default:

@@ -42,6 +42,7 @@ import { PackageTermsModal } from './components/PackageTermsModal';
 import { RegionPricelistModal } from './components/RegionPricelistModal';
 import { buildPublicShareUrl, getPackageShareIdentifier } from '../../utils/publicRouting';
 import Modal from '../../shared/ui/Modal';
+import { uploadPackageCover } from '../../services/storage';
 
 import {
     Package as PackageIcon,
@@ -109,14 +110,6 @@ const emptyPackageForm = {
         { label: 'Full Day', price: '', default: false }
     ],
 };
-
-const toBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
 
 const titleCase = (s: string) =>
     s ? s.replace(/\b\w/g, c => c.toUpperCase()) : '';
@@ -1056,8 +1049,8 @@ export const Packages: React.FC<PackagesProps> = ({
                 return;
             }
             try {
-                const base64 = await toBase64(file);
-                setPackageFormData((prev: any) => ({ ...prev, coverImage: base64 }));
+                const coverUrl = await uploadPackageCover(file);
+                setPackageFormData((prev: any) => ({ ...prev, coverImage: coverUrl }));
             } catch (err) {
                 console.error(err);
                 alert('Gagal mengunggah gambar. Silakan coba lagi.');
@@ -1092,7 +1085,7 @@ export const Packages: React.FC<PackagesProps> = ({
                 }))
             : undefined;
         const defaultOption = durationOptions
-            ? (durationOptions.find(option => option.default) || durationOptions[0])
+            ? (durationOptions.find((option: DurationOption) => option.default) || durationOptions[0])
             : null;
         if (defaultOption) {
             defaultOption.price = Number(packageFormData.price || defaultOption.price || 0);
@@ -1799,7 +1792,7 @@ export const Packages: React.FC<PackagesProps> = ({
                                     <Copy className="w-3.5 h-3.5" />
                                     <span className="text-[10px] font-semibold">Salin grup</span>
                                 </button>
-                                <button type="button" onClick={() => { setRegionNameDraft(region.label); setRegionToRename(region); }} aria-label={`Ubah nama grup ${region.label}`} title={`Ubah nama grup ${region.label}`} className="inline-flex h-7 items-center justify-center gap-1 rounded-lg px-1.5 text-[#5A6A85] hover:bg-brand-accent/10 hover:text-brand-accent">
+                                <button type="button" onClick={() => { setRegionNameDraft(region.label); setRegionToRename(region); }} aria-label={`Edit grup paket ${region.label}`} title={`Ubah nama grup ${region.label}`} className="inline-flex h-7 items-center justify-center gap-1 rounded-lg px-1.5 text-[#5A6A85] hover:bg-brand-accent/10 hover:text-brand-accent">
                                     <Pencil className="w-3.5 h-3.5" />
                                     <span className="text-[10px] font-semibold">Ubah</span>
                                 </button>

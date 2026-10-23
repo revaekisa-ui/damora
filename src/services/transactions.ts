@@ -1,9 +1,12 @@
 import supabase from '../lib/supabaseClient';
 import { Transaction, TransactionType } from '../types';
 import { validateCardBalance } from './balanceValidator';
+import { uploadDataUrlAsset } from './storage';
 
 const TRANSACTIONS = 'transactions';
 const CARDS = 'cards';
+
+export const TRANSACTION_COLUMNS = 'id, date, description, amount, type, project_id, category, method, pocket_id, card_id, printing_item_id, vendor_signature, created_at, updated_at';
 
 /** Supabase transactions table row (snake_case). */
 interface TransactionRow {
@@ -69,7 +72,7 @@ export async function createTransaction(row: Omit<Transaction, 'id' | 'vendorSig
           const { data: inserted, error: insErr } = await supabase
             .from(TRANSACTIONS)
             .insert([{ ...transactionData, card_id: row.cardId }])
-            .select('*')
+            .select(TRANSACTION_COLUMNS)
             .single();
           if (insErr) throw insErr;
 
@@ -86,7 +89,7 @@ export async function createTransaction(row: Omit<Transaction, 'id' | 'vendorSig
         const { data: inserted, error: insErr } = await supabase
           .from(TRANSACTIONS)
           .insert([{ ...transactionData, card_id: row.cardId }])
-          .select('*')
+          .select(TRANSACTION_COLUMNS)
           .single();
         if (insErr) throw insErr;
 
@@ -113,7 +116,7 @@ export async function createTransaction(row: Omit<Transaction, 'id' | 'vendorSig
   const { data, error } = await supabase
     .from(TRANSACTIONS)
     .insert([payload])
-    .select('*')
+    .select(TRANSACTION_COLUMNS)
     .single();
   if (error) throw error;
   return normalizeTransaction(data);
@@ -124,7 +127,7 @@ export async function createTransactions(items: Omit<Transaction, 'id' | 'vendor
   const { data, error } = await supabase
     .from(TRANSACTIONS)
     .insert(rows)
-    .select('*');
+    .select(TRANSACTION_COLUMNS);
 
   if (error) throw error;
   return (data || []).map(normalizeTransaction);
@@ -136,7 +139,7 @@ export async function listTransactions(options: { limit?: number; offset?: numbe
 
   let query = supabase
     .from(TRANSACTIONS)
-    .select('*')
+    .select(TRANSACTION_COLUMNS)
     .order('date', { ascending: false })
     .order('id', { ascending: false });
 
@@ -152,7 +155,7 @@ export async function listTransactions(options: { limit?: number; offset?: numbe
 export async function getTransaction(id: string): Promise<Transaction | null> {
   const { data, error } = await supabase
     .from(TRANSACTIONS)
-    .select('*')
+    .select(TRANSACTION_COLUMNS)
     .eq('id', id)
     .maybeSingle();
 
@@ -216,12 +219,24 @@ function denormalizeTransaction(patch: TransactionPatch): Partial<TransactionRow
 }
 
 export async function updateTransaction(id: string, patch: TransactionPatch): Promise<Transaction> {
-  const payload = denormalizeTransaction(patch);
+  // Tanda tangan vendor disimpan sebagai URL Storage, bukan base64, agar kolom
+  // vendor_signature tidak ikut terunduh di setiap query daftar transaksi.
+  let vendorSignature = patch.vendorSignature;
+  if (typeof vendorSignature === 'string' && vendorSignature.startsWith('data:')) {
+    try {
+      vendorSignature = await uploadDataUrlAsset(vendorSignature, 'transactions/signatures');
+    } catch (e) {
+      console.warn('[transactions.update] Gagal mengunggah tanda tangan ke Storage, memakai nilai inline:', e);
+    }
+  }
+  const payload = denormalizeTransaction(
+    patch.vendorSignature !== undefined ? { ...patch, vendorSignature } : patch,
+  );
   const { data, error } = await supabase
     .from(TRANSACTIONS)
     .update(payload)
     .eq('id', id)
-    .select('*')
+    .select(TRANSACTION_COLUMNS)
     .single();
   if (error) throw error;
   return normalizeTransaction(data);
