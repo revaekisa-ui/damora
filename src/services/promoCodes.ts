@@ -1,5 +1,6 @@
 import supabase from '../lib/supabaseClient';
 import { PromoCode } from '../types';
+import { normalizePageRequest } from './pagination';
 
 const TABLE = 'promo_codes';
 
@@ -7,6 +8,24 @@ export async function listPromoCodes(): Promise<PromoCode[]> {
   const { data, error } = await supabase.from(TABLE).select('*').order('code');
   if (error) throw error;
   return (data || []).map(normalizePromo);
+}
+
+export async function listPromoCodesPaginated(page = 1, pageSize = 10): Promise<{
+  items: PromoCode[];
+  total: number;
+}> {
+  const pagination = normalizePageRequest(page, pageSize);
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    supabase.from(TABLE).select('id', { count: 'exact', head: true }),
+    supabase.from(TABLE)
+      .select('id, code, discount_type, discount_value, is_active, usage_count, max_usage, expiry_date, created_at')
+      .order('code', { ascending: true })
+      .order('id', { ascending: true })
+      .range(pagination.offset, pagination.offset + pagination.pageSize - 1),
+  ]);
+  if (countError) throw countError;
+  if (error) throw error;
+  return { items: (data || []).map(normalizePromo), total: count || 0 };
 }
 
 export async function createPromoCode(payload: Omit<PromoCode, 'id' | 'usageCount'> & { usageCount?: number }): Promise<PromoCode> {

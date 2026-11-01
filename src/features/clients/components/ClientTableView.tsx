@@ -1,11 +1,20 @@
-import React from 'react';
-import { EyeIcon, PencilIcon, Trash2Icon, PlusIcon } from '../../../constants';
+import React, { useState, useEffect, useMemo } from 'react';
+import { EyeIcon, PencilIcon, Trash2Icon, PlusIcon, ArrowUpIcon, ArrowDownIcon } from '../../../constants';
 import { Client, Project, ClientStatus } from '../../../types';
 import { ClientWithSummary } from '../hooks/useClients';
 import { formatCurrency, getPaymentStatusClass } from '../utils/clientHelpers';
 import { MobileExpandableExtra } from '../../../components/ui/MobileProgressiveDisclosure';
+import PaginationControls from '../../../shared/ui/PaginationControls';
+import { PageSize } from '../../../services/pagination';
 
-export type ClientTabType = 'active' | 'inactive' | 'all' | 'no-date';
+export type ClientTabType = 'this-month' | 'active' | 'inactive' | 'all' | 'no-date';
+
+const formatEventDate = (dateString?: string): string => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 interface ClientTableViewProps {
     clientTab: ClientTabType;
@@ -26,6 +35,12 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
     onDeleteClient,
     onAddProject,
 }) => {
+    const [page, setPage] = useState(1);
+    // Halaman ini default menampilkan 50 baris per halaman saat pertama dibuka.
+    const [pageSize, setPageSize] = useState<PageSize>(50);
+    // Urutan berdasarkan tanggal acara: null = ikuti urutan default.
+    const [dateSortDir, setDateSortDir] = useState<'asc' | 'desc' | null>(null);
+
     const activeClients = filteredClientData.filter(c => c.status === ClientStatus.ACTIVE);
     const inactiveClients = filteredClientData.filter(c => c.status !== ClientStatus.ACTIVE);
     const noDateClients = filteredClientData.filter(client => {
@@ -36,8 +51,27 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
         return rawDate === '' || Number.isNaN(new Date(rawDate).getTime());
     });
 
+    // Klien dengan acara pernikahan pada bulan berjalan (bulan & tahun saat ini).
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const thisMonthClients = filteredClientData.filter(client =>
+        client.projects.some(project => {
+            const rawDate = typeof project.date === 'string' ? project.date.trim() : '';
+            if (rawDate === '') return false;
+            const projectDate = new Date(rawDate);
+            return (
+                !Number.isNaN(projectDate.getTime()) &&
+                projectDate.getFullYear() === currentYear &&
+                projectDate.getMonth() === currentMonth
+            );
+        })
+    );
+
     const displayedClients =
-        clientTab === 'active'
+        clientTab === 'this-month'
+            ? thisMonthClients
+            : clientTab === 'active'
             ? activeClients
             : clientTab === 'inactive'
             ? inactiveClients
@@ -45,11 +79,55 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
             ? noDateClients
             : filteredClientData;
 
+    useEffect(() => {
+        setPage(1);
+    }, [clientTab, filteredClientData]);
+
+    const sortedClients = useMemo(() => {
+        if (!dateSortDir) return displayedClients;
+        const toTime = (client: ClientWithSummary): number | null => {
+            const raw = typeof client.mostRecentProject?.date === 'string' ? client.mostRecentProject.date.trim() : '';
+            if (!raw) return null;
+            const time = new Date(raw).getTime();
+            return Number.isNaN(time) ? null : time;
+        };
+        return [...displayedClients].sort((a, b) => {
+            const timeA = toTime(a);
+            const timeB = toTime(b);
+            // Klien tanpa tanggal selalu ditaruh di akhir.
+            if (timeA === null && timeB === null) return 0;
+            if (timeA === null) return 1;
+            if (timeB === null) return -1;
+            return dateSortDir === 'asc' ? timeA - timeB : timeB - timeA;
+        });
+    }, [displayedClients, dateSortDir]);
+
+    const handleToggleDateSort = () => {
+        setDateSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        setPage(1);
+    };
+
+    const pagedClients = useMemo(
+        () => sortedClients.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize),
+        [sortedClients, page, pageSize]
+    );
+
     return (
         <div className="bg-white rounded-2xl shadow-[0_9px_17.5px_rgba(0,0,0,0.05)] border border-[#EAEFF4] overflow-hidden">
             <div className="p-4 border-b border-[#EAEFF4] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white">
                 {/* Segmented View Switcher */}
                 <div className="flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto p-1 bg-[#F4F6F9] rounded-xl border border-[#EAEFF4]">
+                    <button
+                        type="button"
+                        onClick={() => setClientTab('this-month')}
+                        className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                            clientTab === 'this-month'
+                                ? 'bg-brand-accent text-white shadow-xs'
+                                : 'text-[#5A6A85] hover:text-[#2A3547]'
+                        }`}
+                    >
+                        Bulan Ini ({thisMonthClients.length})
+                    </button>
                     <button
                         type="button"
                         onClick={() => setClientTab('active')}
@@ -102,7 +180,7 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
 
             {/* Mobile Cards for Selected Tab */}
             <div className="md:hidden p-2.5 space-y-2 bg-[#F4F6F9]/50">
-                {displayedClients.map(client => (
+                {pagedClients.map(client => (
                     <div
                         key={client.id}
                         className={`rounded-xl bg-white border border-[#EAEFF4] p-3 shadow-xs transition-all ${
@@ -210,18 +288,35 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
                             <th className="px-3 lg:px-6 py-3.5">Total Package</th>
                             <th className="px-3 lg:px-6 py-3.5">Sisa Pembayaran</th>
                             <th className="px-3 lg:px-6 py-3.5">Acara Pernikahan Terbaru</th>
+                            <th className="px-3 lg:px-6 py-3.5">
+                                <button
+                                    type="button"
+                                    onClick={handleToggleDateSort}
+                                    className="inline-flex items-center gap-1.5 uppercase tracking-wider font-bold text-[#5A6A85] hover:text-[#2A3547] transition-colors"
+                                    title="Urutkan berdasarkan tanggal acara"
+                                >
+                                    Tanggal Acara
+                                    {dateSortDir === 'asc' ? (
+                                        <ArrowUpIcon className="w-3.5 h-3.5" />
+                                    ) : dateSortDir === 'desc' ? (
+                                        <ArrowDownIcon className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <ArrowUpIcon className="w-3.5 h-3.5 opacity-40" />
+                                    )}
+                                </button>
+                            </th>
                             <th className="px-3 lg:px-6 py-3.5 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EAEFF4]">
-                        {displayedClients.map((client, index) => (
+                        {pagedClients.map((client, index) => (
                             <tr
                                 key={client.id}
                                 className={`hover:bg-[#F4F6F9]/60 transition-colors ${
                                     client.status !== ClientStatus.ACTIVE ? 'opacity-75' : ''
                                 }`}
                             >
-                                <td className="px-3 lg:px-4 py-3.5 text-center font-medium text-[#5A6A85]">{index + 1}</td>
+                                <td className="px-3 lg:px-4 py-3.5 text-center font-medium text-[#5A6A85]">{(page - 1) * pageSize + index + 1}</td>
                                 <td className="px-3 lg:px-6 py-3.5">
                                     <div className="flex items-center gap-2.5">
                                         <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-[#F4F6F9] flex items-center justify-center text-xs font-bold text-[#5A6A85]">
@@ -260,6 +355,9 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
                                         </div>
                                     )}
                                 </td>
+                                <td className="px-3 lg:px-6 py-3.5 whitespace-nowrap">
+                                    <span className="font-medium text-[#2A3547]">{formatEventDate(client.mostRecentProject?.date)}</span>
+                                </td>
                                 <td className="px-3 lg:px-6 py-3.5">
                                     <div className="flex items-center justify-center space-x-1.5">
                                         <button
@@ -296,7 +394,7 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
                         ))}
                         {displayedClients.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="text-center py-10 text-xs text-[#5A6A85]">
+                                <td colSpan={8} className="text-center py-10 text-xs text-[#5A6A85]">
                         Tidak ada data pengantin yang sesuai dengan filter yang dipilih.
                                 </td>
                             </tr>
@@ -304,6 +402,15 @@ export const ClientTableView: React.FC<ClientTableViewProps> = ({
                     </tbody>
                 </table>
             </div>
+
+            <PaginationControls
+                page={page}
+                pageSize={pageSize}
+                total={displayedClients.length}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                itemLabel="pengantin"
+            />
         </div>
     );
 };

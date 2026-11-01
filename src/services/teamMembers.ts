@@ -2,6 +2,7 @@ import supabase from '../lib/supabaseClient';
 import { compressImage } from './storage';
 import { TeamMember, PerformanceNote } from '../types';
 import { publicNamePatternsFromSlug } from '../utils/publicRouting';
+import { escapePostgrestSearch, normalizePageRequest } from './pagination';
 
 const TABLE = 'team_members';
 
@@ -84,27 +85,33 @@ export async function listTeamMembers(options: { limit?: number; offset?: number
   return (data || []).map(normalize);
 }
 
-export async function listTeamMembersPaginated(page: number = 1, limit: number = 20): Promise<{
+export async function listTeamMembersPaginated(page: number = 1, limit: number = 10, filters: { category?: 'Tim' | 'Vendor'; search?: string } = {}): Promise<{
   teamMembers: TeamMember[];
   total: number;
   hasMore: boolean;
 }> {
-  const offset = (page - 1) * limit;
+  const pagination = normalizePageRequest(page, limit);
+  const applyFilters = (query: any) => {
+    const search = filters.search?.trim();
+    if (filters.category === 'Vendor') query = query.eq('category', 'Vendor');
+    if (filters.category === 'Tim' && !search) query = query.or('category.is.null,category.eq.Tim');
+    if (search) {
+      const escaped = escapePostgrestSearch(search);
+      const searchFilter = `or(name.ilike."%${escaped}%",role.ilike."%${escaped}%")`;
+      query = filters.category === 'Tim'
+        ? query.or(`and(category.is.null,${searchFilter}),and(category.eq.Tim,${searchFilter})`)
+        : query.or(`name.ilike."%${escaped}%",role.ilike."%${escaped}%"`);
+    }
+    return query;
+  };
 
-  // Get total count
-  const { count, error: countError } = await supabase
-    .from(TABLE)
-    .select('id', { count: 'exact', head: true });
+  const countQuery = applyFilters(supabase.from(TABLE).select('id', { count: 'exact', head: true }));
+  const pageQuery = applyFilters(supabase.from(TABLE).select(TEAM_MEMBER_COLUMNS))
+    .order('id', { ascending: false })
+    .range(pagination.offset, pagination.offset + pagination.pageSize - 1);
+  const [{ count, error: countError }, { data, error }] = await Promise.all([countQuery, pageQuery]);
 
   if (countError) throw countError;
-
-  // Get paginated data
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select(TEAM_MEMBER_COLUMNS)
-    .order('id', { ascending: false })
-    .range(offset, offset + limit - 1);
-
   if (error) throw error;
 
   const teamMembers = (data || []).map(normalize);
@@ -113,7 +120,7 @@ export async function listTeamMembersPaginated(page: number = 1, limit: number =
   return {
     teamMembers,
     total,
-    hasMore: (page * limit) < total
+    hasMore: (pagination.page * pagination.pageSize) < total
   };
 }
 

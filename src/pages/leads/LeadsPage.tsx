@@ -6,9 +6,11 @@ import { MobileCollapsibleSection } from '../../components/ui/MobileProgressiveD
 const escapeRegExp = (string: string) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 };
-import { Lead, LeadStatus, Client, ClientStatus, Project, Package, AddOn, Attire, Transaction, TransactionType, PaymentStatus, Profile, Card, FinancialPocket, ContactChannel, PromoCode, ClientType, ViewType, NavigationAction, Gallery, REGIONS } from '../../types';
+import { Lead, LeadStatus, Client, ClientStatus, Project, Package, AddOn, Attire, Transaction, TransactionType, PaymentStatus, Profile, Card, FinancialPocket, ContactChannel, PromoCode, ClientType, ViewType, NavigationAction, REGIONS } from '../../types';
 
 import Modal from '../../shared/ui/Modal';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import type { PageSize } from '../../services/pagination';
 import RupiahInput from '../../shared/form/RupiahInput';
 import { PlusIcon, PencilIcon, Trash2Icon, Share2Icon, DownloadIcon, SendIcon, UsersIcon, TargetIcon, TrendingUpIcon, CalendarIcon, MapPinIcon, QrCodeIcon, MessageSquareIcon, CameraIcon, FileTextIcon, PhoneIncomingIcon, LightbulbIcon, ChevronRightIcon, CheckCircleIcon, EyeIcon, LinkIcon, WhatsappIcon } from '../../constants';
 import { ModernStatCard } from '../../components/modernize/ModernStatCard';
@@ -19,7 +21,8 @@ import { createProject as createProjectRow } from '../../services/projects';
 import { createTransaction as createTransactionRow, updateCardBalance } from '../../services/transactions';
 import { findCardIdByMeta } from '../../services/cards';
 import { upsertProfile } from '../../services/profile';
-import { listGalleries } from '../../services/galleries';
+import { listGalleryShareOptions } from '../../services/galleries';
+import type { GalleryShareOption } from '../../services/galleries';
 import { buildPublicShareUrl, getGalleryPublicRouteId, toPublicNameSlug } from '../../utils/publicRouting';
 
 const formatCurrency = (amount: number) => {
@@ -716,9 +719,16 @@ export const Leads: React.FC<LeadsProps> = ({
     } | null>(null);
     const [shareModalState, setShareModalState] = useState<{ type: 'package' | 'booking', lead: Lead } | null>(null);
     const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState<PageSize>(10);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [mobileStatusTab, setMobileStatusTab] = useState<'all' | LeadStatus>('all');
     const activeLeadFilterCount = (sourceFilter !== 'all' ? 1 : 0) + (cityFilter !== 'all' ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0) + (activeCardFilter ? 1 : 0);
+
+    // Reset ke halaman pertama setiap kali filter / tampilan berubah
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm, sourceFilter, cityFilter, dateFrom, dateTo, viewMode, hiddenColumns]);
 
     const leadSourceOptions = useMemo(() => {
         const configured = userProfile.leadSources?.length ? userProfile.leadSources : Object.values(ContactChannel);
@@ -1000,7 +1010,7 @@ export const Leads: React.FC<LeadsProps> = ({
                     portalAccessId: crypto.randomUUID(),
                     address: formData.address || undefined,
                 } as Omit<Client, 'id'>);
-                setClients(prev => [createdClient, ...prev]);
+                setClients(prev => prev.some(c => c.id === createdClient.id) ? prev : [createdClient, ...prev]);
 
                 // Simpan catatan konversi ke database juga (bukan hanya di state lokal)
                 // supaya data di DB tetap sinkron dengan yang ditampilkan.
@@ -1103,13 +1113,18 @@ export const Leads: React.FC<LeadsProps> = ({
         }
     };
 
+    const pagedLeads = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return filteredLeads.slice(start, start + pageSize);
+    }, [filteredLeads, page, pageSize]);
+
     const leadColumns = useMemo(() => {
         const columns: Record<LeadStatus, Lead[]> = {
             [LeadStatus.DISCUSSION]: [], [LeadStatus.FOLLOW_UP]: [], [LeadStatus.CONVERTED]: [], [LeadStatus.REJECTED]: [],
         };
-        filteredLeads.forEach(lead => { columns[lead.status]?.push(lead); });
+        pagedLeads.forEach(lead => { columns[lead.status]?.push(lead); });
         return columns;
-    }, [filteredLeads]);
+    }, [pagedLeads]);
 
     const visibleLeadColumns = useMemo(() => Object.entries(leadColumns).filter(([status]) => !hiddenColumns.has(status as LeadStatus)), [leadColumns, hiddenColumns]);
 
@@ -1742,14 +1757,14 @@ export const Leads: React.FC<LeadsProps> = ({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredLeads.length === 0 ? (
+                                        {pagedLeads.length === 0 ? (
                                             <tr>
                                                 <td colSpan={9} className="px-4 py-12 text-center text-brand-text-secondary !border-0">
                                                     <LightbulbIcon className="mx-auto w-8 h-8 mb-2 opacity-40" />
                                                     <p>Tidak ada Calon Pengantin yang cocok dengan filter.</p>
                                                 </td>
                                             </tr>
-                                        ) : filteredLeads.map((lead, idx) => {
+                                        ) : pagedLeads.map((lead, idx) => {
                                             const sc = statusConfig[lead.status] ?? { color: '#64748b', title: lead.status };
                                             const isHot = new Date(lead.date) > new Date(Date.now() - 24 * 60 * 60 * 1000);
                                             return (
@@ -1759,7 +1774,7 @@ export const Leads: React.FC<LeadsProps> = ({
                                                     onClick={() => handleOpenModal('edit', lead)}
                                                 >
                                                     {/* # */}
-                                                    <td className="px-4 py-3 text-brand-text-secondary text-xs !border-0">{idx + 1}</td>
+                                                    <td className="px-4 py-3 text-brand-text-secondary text-xs !border-0">{(page - 1) * pageSize + idx + 1}</td>
                                                     {/* Nama */}
                                                     <td className="px-4 py-3 !border-0">
                                                         <div className="flex items-center gap-2">
@@ -1901,6 +1916,17 @@ export const Leads: React.FC<LeadsProps> = ({
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {filteredLeads.length > 0 && (
+                        <PaginationControls
+                            page={page}
+                            pageSize={pageSize}
+                            total={filteredLeads.length}
+                            onPageChange={setPage}
+                            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                            itemLabel="calon pengantin"
+                        />
                     )}
                 </>
             )}
@@ -2278,7 +2304,7 @@ interface ShareMessageModalProps {
 
 const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userProfile, publicPackagesUrl, publicBookingFormUrl, regions, onClose, showNotification, setProfile }) => {
     const [message, setMessage] = useState('');
-    const [galleries, setGalleries] = useState<Gallery[]>([]);
+    const [galleries, setGalleries] = useState<GalleryShareOption[]>([]);
     const [selectedGalleryId, setSelectedGalleryId] = useState<string>('');
     const [packageSource, setPackageSource] = useState<'public-packages' | 'gallery'>('public-packages');
     const initialBookingRegion = useMemo(() => {
@@ -2295,32 +2321,35 @@ const ShareMessageModal: React.FC<ShareMessageModalProps> = ({ type, lead, userP
         return found ? found.value : '';
     });
 
-    // Load galleries from Pricelist Upload (ViewType.GALLERY)
+    // Load gallery metadata once; share links only need IDs and labels.
     useEffect(() => {
+        if (type !== 'package') return;
+        let isActive = true;
         (async () => {
             try {
-                const all = await listGalleries();
-                const availableGalleries = (all || []).filter(g => g.is_public !== false);
-                const listToUse = availableGalleries.length > 0 ? availableGalleries : (all || []);
-                setGalleries(listToUse);
-
-                if (listToUse.length > 0) {
-                    // Coba cocokkan dengan lokasi lead jika ada
-                    const leadLoc = (lead.location || '').toLowerCase().trim();
-                    const matched = leadLoc
-                        ? listToUse.find(g =>
-                            (g.region && g.region.toLowerCase().includes(leadLoc)) ||
-                            (g.region && leadLoc.includes(g.region.toLowerCase())) ||
-                            g.title.toLowerCase().includes(leadLoc)
-                        )
-                        : null;
-                    setSelectedGalleryId(matched ? matched.id : listToUse[0].id);
-                }
+                const all = await listGalleryShareOptions();
+                const availableGalleries = all.filter(g => g.is_public !== false);
+                const listToUse = availableGalleries.length > 0 ? availableGalleries : all;
+                if (isActive) setGalleries(listToUse);
             } catch (e) {
                 console.warn('Failed to load galleries for share modal', e);
             }
         })();
-    }, [lead.location]);
+        return () => { isActive = false; };
+    }, [type]);
+
+    useEffect(() => {
+        if (galleries.length === 0) return;
+        const leadLoc = (lead.location || '').toLowerCase().trim();
+        const matched = leadLoc
+            ? galleries.find(g =>
+                (g.region && g.region.toLowerCase().includes(leadLoc)) ||
+                (g.region && leadLoc.includes(g.region.toLowerCase())) ||
+                g.title.toLowerCase().includes(leadLoc)
+            )
+            : null;
+        setSelectedGalleryId(matched ? matched.id : galleries[0].id);
+    }, [galleries, lead.location]);
 
     const selectedGallery = useMemo(() => galleries.find(g => g.id === selectedGalleryId) || null, [galleries, selectedGalleryId]);
 

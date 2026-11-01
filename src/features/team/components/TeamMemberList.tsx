@@ -19,6 +19,7 @@ import { MobileExpandableExtra } from '../../../components/ui/MobileProgressiveD
 
 interface TeamMemberListProps {
     members: TeamMember[];
+    startIndex?: number;
     teamProjectPaymentsInDateRange: TeamProjectPayment[];
     groupLabel: 'team' | 'vendor';
     onViewDetails: (member: TeamMember) => void;
@@ -28,6 +29,7 @@ interface TeamMemberListProps {
 
 const TeamMemberList: React.FC<TeamMemberListProps> = ({
     members,
+    startIndex = 0,
     teamProjectPaymentsInDateRange,
     groupLabel,
     onViewDetails,
@@ -164,7 +166,7 @@ const TeamMemberList: React.FC<TeamMemberListProps> = ({
                                     className="hover:bg-[#F8FAFC] transition-colors"
                                 >
                                     <td className="px-3 lg:px-4 py-3.5 text-center font-semibold text-[#5A6A85] border-r border-slate-100">
-                                        {index + 1}
+                                        {startIndex + index + 1}
                                     </td>
                                     <td className="px-3 lg:px-4 py-3.5 font-bold text-[#2A3547] border-r border-slate-100">
                                         <div className="flex items-center gap-2.5 min-w-0">

@@ -10,6 +10,7 @@ import { listCalendarEventsInRange, createCalendarEvent, updateCalendarEvent, de
 import { updateProject as updateProjectInDb } from '../../../services/projects';
 import supabase from '../../../lib/supabaseClient';
 import { generateProjectBriefing } from '../utils/projectCalendar';
+import { getStatusClass } from '../utils/projectHelpers';
 import ProjectBriefingModal from './ProjectBriefingModal';
 import GoogleCalendarFeedModal from './GoogleCalendarFeedModal';
 
@@ -851,17 +852,45 @@ const AgendaView: React.FC<AgendaViewProps> = ({ agendaByDate, profile, clients,
                 <div className="relative pl-10 md:pl-16 border-l-2 border-brand-border/40 ml-2 md:ml-4">
                     {eventsOnDate.map(event => {
                         const bgColor = getEventColor(event, profile);
-                        const client = clients.find(item => item.id === event.clientId);
+                        const daysAway = Math.ceil((new Date(event.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                        const isToday = daysAway === 0;
+                        const countdownText = isToday
+                            ? 'Hari Ini'
+                            : daysAway > 0
+                                ? `${daysAway} Hari Lagi`
+                                : `${Math.abs(daysAway)} Hari Lalu`;
+                        const countdownClass = isToday ? 'bg-red-600 text-white' : daysAway > 0 ? 'solid-blue text-white' : 'bg-slate-400 text-white';
                         return (
                             <div key={event.id} className="relative mb-6 group">
                                 <div className="absolute -left-[3.5rem] md:-left-[5rem] top-2 font-semibold text-[10px] md:text-xs text-brand-text-primary bg-white/60 px-1.5 py-0.5 rounded shadow-sm scale-90 md:scale-100 origin-right">{event.startTime || 'All Day'}</div>
                                 <div className="absolute -left-[0.65rem] top-2.5 w-4 h-4 rounded-full border-4 border-brand-surface shadow-sm ring-2 ring-transparent group-hover:ring-brand-accent/30 transition-all" style={{ backgroundColor: bgColor }}></div>
-                                <div onClick={() => onEventClick(event)} className="ml-4 md:ml-6 p-4 md:p-5 rounded-2xl cursor-pointer glass-card card-hover-lift shadow-sm transition-all" style={{ borderLeft: `4px solid ${bgColor}` }}>
-                                    <h4 className="font-bold text-sm md:text-base text-brand-text-light">{event.projectName}</h4>
-                                    <div className="text-xs md:text-sm font-medium text-brand-text-secondary mt-1 flex items-center gap-1.5">
-                                        {event.clientId !== 'INTERNAL' && <ClientAvatar client={client} name={event.clientName || 'Pengantin'} className="w-5 h-5" />}
-                                        <span>{event.clientId === 'INTERNAL' ? event.projectType : (event.clientName || event.projectType)}</span>
-                                        {event.location && ` • ${event.location}`}
+                                <div
+                                    onClick={() => onEventClick(event)}
+                                    className="ml-4 md:ml-6 flex items-center gap-3 md:gap-4 p-3 rounded-xl bg-white border border-[#EAEFF4]/60 hover:border-brand-accent/20 hover:bg-[#F4F6F9] cursor-pointer shadow-sm transition-all duration-200"
+                                    style={{ borderLeft: `4px solid ${bgColor}` }}
+                                >
+                                    <div className="w-12 h-12 rounded-xl grad-brand flex-shrink-0 flex flex-col items-center justify-center border border-transparent">
+                                        <p className="text-[10px] font-bold text-white/90 uppercase tracking-wider">{new Date(event.date).toLocaleString('id-ID', { month: 'short' })}</p>
+                                        <p className="text-xl font-extrabold text-white">{new Date(event.date).getDate()}</p>
+                                    </div>
+                                    <div className="flex-grow overflow-hidden">
+                                        <p className="font-bold text-[#2A3547] truncate text-sm group-hover:text-brand-accent transition-colors">{event.projectName}</p>
+                                        <div className="flex items-center gap-2 mt-0.5 min-w-0">
+                                            <span className="text-[10px] font-semibold text-[#5A6A85] uppercase tracking-tight truncate">{event.projectType}</span>
+                                            {event.clientId === 'INTERNAL' ? null : (
+                                                <span className="text-[10px] font-medium text-[#5A6A85] truncate">{event.clientName || 'Pengantin'}</span>
+                                            )}
+                                            {event.location && (
+                                                <div className="flex items-center gap-1 text-[10px] text-[#5A6A85] min-w-0">
+                                                    <MapPinIcon className="w-3 h-3 text-brand-accent flex-shrink-0" />
+                                                    <span className="truncate">{event.location}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${countdownClass}`}>{countdownText}</span>
+                                        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getStatusClass(event.status, profile.projectStatusConfig || [])}`}>{event.status}</span>
                                     </div>
                                 </div>
                             </div>

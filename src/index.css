@@ -158,14 +158,14 @@ th, td {
   padding: 0.75rem;
   vertical-align: top;
   white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 td p,
 th p {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   white-space: normal;
 }
 
@@ -1435,13 +1435,20 @@ body {
      border ditangani oleh tabel itu sendiri agar tidak double */
   .overflow-x-auto {
     border-radius: 0.75rem;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   /* Border hanya pada tabel, bukan pada wrapper */
   .overflow-x-auto > table {
     border: 2px solid var(--color-border);
     border-radius: 0;
+  }
+
+  .overflow-x-auto > table:not(.invoice-table-tight) {
+    width: max-content;
+    min-width: max-content;
+    max-width: none;
   }
 
   .overflow-x-auto table th:first-child,
@@ -2076,8 +2083,11 @@ body {
   }
 
   .overflow-x-auto > table:not(.invoice-table-tight) {
-    min-width: 460px;
-    width: 100%;
+    /* Let tables keep their intrinsic/declared column widths and scroll in
+       the wrapper instead of compressing every cell into a narrow column. */
+    min-width: max-content;
+    width: max-content;
+    max-width: none;
     font-size: 0.55rem !important;
   }
 

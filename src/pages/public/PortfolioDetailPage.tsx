@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ZoomIn, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VendorPortfolio } from '../../types';
 import { getVendorPortfolio } from '../../services/vendorPortfolios';
-import { getVendorProfile } from '../../services/vendorProfile';
-import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
+import { getVendorContactSummary } from '../../services/vendorProfile';
 
 const PortfolioDetailPage: React.FC = () => {
     const [portfolio, setPortfolio] = useState<VendorPortfolio | null>(null);
@@ -12,11 +11,6 @@ const PortfolioDetailPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [lightboxImg, setLightboxImg] = useState<string | null>(null);
     const [lightboxIndex, setLightboxIndex] = useState<number>(0);
-    const [refreshVersion, setRefreshVersion] = useState(0);
-
-    useSupabaseRealtimeRefresh('public-portfolio-detail', ['vendor_profiles', 'vendor_portfolios'], () => {
-        setRefreshVersion(version => version + 1);
-    });
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -25,7 +19,7 @@ const PortfolioDetailPage: React.FC = () => {
 
         const loadData = async () => {
             try {
-                const [profileData] = await Promise.all([getVendorProfile()]);
+                const [profileData] = await Promise.all([getVendorContactSummary()]);
                 if (profileData) {
                     setVendorName(profileData.hero_title || '');
                     setWaNumber(profileData.whatsapp_number || '');
@@ -41,7 +35,7 @@ const PortfolioDetailPage: React.FC = () => {
             }
         };
         loadData();
-    }, [refreshVersion]);
+    }, []);
 
     const images = portfolio?.images || [];
 
@@ -122,6 +116,7 @@ const PortfolioDetailPage: React.FC = () => {
                             src={portfolio.cover_image_url}
                             alt={portfolio.title}
                             className="w-full h-full object-cover"
+                            decoding="async"
                         />
                         <div className="absolute inset-0 bg-black/25" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
@@ -194,6 +189,7 @@ const PortfolioDetailPage: React.FC = () => {
                                     alt={`${portfolio.title} - ${idx + 1}`}
                                     className="w-full h-auto object-contain group-hover:opacity-95 transition-opacity duration-500"
                                     loading="lazy"
+                                    decoding="async"
                                 />
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                                     <div className="bg-white/90 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center shadow-lg">

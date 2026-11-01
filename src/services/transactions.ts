@@ -2,6 +2,7 @@ import supabase from '../lib/supabaseClient';
 import { Transaction, TransactionType } from '../types';
 import { validateCardBalance } from './balanceValidator';
 import { uploadDataUrlAsset } from './storage';
+import { escapePostgrestSearch, normalizePageRequest } from './pagination';
 
 const TRANSACTIONS = 'transactions';
 const CARDS = 'cards';
@@ -150,6 +151,42 @@ export async function listTransactions(options: { limit?: number; offset?: numbe
   const { data, error } = await query;
   if (error) throw error;
   return (data || []).map(normalizeTransaction);
+}
+
+export async function listTransactionsPaginated(options: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  type?: TransactionType | 'all';
+  category?: string;
+} = {}): Promise<{ items: Transaction[]; total: number }> {
+  const pagination = normalizePageRequest(options.page, options.pageSize);
+  const applyFilters = (initial: any) => {
+    let query = initial;
+    if (options.dateFrom) query = query.gte('date', options.dateFrom);
+    if (options.dateTo) query = query.lte('date', options.dateTo);
+    if (options.type && options.type !== 'all') query = query.eq('type', options.type);
+    if (options.category && options.category !== 'Semua') query = query.eq('category', options.category);
+    const search = options.search?.trim();
+    if (search) {
+      const escaped = escapePostgrestSearch(search);
+      query = query.or(`description.ilike."%${escaped}%",category.ilike."%${escaped}%"`);
+    }
+    return query;
+  };
+
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    applyFilters(supabase.from(TRANSACTIONS).select('id', { count: 'exact', head: true })),
+    applyFilters(supabase.from(TRANSACTIONS).select(TRANSACTION_COLUMNS))
+      .order('date', { ascending: false })
+      .order('id', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.pageSize - 1),
+  ]);
+  if (countError) throw countError;
+  if (error) throw error;
+  return { items: (data || []).map(normalizeTransaction), total: count || 0 };
 }
 
 export async function getTransaction(id: string): Promise<Transaction | null> {

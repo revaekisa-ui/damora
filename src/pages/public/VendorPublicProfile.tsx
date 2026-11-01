@@ -3,7 +3,6 @@ import { VendorProfile, VendorPortfolio } from '../../types';
 import { getVendorProfile } from '../../services/vendorProfile';
 import { listVendorPortfolios } from '../../services/vendorPortfolios';
 import { getEmbedVideoUrl } from '../../utils/videoUtils';
-import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
 
 const FAQ_OPEN_DEFAULT = new Set<string>();
 
@@ -37,8 +36,6 @@ const VendorPublicProfile: React.FC = () => {
     useEffect(() => {
         void loadData();
     }, [loadData]);
-
-    useSupabaseRealtimeRefresh('public-vendor-profile', ['vendor_profiles', 'vendor_portfolios'], loadData);
 
     useEffect(() => {
         if (!profile?.hero_images || profile.hero_images.length <= 1) return;
@@ -250,16 +247,24 @@ const VendorPublicProfile: React.FC = () => {
             {/* ─── Hero Section ─── */}
             <section id="hero" className="vendor-profile-hero relative w-full min-h-[75vh] md:min-h-screen flex items-end overflow-hidden bg-[#171717]">
                 {profile?.hero_images && profile.hero_images.length > 0 ? (
-                    profile.hero_images.map((img, idx) => (
-                        <img 
-                            key={idx}
-                            src={img} 
-                            alt={`Hero ${idx + 1}`} 
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                                idx === currentHeroIndex ? 'opacity-100' : 'opacity-0'
-                            }`} 
-                        />
-                    ))
+                    profile.hero_images.map((img, idx) => {
+                        const heroCount = profile.hero_images!.length;
+                        const isActive = idx === currentHeroIndex;
+                        const isNext = idx === (currentHeroIndex + 1) % heroCount;
+                        if (!isActive && !isNext) return null;
+                        return (
+                            <img
+                                key={idx}
+                                src={img}
+                                alt={`Hero ${idx + 1}`}
+                                loading={isActive ? 'eager' : 'lazy'}
+                                decoding="async"
+                                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                                    isActive ? 'opacity-100' : 'opacity-0'
+                                }`}
+                            />
+                        );
+                    })
                 ) : profile?.hero_image_url ? (
                     <img src={profile.hero_image_url} alt="Hero" className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
@@ -498,7 +503,7 @@ const VendorPublicProfile: React.FC = () => {
                         <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-16 opacity-70">
                             {profile.partners.map(partner => (
                                 <div key={partner.id} className="flex flex-col items-center justify-center gap-2 w-24 md:w-32 hover:opacity-100 transition-opacity duration-300">
-                                    <img src={partner.logo_url} alt={partner.name} className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300" />
+                                    <img src={partner.logo_url} alt={partner.name} loading="lazy" decoding="async" className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300" />
                                 </div>
                             ))}
                         </div>
@@ -554,7 +559,7 @@ const VendorPublicProfile: React.FC = () => {
             {/* ─── CTA Section ─── */}
             <section id="contact" className="relative py-16 sm:py-24 md:py-36 px-5 sm:px-6 overflow-hidden bg-[#171717]">
                 {profile?.hero_image_url && (
-                    <img src={profile.hero_image_url} alt="CTA Background" className="absolute inset-0 w-full h-full object-cover opacity-25" />
+                    <img src={profile.hero_image_url} alt="CTA Background" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-25" />
                 )}
                 <div className="relative z-10 max-w-xl mx-auto text-center">
                     <p className="text-[#a3a3a3] text-[10px] sm:text-xs font-medium tracking-[0.35em] uppercase mb-3 sm:mb-5" style={{ fontFamily: 'Inter, sans-serif' }}>

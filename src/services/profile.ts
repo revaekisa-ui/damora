@@ -7,6 +7,11 @@ const TABLE = 'profiles';
 
 export const PROFILE_COLUMNS = 'id, admin_user_id, full_name, email, phone, company_name, website, instagram, address, bank_account, authorized_signer, id_number, bio, income_categories, expense_categories, project_types, event_types, asset_categories, sop_categories, package_categories, lead_sources, project_status_config, notification_settings, security_settings, briefing_template, terms_and_conditions, logo_base64, signature_base64, brand_color, public_page_config, package_share_template, booking_form_template, chat_templates, billing_templates, invoice_share_template, receipt_share_template, expense_share_template, portal_share_template, checklist_templates, contract_template, mobile_ui_scale';
 
+// Public documents need only these display fields. The regular profile query
+// also contains private settings, templates, category lists and other data
+// that should not be sent to anonymous visitors on every public detail page.
+const PUBLIC_DOCUMENT_PROFILE_COLUMNS = 'id, full_name, email, phone, company_name, address, authorized_signer, logo_base64, signature_base64';
+
 const TEMPLATE_ENVELOPE_KEYS = [
   'bookingFormTemplate',
   'chatTemplates',
@@ -171,6 +176,23 @@ export async function getProfile(): Promise<Profile | null> {
   const { data, error } = await supabase.from(TABLE).select(PROFILE_COLUMNS).limit(1).maybeSingle();
   if (error && error.code !== 'PGRST116') throw error;
   return data ? fromRow(data) : null;
+}
+
+export async function getPublicDocumentProfile(): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select(PUBLIC_DOCUMENT_PROFILE_COLUMNS)
+    .limit(1)
+    .maybeSingle();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data ? fromRow(data) : null;
+}
+
+/** Resolve the vendor id for background notification work without loading the full profile. */
+export async function getProfileId(): Promise<string | null> {
+  const { data, error } = await supabase.from(TABLE).select('id').limit(1).maybeSingle();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data?.id ?? null;
 }
 
 /**

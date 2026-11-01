@@ -42,6 +42,8 @@ import { PackageTermsModal } from './components/PackageTermsModal';
 import { RegionPricelistModal } from './components/RegionPricelistModal';
 import { buildPublicShareUrl, getPackageShareIdentifier } from '../../utils/publicRouting';
 import Modal from '../../shared/ui/Modal';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import { PageSize } from '../../services/pagination';
 import { uploadPackageCover } from '../../services/storage';
 
 import {
@@ -547,6 +549,8 @@ export const Packages: React.FC<PackagesProps> = ({
     const [regionNameDraft, setRegionNameDraft] = useState('');
     const [isRenamingRegion, setIsRenamingRegion] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState<PageSize>(10);
     const [packageOrder, setPackageOrder] = useState<string[]>(() => profile.publicPageConfig?.packageOrder || []);
     const [addOnOrder, setAddOnOrder] = useState<string[]>(() => profile.publicPageConfig?.addOnOrder || []);
     const [attireOrder, setAttireOrder] = useState<string[]>(() => profile.publicPageConfig?.attireOrder || []);
@@ -883,6 +887,19 @@ export const Packages: React.FC<PackagesProps> = ({
         return [];
     }, [filteredPackages, filteredAddOns, filteredAttire, activeTab]);
 
+    // ── Client-side pagination (active tab) ──
+    const pagedCatalogEntries = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return catalogEntries.slice(start, start + pageSize);
+    }, [catalogEntries, page, pageSize]);
+
+    const pagedIdSet = useMemo(
+        () => new Set(pagedCatalogEntries.map((entry) =>
+            entry.kind === 'package' ? entry.pkg.id : entry.kind === 'addon' ? entry.addOn.id : entry.attire.id,
+        )),
+        [pagedCatalogEntries],
+    );
+
     const packageGroups = useMemo(() => {
         const groups = new Map<string, Package[]>();
         filteredPackages.forEach(pkg => {
@@ -948,6 +965,35 @@ export const Packages: React.FC<PackagesProps> = ({
                 return a.label.localeCompare(b.label);
             });
     }, [filteredAttire, unionRegions]);
+
+    // Groups limited to the current page (cards view)
+    const pagedPackageGroups = useMemo(
+        () => packageGroups
+            .map(group => ({ ...group, items: group.items.filter(pkg => pagedIdSet.has(pkg.id)) }))
+            .filter(group => group.items.length > 0),
+        [packageGroups, pagedIdSet],
+    );
+    const pagedAddOnGroups = useMemo(
+        () => addOnGroups
+            .map(group => ({ ...group, items: group.items.filter(addOn => pagedIdSet.has(addOn.id)) }))
+            .filter(group => group.items.length > 0),
+        [addOnGroups, pagedIdSet],
+    );
+    const pagedAttireGroups = useMemo(
+        () => attireGroups
+            .map(group => ({ ...group, items: group.items.filter(att => pagedIdSet.has(att.id)) }))
+            .filter(group => group.items.length > 0),
+        [attireGroups, pagedIdSet],
+    );
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm, regionFilter, categoryFilter, activeTab, viewMode, pageSize]);
+
+    useEffect(() => {
+        const pageCount = Math.max(1, Math.ceil(catalogEntries.length / pageSize));
+        if (page > pageCount) setPage(pageCount);
+    }, [catalogEntries.length, page, pageSize]);
 
     // Grouping by Category for Cards view
     const packagesByCategory = useMemo(() => {
@@ -1898,7 +1944,7 @@ export const Packages: React.FC<PackagesProps> = ({
                 </div>
             ) : viewMode === 'cards' ? (
                 <div className="space-y-6">
-                    {activeTab === 'package' && packageGroups.length > 0 && (
+                    {activeTab === 'package' && pagedPackageGroups.length > 0 && (
                         <section className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAEFF4] pb-2">
                                 <div className="flex items-center gap-2">
@@ -1908,7 +1954,7 @@ export const Packages: React.FC<PackagesProps> = ({
                                 </div>
                             </div>
                             <div className="space-y-4">
-                                {packageGroups.map(group => (
+                                {pagedPackageGroups.map(group => (
                                     <div key={group.regionKey || 'unassigned'} className="space-y-3">
                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
@@ -1940,7 +1986,7 @@ export const Packages: React.FC<PackagesProps> = ({
                         </section>
                     )}
 
-                    {activeTab === 'addon' && addOnGroups.length > 0 && (
+                    {activeTab === 'addon' && pagedAddOnGroups.length > 0 && (
                         <section className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAEFF4] pb-2">
                                 <div className="flex items-center gap-2">
@@ -1950,7 +1996,7 @@ export const Packages: React.FC<PackagesProps> = ({
                                 </div>
                             </div>
                             <div className="space-y-4">
-                                {addOnGroups.map(group => (
+                                {pagedAddOnGroups.map(group => (
                                     <div key={group.regionKey || 'unassigned'} className="space-y-3">
                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
@@ -1981,7 +2027,7 @@ export const Packages: React.FC<PackagesProps> = ({
                         </section>
                     )}
 
-                    {activeTab === 'attire' && attireGroups.length > 0 && (
+                    {activeTab === 'attire' && pagedAttireGroups.length > 0 && (
                         <section className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAEFF4] pb-2">
                                 <div className="flex items-center gap-2">
@@ -1991,7 +2037,7 @@ export const Packages: React.FC<PackagesProps> = ({
                                 </div>
                             </div>
                             <div className="space-y-4">
-                                {attireGroups.map(group => (
+                                {pagedAttireGroups.map(group => (
                                     <div key={group.regionKey || 'unassigned'} className="space-y-3">
                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
@@ -2037,7 +2083,7 @@ export const Packages: React.FC<PackagesProps> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#EAEFF4]">
-                            {catalogEntries.map(item => {
+                            {pagedCatalogEntries.map(item => {
                                 const isPackage = item.kind === 'package';
                                 const isAddon = item.kind === 'addon';
                                 const name = isPackage ? item.pkg.name : (isAddon ? item.addOn.name : item.attire.name);
@@ -2144,6 +2190,20 @@ export const Packages: React.FC<PackagesProps> = ({
                         </tbody>
                     </table>
                 </div>
+            )}
+
+            {catalogEntries.length > 0 && (
+                <PaginationControls
+                    page={page}
+                    pageSize={pageSize}
+                    total={catalogEntries.length}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => {
+                        setPageSize(size);
+                        setPage(1);
+                    }}
+                    itemLabel="item"
+                />
             )}
 
             {/* ── Add-On & Attire Editors ── */}

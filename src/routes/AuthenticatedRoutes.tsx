@@ -172,97 +172,143 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
   switch (activeView) {
     case ViewType.DASHBOARD:
       return (
-        <Dashboard
-          projects={projects}
-          clients={clients}
-          transactions={transactions}
-          teamMembers={teamMembers}
-          cards={cards}
-          pockets={pockets}
-          handleNavigation={handleNavigation}
-          leads={leads}
-          teamProjectPayments={teamProjectPayments}
-          packages={packages}
-          clientFeedback={clientFeedback}
-          currentUser={currentUser}
-          projectStatusConfig={profile?.projectStatusConfig ?? []}
-          profile={profile}
-          totals={totals ?? {
-            projects: 0,
-            activeProjects: 0,
-            clients: 0,
-            activeClients: 0,
-            leads: 0,
-            discussionLeads: 0,
-            followUpLeads: 0,
-            teamMembers: 0,
-            transactions: 0,
-            revenue: 0,
-            expense: 0,
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.clients ||
+              appData?.loading?.projects ||
+              appData?.loading?.totals,
+          )}
+          loaded={Boolean(appData?.loaded?.clients && appData?.loaded?.projects)}
+          error={appData?.errors?.clients || appData?.errors?.projects}
+          loadingMessage="Memuat ringkasan dasbor..."
+          onRetry={() => {
+            void appData?.loadClients?.();
+            void appData?.loadProjects?.();
+            void appData?.loadTotals?.();
           }}
-        />
+        >
+          <Dashboard
+            projects={projects}
+            clients={clients}
+            transactions={transactions}
+            teamMembers={teamMembers}
+            cards={cards}
+            pockets={pockets}
+            handleNavigation={handleNavigation}
+            leads={leads}
+            teamProjectPayments={teamProjectPayments}
+            packages={packages}
+            clientFeedback={clientFeedback}
+            currentUser={currentUser}
+            projectStatusConfig={profile?.projectStatusConfig ?? []}
+            profile={profile}
+            totals={totals ?? {
+              projects: 0,
+              activeProjects: 0,
+              clients: 0,
+              activeClients: 0,
+              leads: 0,
+              discussionLeads: 0,
+              followUpLeads: 0,
+              teamMembers: 0,
+              transactions: 0,
+              revenue: 0,
+              expense: 0,
+            }}
+          />
+        </DataLoadingWrapper>
       );
 
     case ViewType["Calon Pengantin"]:
       return (
-        <Leads
-          leads={leads}
-          setLeads={setLeads}
-          clients={clients}
-          setClients={setClients}
-          projects={projects}
-          setProjects={setProjects}
-          packages={packages}
-          addOns={addOns}
-          attire={attire}
-          transactions={transactions}
-          setTransactions={setTransactions}
-          userProfile={profile}
-          setProfile={handleSetProfile}
-          showNotification={showNotification}
-          cards={cards}
-          setCards={setCards}
-          pockets={pockets}
-          setPockets={setPockets}
-          promoCodes={promoCodes}
-          setPromoCodes={setPromoCodes}
-          handleNavigation={handleNavigation}
-          initialAction={initialAction}
-          setInitialAction={setInitialAction}
-          totals={totals ?? {
-            projects: 0,
-            activeProjects: 0,
-            clients: 0,
-            activeClients: 0,
-            leads: 0,
-            discussionLeads: 0,
-            followUpLeads: 0,
-            teamMembers: 0,
-            transactions: 0,
-            revenue: 0,
-            expense: 0,
-          }}
-        />
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.leads ||
+              appData?.loading?.clients ||
+              appData?.loading?.projects,
+          )}
+          loaded={Boolean(
+            appData?.loaded?.leads && appData?.loaded?.clients && appData?.loaded?.projects,
+          )}
+          error={appData?.errors?.leads || appData?.errors?.clients || appData?.errors?.projects}
+          loadingMessage="Memuat data calon pengantin..."
+          onRetry={appData?.loadLeads}
+        >
+          <Leads
+            leads={leads}
+            setLeads={setLeads}
+            clients={clients}
+            setClients={setClients}
+            projects={projects}
+            setProjects={setProjects}
+            packages={packages}
+            addOns={addOns}
+            attire={attire}
+            transactions={transactions}
+            setTransactions={setTransactions}
+            userProfile={profile}
+            setProfile={handleSetProfile}
+            showNotification={showNotification}
+            cards={cards}
+            setCards={setCards}
+            pockets={pockets}
+            setPockets={setPockets}
+            promoCodes={promoCodes}
+            setPromoCodes={setPromoCodes}
+            handleNavigation={handleNavigation}
+            initialAction={initialAction}
+            setInitialAction={setInitialAction}
+            totals={totals ?? {
+              projects: 0,
+              activeProjects: 0,
+              clients: 0,
+              activeClients: 0,
+              leads: 0,
+              discussionLeads: 0,
+              followUpLeads: 0,
+              teamMembers: 0,
+              transactions: 0,
+              revenue: 0,
+              expense: 0,
+            }}
+          />
+        </DataLoadingWrapper>
       );
 
     case ViewType.BOOKING:
       return (
-        <Suspense fallback={<LoadingState />}>
-          <Booking
-            leads={leads}
-            setLeads={setLeads}
-            leadsLoaded={appData?.loaded?.leads ?? false}
-            projectsLoaded={appData?.loaded?.projects ?? false}
-            clients={clients}
-            projects={projects}
-            setProjects={setProjects}
-            packages={packages}
-            userProfile={profile}
-            setProfile={setProfile}
-            handleNavigation={handleNavigation}
-            showNotification={showNotification}
-          />
-        </Suspense>
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.leads ||
+              appData?.loading?.clients ||
+              appData?.loading?.projects ||
+              appData?.loading?.packages,
+          )}
+          loaded={Boolean(appData?.loaded?.leads && appData?.loaded?.packages)}
+          error={appData?.errors?.leads || appData?.errors?.packages}
+          loadingMessage="Memuat data booking..."
+          onRetry={() => {
+            void appData?.loadLeads?.();
+            void appData?.loadPackages?.();
+          }}
+        >
+          <Suspense fallback={<LoadingState />}>
+            <Booking
+              leads={leads}
+              setLeads={setLeads}
+              leadsLoaded={appData?.loaded?.leads ?? false}
+              projectsLoaded={appData?.loaded?.projects ?? false}
+              clients={clients}
+              projects={projects}
+              setProjects={setProjects}
+              packages={packages}
+              userProfile={profile}
+              setProfile={setProfile}
+              handleNavigation={handleNavigation}
+              showNotification={showNotification}
+            />
+          </Suspense>
+        </DataLoadingWrapper>
       );
 
     case ViewType.CLIENTS:
@@ -270,6 +316,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
         <DataLoadingWrapper
           loading={appData?.loading?.clients}
           loaded={appData?.loaded?.clients ?? true}
+          error={appData?.errors?.clients}
           loadingMessage="Memuat data pengantin..."
           onRetry={appData?.loadClients}
         >
@@ -428,6 +475,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
         <DataLoadingWrapper
           loading={appData?.loading?.teamMembers}
           loaded={appData?.loaded?.teamMembers ?? true}
+          error={appData?.errors?.teamMembers}
           loadingMessage="Memuat data tim..."
           onRetry={appData?.loadTeamMembers}
         >
@@ -479,6 +527,7 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
         <DataLoadingWrapper
           loading={appData?.loading?.transactions}
           loaded={appData?.loaded?.transactions ?? true}
+          error={appData?.errors?.transactions}
           loadingMessage="Memuat data transaksi..."
           onRetry={appData?.loadTransactions}
         >
@@ -503,22 +552,34 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
 
     case ViewType.PACKAGES:
       return (
-        <Suspense fallback={<LoadingState />}>
-          <Packages
-            packages={packages}
-            setPackages={setPackages}
-            addOns={addOns}
-            setAddOns={setAddOns}
-            attire={attire}
-            setAttire={setAttire}
-            projects={projects}
-            profile={profile}
-            setProfile={handleSetProfile}
-            showNotification={showNotification}
-            initialAction={initialAction}
-            setInitialAction={setInitialAction}
-          />
-        </Suspense>
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.packages || appData?.loading?.addOns || appData?.loading?.attire,
+          )}
+          loaded={Boolean(
+            appData?.loaded?.packages && appData?.loaded?.addOns && appData?.loaded?.attire,
+          )}
+          error={appData?.errors?.packages || appData?.errors?.addOns || appData?.errors?.attire}
+          loadingMessage="Memuat katalog paket..."
+          onRetry={appData?.loadPackages}
+        >
+          <Suspense fallback={<LoadingState />}>
+            <Packages
+              packages={packages}
+              setPackages={setPackages}
+              addOns={addOns}
+              setAddOns={setAddOns}
+              attire={attire}
+              setAttire={setAttire}
+              projects={projects}
+              profile={profile}
+              setProfile={handleSetProfile}
+              showNotification={showNotification}
+              initialAction={initialAction}
+              setInitialAction={setInitialAction}
+            />
+          </Suspense>
+        </DataLoadingWrapper>
       );
 
     case ViewType.SETTINGS:
@@ -545,33 +606,81 @@ export const AuthenticatedRoutes: React.FC<AuthenticatedRoutesProps> = ({
 
     case ViewType.CALENDAR:
       return (
-        <CalendarView
-          projects={projects}
-          setProjects={setProjects}
-          teamMembers={teamMembers}
-          profile={profile}
-          clients={clients}
-          handleNavigation={handleNavigation}
-          currentUser={currentUser}
-        />
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.projects ||
+              appData?.loading?.teamMembers ||
+              appData?.loading?.calendarEvents,
+          )}
+          loaded={Boolean(
+            appData?.loaded?.projects &&
+              appData?.loaded?.teamMembers &&
+              appData?.loaded?.calendarEvents,
+          )}
+          error={
+            appData?.errors?.projects ||
+            appData?.errors?.teamMembers ||
+            appData?.errors?.calendarEvents
+          }
+          loadingMessage="Memuat kalender..."
+          onRetry={() => {
+            void appData?.loadProjects?.();
+            void appData?.loadCalendarEvents?.();
+          }}
+        >
+          <CalendarView
+            projects={projects}
+            setProjects={setProjects}
+            teamMembers={teamMembers}
+            profile={profile}
+            clients={clients}
+            handleNavigation={handleNavigation}
+            currentUser={currentUser}
+          />
+        </DataLoadingWrapper>
       );
 
     case ViewType.CLIENT_REPORTS:
       return (
-        <ClientReports
-          clients={clients}
-          leads={leads}
-          projects={projects}
-          feedback={clientFeedback}
-          setFeedback={setClientFeedback}
-          showNotification={showNotification}
-          handleNavigation={handleNavigation}
-          teamMembers={teamMembers}
-          packages={packages}
-          teamProjectPayments={teamProjectPayments}
-          teamPaymentRecords={teamPaymentRecords}
-          transactions={transactions}
-        />
+        <DataLoadingWrapper
+          loading={Boolean(
+            appData?.loading?.clients ||
+              appData?.loading?.projects ||
+              appData?.loading?.transactions ||
+              appData?.loading?.leads,
+          )}
+          loaded={Boolean(
+            appData?.loaded?.clients &&
+              appData?.loaded?.projects &&
+              appData?.loaded?.transactions &&
+              appData?.loaded?.leads,
+          )}
+          error={
+            appData?.errors?.clients ||
+            appData?.errors?.projects ||
+            appData?.errors?.transactions
+          }
+          loadingMessage="Memuat laporan klien..."
+          onRetry={() => {
+            void appData?.loadClients?.();
+            void appData?.loadProjects?.();
+          }}
+        >
+          <ClientReports
+            clients={clients}
+            leads={leads}
+            projects={projects}
+            feedback={clientFeedback}
+            setFeedback={setClientFeedback}
+            showNotification={showNotification}
+            handleNavigation={handleNavigation}
+            teamMembers={teamMembers}
+            packages={packages}
+            teamProjectPayments={teamProjectPayments}
+            teamPaymentRecords={teamPaymentRecords}
+            transactions={transactions}
+          />
+        </DataLoadingWrapper>
       );
 
     case ViewType.PROMO_CODES:

@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ViewType, User, Profile } from '../types';
 import { customizeNavigationLabel, customizeNavigationSection, useUiTextOverrides } from '../utils/uiTextCustomization';
+import { prefetchViewData } from '../lib/prefetchViewData';
 import { Link as LinkIcon } from 'lucide-react';
 import {
   HomeIcon,
@@ -142,6 +144,13 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({
   profile,
 }) => {
   const uiTextOverrides = useUiTextOverrides();
+  const queryClient = useQueryClient();
+
+  // Prefetch data halaman tujuan saat kursor mengarah ke menu agar navigasi terasa instan.
+  const prefetchView = (view: ViewType) => {
+    prefetchViewData(queryClient, view);
+  };
+
   // Find which group currently contains the activeView
   const activeGroupId = useMemo(() => {
     for (const menu of NAV_MENUS) {
@@ -359,6 +368,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({
                       <button
                         type="button"
                         onClick={() => handleStandaloneClick(menu.view!)}
+                        onMouseEnter={() => prefetchView(menu.view!)}
                         className={`
                           w-full flex items-center 
                           px-3.5 sm:px-4 
@@ -481,6 +491,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({
                               <button
                                 type="button"
                                 onClick={() => handleSubItemClick(subItem.view)}
+                                onMouseEnter={() => prefetchView(subItem.view)}
                                 className={`
                                 w-full flex items-center gap-2.5
                                 px-3 py-2 

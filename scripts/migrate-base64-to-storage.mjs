@@ -21,11 +21,24 @@ const TARGETS = [
   { table: 'profiles', column: 'signature_base64', folder: 'profiles/signature' },
   { table: 'projects', column: 'invoice_signature', folder: 'projects/signatures' },
   { table: 'transactions', column: 'vendor_signature', folder: 'transactions/signatures' },
-  { table: 'contracts', column: 'vendor_signature', folder: 'contracts/signatures' },
-  { table: 'contracts', column: 'client_signature', folder: 'contracts/signatures' },
   { table: 'team_payment_records', column: 'vendor_signature', folder: 'team-payments/signatures' },
   { table: 'galleries', column: 'cover_image_url', folder: 'galleries/covers' },
   { table: 'galleries', column: 'pdf_url', folder: 'galleries/pdfs' },
+  { table: 'clients', column: 'avatar_url', folder: 'clients/avatars' },
+  { table: 'team_members', column: 'avatar_url', folder: 'team/avatars' },
+  { table: 'bio_link_pages', column: 'avatar_url', folder: 'bio-links/avatar' },
+  { table: 'bio_link_pages', column: 'cover_url', folder: 'bio-links/cover' },
+  { table: 'vendor_profiles', column: 'hero_image_url', folder: 'vendor/hero' },
+  { table: 'vendor_profiles', column: 'page_banner_image_url', folder: 'vendor/page-banner' },
+  { table: 'vendor_portfolios', column: 'cover_image_url', folder: 'vendor/portfolios' },
+];
+
+// Kolom bertipe JSON array yang menyimpan media (string URL atau objek ber-key).
+const ARRAY_TARGETS = [
+  { table: 'vendor_profiles', column: 'hero_images', folder: 'vendor/hero' },
+  { table: 'vendor_profiles', column: 'info_images', folder: 'vendor/info' },
+  { table: 'vendor_profiles', column: 'partners', folder: 'vendor/partners', key: 'logo_url' },
+  { table: 'vendor_portfolios', column: 'images', folder: 'vendor/portfolios', key: 'url' },
 ];
 
 function parseArgs(args) {
@@ -260,6 +273,49 @@ async function migrateGalleryImages(supabase, options) {
   return { report, backup };
 }
 
+async function migrateArrayColumn(supabase, target, options) {
+  const rows = await fetchAll(supabase, target.table, target.column);
+  const report = { scanned: rows.length, converted: 0, skipped: 0, bytes: 0, errors: 0 };
+  const backup = [];
+
+  for (const row of rows) {
+    const list = row[target.column];
+    if (!Array.isArray(list) || list.length === 0) {
+      report.skipped += 1;
+      continue;
+    }
+    try {
+      let changed = false;
+      const next = JSON.parse(JSON.stringify(list));
+      for (let i = 0; i < next.length; i += 1) {
+        const item = next[i];
+        const value = target.key ? item?.[target.key] : item;
+        const parsed = parseDataUrl(value);
+        if (!parsed) continue;
+        report.bytes += parsed.buffer.length;
+        const url = options.apply ? await uploadAsset(supabase, target.folder, parsed) : value;
+        if (target.key) item[target.key] = url;
+        else next[i] = url;
+        report.converted += 1;
+        changed = true;
+      }
+      if (!changed) {
+        report.skipped += 1;
+        continue;
+      }
+      if (options.apply) {
+        const { error } = await supabase.from(target.table).update({ [target.column]: next }).eq('id', row.id);
+        if (error) throw new Error(error.message);
+        backup.push({ id: row.id, column: target.column, original: list });
+      }
+    } catch (error) {
+      report.errors += 1;
+      console.error(`[error] ${target.table}.${target.column} id=${row.id}: ${error.message}`);
+    }
+  }
+  return { report, backup };
+}
+
 async function main() {
   let options;
   try {
@@ -297,6 +353,15 @@ async function main() {
     totalBytes += report.bytes;
     totalErrors += report.errors;
     console.log(`${target.table}.${target.column}: ${report.converted} to convert, ${report.skipped} already URL/empty, ${(report.bytes / 1024).toFixed(0)} KB, ${report.errors} error(s)`);
+  }
+
+  for (const target of ARRAY_TARGETS) {
+    const { report, backup } = await migrateArrayColumn(supabase, target, options);
+    allBackups.push(...backup);
+    totalConverted += report.converted;
+    totalBytes += report.bytes;
+    totalErrors += report.errors;
+    console.log(`${target.table}.${target.column}: ${report.converted} asset(s) to convert, ${(report.bytes / 1024).toFixed(0)} KB, ${report.errors} error(s)`);
   }
 
   const jsonResult = await migratePublicPageConfig(supabase, options);

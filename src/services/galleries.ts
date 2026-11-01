@@ -5,6 +5,8 @@ import { toGalleryPublicSlug, toPublicNameSlug } from '../utils/publicRouting';
 
 const LOCAL_STORAGE_GALLERIES_KEY = 'weddfin-galleries';
 
+export type GalleryShareOption = Pick<Gallery, 'id' | 'title' | 'region' | 'public_id' | 'is_public'>;
+
 function getStoredGalleries(): Gallery[] {
     try {
         const stored = localStorage.getItem(LOCAL_STORAGE_GALLERIES_KEY);
@@ -90,6 +92,33 @@ export const listGalleries = async (): Promise<Gallery[]> => {
     }
 
     return getStoredGalleries();
+};
+
+/** Return only the fields needed by the lead share-link selector. */
+export const listGalleryShareOptions = async (): Promise<GalleryShareOption[]> => {
+    if (isSupabaseConfigured) {
+        try {
+            const { data, error } = await supabase
+                .from('galleries')
+                .select('id, title, region, public_id, is_public')
+                .order('created_at', { ascending: false });
+
+            if (!error && data) return data;
+            if (error) {
+                console.warn('[galleries] Share options fetch failed; using stored metadata:', error.message || error);
+            }
+        } catch (err) {
+            console.warn('[galleries] Share options request failed; using stored metadata:', err);
+        }
+    }
+
+    return getStoredGalleries().map(({ id, title, region, public_id, is_public }) => ({
+        id,
+        title,
+        region,
+        public_id,
+        is_public,
+    }));
 };
 
 export const getGallery = async (id: string): Promise<Gallery | null> => {

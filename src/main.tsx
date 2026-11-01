@@ -6,6 +6,7 @@ import ErrorBoundary from './shared/ui/ErrorBoundary';
 import { SimplifiedDataProvider } from './contexts/SimplifiedDataContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getCurrentCacheScope, restoreQueryCache } from './lib/queryCachePersistence';
+import { shouldRetryQuery } from './lib/queryTimeout';
 import './index.css';
 import '../app/index.css';
 import './styles/print.css';
@@ -13,15 +14,15 @@ import './styles/print.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000,
+      staleTime: 60 * 1000,
       gcTime: 30 * 60 * 1000, // 30 minutes in memory
       // Data domain tetap segar lewat subscription Realtime Supabase. Refetch
-      // otomatis setiap tab fokus membuat seluruh dataset (termasuk payload
-      // paket yang besar) diunduh ulang tanpa diminta.
+      // otomatis setiap tab fokus atau saat koneksi pulih membuat seluruh
+      // dataset (termasuk payload paket yang besar) diunduh ulang tanpa diminta.
       refetchOnWindowFocus: false,
       refetchOnMount: true,
-      refetchOnReconnect: true,
-      retry: 1,
+      refetchOnReconnect: false,
+      retry: shouldRetryQuery,
     },
   },
 });
@@ -80,11 +81,6 @@ async function startApp() {
     </React.StrictMode>,
   );
 
-  if (cacheScope) {
-    window.setTimeout(() => {
-      void queryClient.invalidateQueries({ refetchType: 'active' });
-    }, 0);
-  }
 }
 
 void startApp();

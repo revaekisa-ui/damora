@@ -8,6 +8,7 @@ import ProjectClientAvatar from './ProjectClientAvatar';
 
 export interface ProjectListViewProps {
     projects: Project[];
+    startIndex?: number;
     handleOpenDetailModal: (project: Project) => void;
     handleOpenForm: (mode: 'edit', project: Project) => void;
     handleProjectDelete: (projectId: string) => void;
@@ -18,7 +19,7 @@ export interface ProjectListViewProps {
 }
 
 export const ProjectListView: React.FC<ProjectListViewProps> = ({
-    projects, handleOpenDetailModal, handleOpenForm, handleProjectDelete,
+    projects, startIndex = 0, handleOpenDetailModal, handleOpenForm, handleProjectDelete,
     config, clients, handleQuickStatusChange, handleSendMessage
 }) => {
     const ProgressBar: React.FC<{ progress: number, status: string, config: ProjectStatusConfig[] }> = ({ progress, status, config }) => (
@@ -67,7 +68,7 @@ export const ProjectListView: React.FC<ProjectListViewProps> = ({
                             const client = clients.find(c => c.id === p.clientId);
                             return (
                             <tr key={p.id} className="hover:bg-[#F4F6F9]/50 transition-colors">
-                                <td className="px-3 lg:px-4 py-2.5 text-center font-bold text-[#5A6A85]">{index + 1}</td>
+                                <td className="px-3 lg:px-4 py-2.5 text-center font-bold text-[#5A6A85]">{startIndex + index + 1}</td>
                                 <td className="px-3 lg:px-6 py-2.5">
                                     <div className="flex items-center gap-2">
                                         <p className="font-bold text-[#2A3547] text-sm leading-tight">{p.projectName}</p>

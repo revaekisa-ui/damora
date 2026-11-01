@@ -10,7 +10,7 @@ function subscribe(callback: () => void) {
   };
 }
 
-/** `true` saat pengunjung berada di Public Packages / Public Booking. */
+/** `true` saat pengunjung membuka route publik yang tidak butuh dataset global. */
 export function useIsLightweightPublicRoute(): boolean {
   return useSyncExternalStore(subscribe, isLightweightPublicRouteNow, () => false);
 }

@@ -15,6 +15,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useAuxiliaryData } from "./hooks/useAuxiliaryData";
 import { useAppRouting } from "./hooks/useAppRouting";
 import { useIsLightweightPublicRoute } from "./hooks/useIsLightweightPublicRoute";
+import { isCatalogPublicRouteNow, needsProfileContextOnCurrentPublicRoute } from "./routes/publicRoutePath";
 import { persistQueryCache } from "./lib/queryCachePersistence";
 
 import PublicRoutes, { isPublicRoutePath } from "./routes/PublicRoutes";
@@ -33,6 +34,8 @@ function App() {
   // ─── Global Shared Data Context ─────────────────────────────────────────
   const data = useSimplifiedData();
   const isLightPublicRoute = useIsLightweightPublicRoute();
+  const isCatalogPublicRoute = isCatalogPublicRouteNow();
+  const needsPublicProfileContext = needsProfileContextOnCurrentPublicRoute();
 
   // ─── Auxiliary Application Data & Notifications ─────────────────────────
   const auxData = useAuxiliaryData({
@@ -40,6 +43,8 @@ function App() {
     appDataLoadedClientFeedback: !data.loading.clientFeedback,
     setClientFeedback: data.setClientFeedback, // Use the setter from simplified context
     skipVendorOnlyData: isLightPublicRoute,
+    skipCatalogData: isLightPublicRoute && !isCatalogPublicRoute,
+    skipProfileData: isLightPublicRoute && !needsPublicProfileContext,
   });
 
   useEffect(() => {
@@ -298,6 +303,28 @@ function App() {
                       projects: data.loading.projects,
                       teamMembers: data.loading.teamMembers,
                       transactions: data.loading.transactions,
+                      leads: data.loading.leads,
+                      cards: data.loading.cards,
+                      pockets: data.loading.pockets,
+                      calendarEvents: data.loading.calendarEvents,
+                      clientFeedback: data.loading.clientFeedback,
+                      totals: data.loading.totals,
+                      packages: data.loading.packages,
+                      addOns: data.loading.addOns,
+                      attire: data.loading.attire,
+                    },
+                    errors: {
+                      clients: data.errors.clients?.message,
+                      projects: data.errors.projects?.message,
+                      teamMembers: data.errors.teamMembers?.message,
+                      transactions: data.errors.transactions?.message,
+                      leads: data.errors.leads?.message,
+                      cards: data.errors.cards?.message,
+                      pockets: data.errors.pockets?.message,
+                      calendarEvents: data.errors.calendarEvents?.message,
+                      packages: data.errors.packages?.message,
+                      addOns: data.errors.addOns?.message,
+                      attire: data.errors.attire?.message,
                     },
                     loaded: {
                       clients: !data.loading.clients,
@@ -305,6 +332,12 @@ function App() {
                       teamMembers: !data.loading.teamMembers,
                       transactions: !data.loading.transactions,
                       leads: data.leads !== undefined,
+                      cards: data.cards !== undefined,
+                      pockets: data.pockets !== undefined,
+                      calendarEvents: data.calendarEvents !== undefined,
+                      packages: !data.loading.packages,
+                      addOns: !data.loading.addOns,
+                      attire: !data.loading.attire,
                     },
                     loadTotals: data.refetchDashboardStats,
                     loadClientFeedback: data.refetchClientFeedback,
@@ -312,6 +345,13 @@ function App() {
                     loadProjects: data.refetchProjects,
                     loadTeamMembers: data.refetchTeamMembers,
                     loadTransactions: data.refetchTransactions,
+                    loadLeads: data.refetchLeads,
+                    loadCards: data.refetchCards,
+                    loadPockets: data.refetchPockets,
+                    loadCalendarEvents: data.refetchCalendarEvents,
+                    loadPackages: data.refetchPackages,
+                    loadAddOns: data.refetchAddOns,
+                    loadAttire: data.refetchAttire,
                   }}
                   profile={auxData.profile}
                   setProfile={auxData.setProfile}

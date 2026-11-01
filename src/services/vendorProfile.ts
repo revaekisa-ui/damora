@@ -18,15 +18,6 @@ const DEFAULT_PROFILE: Omit<VendorProfile, 'id' | 'created_at' | 'updated_at'> =
     videos: []
 };
 
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-    });
-};
-
 export const getVendorProfile = async (): Promise<VendorProfile | null> => {
     const sanitizeProfile = (p: any): VendorProfile => {
         const heroImages = Array.isArray(p.hero_images)
@@ -86,6 +77,41 @@ export const getVendorProfile = async (): Promise<VendorProfile | null> => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
     });
+};
+
+/** Public portfolio detail pages only need contact text, not profile image arrays. */
+export const getVendorContactSummary = async (): Promise<Pick<VendorProfile, 'hero_title' | 'whatsapp_number'>> => {
+    if (isSupabaseConfigured) {
+        try {
+            const { data, error } = await supabase
+                .from('vendor_profiles')
+                .select('hero_title, whatsapp_number')
+                .order('created_at', { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (!error && data) {
+                return {
+                    hero_title: data.hero_title ?? '',
+                    whatsapp_number: data.whatsapp_number ?? '',
+                };
+            }
+        } catch (err) {
+            console.warn('[vendorProfile] Contact summary query failed; checking local fallback:', err);
+        }
+    }
+
+    try {
+        const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (cached) {
+            const profile = JSON.parse(cached);
+            return {
+                hero_title: profile.hero_title ?? '',
+                whatsapp_number: profile.whatsapp_number ?? '',
+            };
+        }
+    } catch {}
+    return { hero_title: '', whatsapp_number: '' };
 };
 
 export const createOrUpdateVendorProfile = async (updates: Partial<VendorProfile>): Promise<VendorProfile> => {
@@ -191,33 +217,29 @@ export const createOrUpdateVendorProfile = async (updates: Partial<VendorProfile
 };
 
 export const uploadVendorImage = async (file: File, path: string): Promise<string> => {
-    let processedFile = file;
-    try {
-        processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
-        const fileExt = processedFile.name.split('.').pop() || 'jpg';
-        const fileName = `${path}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
+    const fileExt = processedFile.name.split('.').pop() || 'jpg';
+    const fileName = `${path}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-        if (isSupabaseConfigured) {
-            const { error: uploadError } = await supabase.storage
-                .from('gallery-images')
-                .upload(fileName, processedFile);
-
-            if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                    .from('gallery-images')
-                    .getPublicUrl(fileName);
-
-                if (urlData?.publicUrl) {
-                    return urlData.publicUrl;
-                }
-            } else {
-                console.warn('[vendorProfile] Supabase storage upload failed, falling back to base64:', uploadError);
-            }
-        }
-    } catch (err) {
-        console.warn('[vendorProfile] Storage upload exception, falling back to base64:', err);
+    if (!isSupabaseConfigured) {
+        throw new Error('Supabase belum dikonfigurasi: gambar tidak dapat diunggah ke Storage.');
     }
 
-    // Fallback to Base64 data URL
-    return await fileToBase64(processedFile);
+    const { error: uploadError } = await supabase.storage
+        .from('gallery-images')
+        .upload(fileName, processedFile);
+
+    if (uploadError) {
+        throw new Error(`Gagal mengunggah gambar ke Storage: ${uploadError.message}`);
+    }
+
+    const { data: urlData } = supabase.storage
+        .from('gallery-images')
+        .getPublicUrl(fileName);
+
+    if (!urlData?.publicUrl) {
+        throw new Error('Gagal mendapatkan URL publik gambar.');
+    }
+
+    return urlData.publicUrl;
 };

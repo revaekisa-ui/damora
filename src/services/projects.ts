@@ -4,6 +4,7 @@ import { upsertAssignmentsForProject, listAssignmentsByProject } from './project
 import { listChecklistByProject } from './weddingDayChecklist';
 import { publicNamePatternsFromSlug } from '../utils/publicRouting';
 import { uploadDataUrlAsset } from './storage';
+import { escapePostgrestSearch, normalizePageRequest } from './pagination';
 
 const PROJECTS = 'projects';
 const PROJECT_ADD_ONS = 'project_add_ons';
@@ -131,7 +132,7 @@ export async function listProjects(options: { limit?: number; offset?: number } 
 
 export async function listProjectsPaginated(
   page: number = 1,
-  limit: number = 20,
+  limit: number = 10,
   searchQuery?: string,
   filters?: {
     status?: string;
@@ -145,7 +146,7 @@ export async function listProjectsPaginated(
   total: number;
   hasMore: boolean;
 }> {
-  const offset = (page - 1) * limit;
+  const pagination = normalizePageRequest(page, limit);
 
   // Build query with search and filters
   let query = supabase.from(PROJECTS).select('*', { count: 'exact' });
@@ -185,15 +186,16 @@ export async function listProjectsPaginated(
   }
 
   // Get total count
-  const { count, error: countError } = await countQuery;
+  // Page rows and total count run concurrently; each query receives the same filters.
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    countQuery,
+    query
+      .order('date', { ascending: false })
+      .order('id', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.pageSize - 1),
+  ]);
+
   if (countError) throw countError;
-
-  // Get paginated data
-  const { data, error } = await query
-    .order('date', { ascending: false })
-    .order('id', { ascending: false })
-    .range(offset, offset + limit - 1);
-
   if (error) throw error;
 
   const projects = (data || []).map(normalizeProject);
@@ -202,8 +204,99 @@ export async function listProjectsPaginated(
   return {
     projects,
     total,
-    hasMore: (page * limit) < total
+    hasMore: (pagination.page * pagination.pageSize) < total
   };
+}
+
+export async function listProjectsTablePage(options: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  tab?: 'active' | 'completed' | 'all';
+} = {}): Promise<{ items: Project[]; total: number }> {
+  const pagination = normalizePageRequest(options.page, options.pageSize);
+  const applyFilters = (initial: any) => {
+    let query = initial;
+    const search = options.search?.trim();
+    if (search) {
+      const escaped = escapePostgrestSearch(search);
+      query = query.or(`project_name.ilike."%${escaped}%",client_name.ilike."%${escaped}%"`);
+    }
+    if (options.status && options.status !== 'all') query = query.eq('status', options.status);
+    if (options.dateFrom) query = query.gte('date', options.dateFrom);
+    if (options.dateTo) query = query.lte('date', options.dateTo);
+    if (options.tab === 'active') query = query.not('status', 'in', '("Selesai","Dibatalkan")');
+    if (options.tab === 'completed') query = query.in('status', ['Selesai', 'Dibatalkan']);
+    return query;
+  };
+
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    applyFilters(supabase.from(PROJECTS).select('id', { count: 'exact', head: true })),
+    applyFilters(supabase.from(PROJECTS).select('*'))
+      .order('date', { ascending: false })
+      .order('id', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.pageSize - 1),
+  ]);
+  if (countError) throw countError;
+  if (error) throw error;
+
+  const items: Project[] = (data || []).map(normalizeProject);
+  if (items.length) {
+    const { data: assignments, error: assignmentError } = await supabase
+      .from('project_team_assignments')
+      .select('project_id, member_id, member_name, member_role, fee, sub_job')
+      .in('project_id', items.map(project => project.id));
+    if (assignmentError) throw assignmentError;
+    const teams = new Map<string, NonNullable<Project['team']>>();
+    (assignments || []).forEach(row => {
+      const team = teams.get(row.project_id) || [];
+      team.push({
+        memberId: row.member_id,
+        name: row.member_name,
+        role: row.member_role,
+        fee: Number(row.fee || 0),
+        subJob: row.sub_job || undefined,
+      });
+      teams.set(row.project_id, team);
+    });
+    items.forEach(project => { project.team = teams.get(project.id) || []; });
+  }
+
+  return { items, total: count || 0 };
+}
+
+export async function countProjectsForTable(options: {
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+} = {}): Promise<{ all: number; active: number; completed: number }> {
+  const applyFilters = (initial: any, tab?: 'active' | 'completed') => {
+    let query = initial;
+    const search = options.search?.trim();
+    if (search) {
+      const escaped = escapePostgrestSearch(search);
+      query = query.or(`project_name.ilike."%${escaped}%",client_name.ilike."%${escaped}%"`);
+    }
+    if (options.status && options.status !== 'all') query = query.eq('status', options.status);
+    if (options.dateFrom) query = query.gte('date', options.dateFrom);
+    if (options.dateTo) query = query.lte('date', options.dateTo);
+    if (tab === 'active') query = query.not('status', 'in', '("Selesai","Dibatalkan")');
+    if (tab === 'completed') query = query.in('status', ['Selesai', 'Dibatalkan']);
+    return query;
+  };
+  const [all, active, completed] = await Promise.all((['all', 'active', 'completed'] as const).map(async tab => {
+    const { count, error } = await applyFilters(
+      supabase.from(PROJECTS).select('id', { count: 'exact', head: true }),
+      tab === 'all' ? undefined : tab,
+    );
+    if (error) throw error;
+    return count || 0;
+  }));
+  return { all, active, completed };
 }
 
 async function linkProjectAddOns(projectId: string, addOns: Array<{ id?: string; name: string; price?: number }>) {
@@ -654,11 +747,18 @@ export async function listProjectsByClientId(clientId: string): Promise<Project[
 // Enhanced function to get project with all related data
 export async function getProjectWithRelations(
   projectId: string,
-  options: { includeChecklist?: boolean } = {},
+  options: {
+    includeChecklist?: boolean;
+    includeTeam?: boolean;
+    includeAddOns?: boolean;
+    includeAttire?: boolean;
+    columns?: string;
+  } = {},
 ): Promise<Project | null> {
+  const columns = options.columns || '*';
   let data: any = null;
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) {
-    const result = await supabase.from(PROJECTS).select('*').eq('id', projectId).maybeSingle();
+    const result = await supabase.from(PROJECTS).select(columns).eq('id', projectId).maybeSingle();
     if (result.error) throw result.error;
     data = result.data;
   }
@@ -669,7 +769,7 @@ export async function getProjectWithRelations(
     if (patterns === null) {
       const { data: matchingProjects, error: nameError } = await supabase
         .from(PROJECTS)
-        .select('*')
+        .select(columns)
         .eq('project_name', projectId)
         .limit(2);
       if (nameError) throw nameError;
@@ -680,11 +780,11 @@ export async function getProjectWithRelations(
       for (const pattern of patterns) {
         const { data: candidates, error: patternError } = await supabase
           .from(PROJECTS)
-          .select('*')
+          .select(columns)
           .ilike('project_name', pattern)
           .limit(2);
         if (patternError) throw patternError;
-        for (const candidate of candidates || []) matches.set(candidate.id, candidate);
+        for (const candidate of (candidates || []) as any[]) matches.set(candidate.id, candidate);
         if (matches.size > 1) return null;
       }
       resolvedProjects = [...matches.values()];
@@ -693,12 +793,12 @@ export async function getProjectWithRelations(
       const clientPatterns = patterns ?? [projectId];
       const clientMatches = new Map<string, any>();
       for (const pattern of clientPatterns) {
-        const query = supabase.from(PROJECTS).select('*');
+        const query = supabase.from(PROJECTS).select(columns);
         const { data: candidates, error: clientPatternError } = patterns === null
           ? await query.eq('client_name', pattern).limit(2)
           : await query.ilike('client_name', pattern).limit(2);
         if (clientPatternError) throw clientPatternError;
-        for (const candidate of candidates || []) clientMatches.set(candidate.id, candidate);
+        for (const candidate of (candidates || []) as any[]) clientMatches.set(candidate.id, candidate);
         if (clientMatches.size > 1) return null;
       }
       resolvedProjects = [...clientMatches.values()];
@@ -714,7 +814,9 @@ export async function getProjectWithRelations(
   // Fetch related data in parallel
   try {
     const [team, checklist, addOnsResult, attireResult] = await Promise.all([
-      listAssignmentsByProject(projectId).catch((e: Error): any[] => {
+      options.includeTeam === false
+        ? Promise.resolve([])
+        : listAssignmentsByProject(projectId).catch((e: Error): any[] => {
         console.warn('Failed to fetch team assignments:', e);
         return [];
       }),
@@ -724,7 +826,7 @@ export async function getProjectWithRelations(
             console.warn('Failed to fetch wedding day checklist:', e);
             return [];
           }),
-      (async (): Promise<any[]> => {
+      options.includeAddOns === false ? Promise.resolve([]) : (async (): Promise<any[]> => {
         try {
           const { data: addOnData, error: addOnError } = await supabase
             .from(PROJECT_ADD_ONS)
@@ -743,7 +845,7 @@ export async function getProjectWithRelations(
           return [];
         }
       })(),
-      (async (): Promise<any[]> => {
+      options.includeAttire === false ? Promise.resolve([]) : (async (): Promise<any[]> => {
         try {
           const { data: attireData, error: attireError } = await supabase
             .from(PROJECT_ATTIRE)

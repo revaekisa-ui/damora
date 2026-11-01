@@ -2,6 +2,7 @@ import supabase from '../lib/supabaseClient';
 import { compressImage } from './storage';
 import { Client, ClientStatus, ClientType } from '../types';
 import { publicNamePatternsFromSlug } from '../utils/publicRouting';
+import { normalizePageRequest } from './pagination';
 
 const TABLE = 'clients';
 
@@ -59,7 +60,7 @@ export async function listClients(options: { limit?: number; offset?: number } =
 
 export async function listClientsPaginated(
   page: number = 1,
-  limit: number = 20,
+  limit: number = 10,
   searchQuery?: string,
   filters?: {
     status?: string;
@@ -70,7 +71,7 @@ export async function listClientsPaginated(
   total: number;
   hasMore: boolean;
 }> {
-  const offset = (page - 1) * limit;
+  const pagination = normalizePageRequest(page, limit);
 
   // Build query with search and filters
   let query = supabase.from(TABLE).select(CLIENT_COLUMNS);
@@ -95,15 +96,16 @@ export async function listClientsPaginated(
   }
 
   // Get total count
-  const { count, error: countError } = await countQuery;
+  // Page rows and total count run concurrently; each query receives the same filters.
+  const [{ count, error: countError }, { data, error }] = await Promise.all([
+    countQuery,
+    query
+      .order('since', { ascending: false })
+      .order('id', { ascending: false })
+      .range(pagination.offset, pagination.offset + pagination.pageSize - 1),
+  ]);
+
   if (countError) throw countError;
-
-  // Get paginated data
-  const { data, error } = await query
-    .order('since', { ascending: false })
-    .order('id', { ascending: false })
-    .range(offset, offset + limit - 1);
-
   if (error) throw error;
 
   const clients = (data || []).map(row => normalizeClient(row));
@@ -112,7 +114,7 @@ export async function listClientsPaginated(
   return {
     clients,
     total,
-    hasMore: (page * limit) < total
+    hasMore: (pagination.page * pagination.pageSize) < total
   };
 }
 
@@ -126,6 +128,17 @@ export async function getClient(id: string): Promise<Client | null> {
     if ((error as any).code === 'PGRST116') return null; // not found
     throw error;
   }
+  return data ? normalizeClient(data) : null;
+}
+
+/** Public invoice/receipt documents only display the recipient's name and contact details. */
+export async function getPublicDocumentClient(id: string): Promise<Client | null> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('id, name, email, phone')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
   return data ? normalizeClient(data) : null;
 }
 

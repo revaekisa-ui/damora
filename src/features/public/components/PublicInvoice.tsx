@@ -4,9 +4,9 @@ import InvoiceDocument from '../../finance/components/InvoiceDocument';
 import { downloadInvoicePdf } from '../../finance/utils/invoicePdf';
 import { DownloadIcon } from '../../../constants';
 import { getProjectWithRelations } from '../../../services/projects';
-import { getClient } from '../../../services/clients';
+import { getPublicDocumentClient } from '../../../services/clients';
 import { listPackages } from '../../../services/packages';
-import { getProfile } from '../../../services/profile';
+import { getPublicDocumentProfile } from '../../../services/profile';
 import { useSupabaseRealtimeRefresh } from '../../../hooks/useSupabaseRealtimeRefresh';
 
 interface PublicInvoiceProps {
@@ -43,11 +43,10 @@ const PublicInvoice: React.FC<PublicInvoiceProps> = ({ projectId }) => {
             try {
                 setError(null);
 
-                // Fetch everything in parallel
                 const [fetchedProject, fetchedPackages, fetchedProfile] = await Promise.all([
                     getProjectWithRelations(projectId),
                     listPackages(),
-                    getProfile(),
+                    getPublicDocumentProfile(),
                 ]);
 
                 if (cancelled) return;
@@ -64,7 +63,7 @@ const PublicInvoice: React.FC<PublicInvoiceProps> = ({ projectId }) => {
 
                 // Fetch client after we have the project
                 if (fetchedProject.clientId) {
-                    const fetchedClient = await getClient(fetchedProject.clientId);
+                    const fetchedClient = await getPublicDocumentClient(fetchedProject.clientId);
                     if (!cancelled) setClient(fetchedClient);
                 } else {
                     setClient(null);

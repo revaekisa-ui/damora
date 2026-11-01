@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Client,
   Project,
@@ -19,6 +19,8 @@ import { useInvoices, InvoiceDoc } from '../../features/finance/hooks/useInvoice
 import InvoiceStatsBar from '../../features/finance/components/InvoiceStatsBar';
 import InvoiceFilterBar from '../../features/finance/components/InvoiceFilterBar';
 import InvoiceListTable from '../../features/finance/components/InvoiceListTable';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import { PageSize } from '../../services/pagination';
 import { MobileCollapsibleSection } from '../../components/ui/MobileProgressiveDisclosure';
 import ClientDocumentModal from '../../features/clients/components/ClientDocumentModal';
 import ShareMessageModal from '../../features/communication/components/ShareMessageModal';
@@ -151,6 +153,10 @@ const InvoicePage: React.FC<InvoicePageProps> = ({
   });
   const [paymentRecordToEdit, setPaymentRecordToEdit] = useState<TeamPaymentRecord | null>(null);
   const [paymentRecordForm, setPaymentRecordForm] = useState({ recordNumber: '', date: '' });
+
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSize>(10);
 
   const { handleUpdateTransaction: persistTransactionEdit } = useFinance(
     transactions,
@@ -338,6 +344,21 @@ const InvoicePage: React.FC<InvoicePageProps> = ({
       setTeamPaymentRecords((prev) => prev.filter((r) => r.id !== id)),
   });
 
+  // ── Client-side pagination ────────────────────────────────────────────
+  const pagedDocs = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredDocs.slice(start, start + pageSize);
+  }, [filteredDocs, page, pageSize]);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filterKind, filterStatus, filterClientId, filterMonth, sortField, sortDir, pageSize]);
+
+  React.useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(filteredDocs.length / pageSize));
+    if (page > pageCount) setPage(pageCount);
+  }, [filteredDocs.length, page, pageSize]);
+
   // ── Hook: document actions (PDF, WA, signature) ───────────────────────
   const {
     isSignatureModalOpen,
@@ -478,7 +499,7 @@ const InvoicePage: React.FC<InvoicePageProps> = ({
         {/* Table */}
         <div className="bg-brand-surface border border-brand-border rounded-2xl overflow-hidden">
           <InvoiceListTable
-            docs={filteredDocs}
+            docs={pagedDocs}
             sortField={sortField}
             sortDir={sortDir}
             onSort={handleSort}
@@ -494,6 +515,17 @@ const InvoicePage: React.FC<InvoicePageProps> = ({
             }}
             onDelete={setDeleteConfirm}
             onAdd={handleCreateInvoice}
+          />
+          <PaginationControls
+            page={page}
+            pageSize={pageSize}
+            total={filteredDocs.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+            itemLabel="dokumen"
           />
         </div>
       </div>

@@ -94,15 +94,6 @@ function saveStoredPortfolios(portfolios: VendorPortfolio[]) {
     } catch {}
 }
 
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(file);
-    });
-};
-
 export const createVendorPortfolio = async (portfolioData: Omit<VendorPortfolio, 'id' | 'created_at' | 'updated_at'>): Promise<VendorPortfolio> => {
     const newId = `portfolio-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const nowIso = new Date().toISOString();
@@ -320,33 +311,26 @@ export const uploadPortfolioImages = async (
 
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        let imageUrl = '';
-        let processedFile = file;
+        const processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
+        const fileExt = processedFile.name.split('.').pop() || 'jpg';
+        const fileName = `${portfolioId}/img-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-        try {
-            processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
-            const fileExt = processedFile.name.split('.').pop() || 'jpg';
-            const fileName = `${portfolioId}/img-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-            if (isSupabaseConfigured) {
-                const { error: uploadError } = await supabase.storage
-                    .from('gallery-images')
-                    .upload(fileName, processedFile);
-
-                if (!uploadError) {
-                    const { data: urlData } = supabase.storage
-                        .from('gallery-images')
-                        .getPublicUrl(fileName);
-                    imageUrl = urlData.publicUrl;
-                }
-            }
-
-            if (!imageUrl) {
-                imageUrl = await fileToBase64(processedFile);
-            }
-        } catch {
-            imageUrl = await fileToBase64(processedFile);
+        if (!isSupabaseConfigured) {
+            throw new Error('Supabase belum dikonfigurasi: gambar portofolio tidak dapat diunggah ke Storage.');
         }
+
+        const { error: uploadError } = await supabase.storage
+            .from('gallery-images')
+            .upload(fileName, processedFile);
+
+        if (uploadError) {
+            throw new Error(`Gagal mengunggah gambar portofolio: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+            .from('gallery-images')
+            .getPublicUrl(fileName);
+        const imageUrl = urlData.publicUrl;
 
         if (imageUrl) {
             uploadedImages.push({
@@ -376,33 +360,26 @@ export const uploadPortfolioCover = async (
     portfolioId: string,
     file: File
 ): Promise<string> => {
-    let coverUrl = '';
-    let processedFile = file;
+    const processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
+    const fileExt = processedFile.name.split('.').pop() || 'jpg';
+    const fileName = `${portfolioId}/cover-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-    try {
-        processedFile = await compressImage(file, 1600, 0.72, 200 * 1024);
-        const fileExt = processedFile.name.split('.').pop() || 'jpg';
-        const fileName = `${portfolioId}/cover-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-        if (isSupabaseConfigured) {
-            const { error: uploadError } = await supabase.storage
-                .from('gallery-images')
-                .upload(fileName, processedFile);
-
-            if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                    .from('gallery-images')
-                    .getPublicUrl(fileName);
-                coverUrl = urlData.publicUrl;
-            }
-        }
-
-        if (!coverUrl) {
-            coverUrl = await fileToBase64(processedFile);
-        }
-    } catch {
-        coverUrl = await fileToBase64(processedFile);
+    if (!isSupabaseConfigured) {
+        throw new Error('Supabase belum dikonfigurasi: cover portofolio tidak dapat diunggah ke Storage.');
     }
+
+    const { error: uploadError } = await supabase.storage
+        .from('gallery-images')
+        .upload(fileName, processedFile);
+
+    if (uploadError) {
+        throw new Error(`Gagal mengunggah cover portofolio: ${uploadError.message}`);
+    }
+
+    const { data: urlData } = supabase.storage
+        .from('gallery-images')
+        .getPublicUrl(fileName);
+    const coverUrl = urlData.publicUrl;
 
     await updateVendorPortfolio(portfolioId, { cover_image_url: coverUrl });
     return coverUrl;

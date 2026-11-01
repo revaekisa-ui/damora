@@ -14,13 +14,19 @@ export function useSupabaseRealtimeRefresh(
     if (!isSupabaseConfigured) return;
 
     let timer: number | undefined;
-    const scheduleRefresh = () => {
+    const MIN_PASSIVE_REFRESH_INTERVAL_MS = 60_000;
+    let lastRefreshAt = Date.now();
+    const scheduleRefresh = (fromRealtime = false) => {
       if (timer !== undefined) window.clearTimeout(timer);
+      const waitForFreshness = fromRealtime
+        ? 0
+        : Math.max(0, MIN_PASSIVE_REFRESH_INTERVAL_MS - (Date.now() - lastRefreshAt));
       timer = window.setTimeout(() => {
+        lastRefreshAt = Date.now();
         void Promise.resolve(refreshRef.current()).catch((error) => {
           console.warn(`[Realtime] Refresh failed for ${channelName}:`, error);
         });
-      }, 150);
+      }, fromRealtime ? 150 : Math.max(150, waitForFreshness));
     };
 
     let channel = supabase.channel(channelName);
@@ -28,7 +34,7 @@ export function useSupabaseRealtimeRefresh(
       channel = channel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table },
-        scheduleRefresh,
+        () => scheduleRefresh(true),
       );
     }
 
@@ -41,14 +47,15 @@ export function useSupabaseRealtimeRefresh(
     const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') scheduleRefresh();
     };
-    window.addEventListener('focus', scheduleRefresh);
-    window.addEventListener('online', scheduleRefresh);
+    const refreshOnFocusOrOnline = () => scheduleRefresh();
+    window.addEventListener('focus', refreshOnFocusOrOnline);
+    window.addEventListener('online', refreshOnFocusOrOnline);
     document.addEventListener('visibilitychange', refreshWhenVisible);
 
     return () => {
       if (timer !== undefined) window.clearTimeout(timer);
-      window.removeEventListener('focus', scheduleRefresh);
-      window.removeEventListener('online', scheduleRefresh);
+      window.removeEventListener('focus', refreshOnFocusOrOnline);
+      window.removeEventListener('online', refreshOnFocusOrOnline);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
       void supabase.removeChannel(channel);
     };

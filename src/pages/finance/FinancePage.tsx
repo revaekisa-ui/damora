@@ -247,6 +247,7 @@ const Finance: React.FC<FinanceProps> = ({
                         handleDownloadTransactionsExcel={handleDownloadTransactionsExcelClick}
                         filteredSummary={filteredSummary}
                         filteredTransactions={filteredTransactions}
+                        sourceTransactions={transactions}
                         getTransactionSubDescription={(t) => getTransactionSubDescription(t, cards, pockets, projects)}
                         onOpenModal={handleOpenModal}
                         onDeleteTransaction={(id) => handleDelete('transaction', id)}

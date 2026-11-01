@@ -39,7 +39,7 @@ export async function listNotifications(): Promise<Notification[]> {
 }
 
 import { dispatchWebPush } from './webPush';
-import { getProfile } from './profile';
+import { getProfileId } from './profile';
 
 export async function createNotification(
   payload: Omit<Notification, 'id'> & { vendor_id?: string }
@@ -57,8 +57,7 @@ export async function createNotification(
     try {
       let vendorId = payload.vendor_id;
       if (!vendorId) {
-        const prof = await getProfile().catch((): null => null);
-        vendorId = prof?.id;
+        vendorId = await getProfileId().catch((): null => null) ?? undefined;
       }
       if (vendorId) {
         await dispatchWebPush({

@@ -15,6 +15,7 @@ import { getProfile } from '../services/profile';
 import { listAllTeamPayments } from '../services/teamProjectPayments';
 import { listTeamPaymentRecords } from '../services/teamPaymentRecords';
 import { listNotifications } from '../services/notifications';
+import { fetchWithTimeout } from '../lib/queryTimeout';
 
 // Limit default fetches to 100 for performance
 const DEFAULT_LIMIT = 100;
@@ -36,14 +37,14 @@ export interface DomainQueryOptions {
 
 export const useClientsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['clients'],
-    queryFn: () => listClients({ limit: options.limit || DEFAULT_LIMIT }),
+    queryFn: () => fetchWithTimeout('klien', () => listClients({ limit: options.limit || DEFAULT_LIMIT })),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useProjectsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['projects'],
-    queryFn: () => listProjectsWithRelations({ limit: options.limit || DEFAULT_LIMIT }),
+    queryFn: () => fetchWithTimeout('proyek', () => listProjectsWithRelations({ limit: options.limit || DEFAULT_LIMIT })),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
@@ -54,42 +55,42 @@ export const useProjectsQuery = (options: DomainQueryOptions & { limit?: number 
  */
 export const useProjectPackageIdsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['projectPackageIds'],
-    queryFn: () => listProjectPackageIds(),
+    queryFn: () => fetchWithTimeout('ringkasan paket proyek', () => listProjectPackageIds()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTransactionsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['transactions'],
-    queryFn: () => listTransactions({ limit: options.limit || DEFAULT_LIMIT }),
+    queryFn: () => fetchWithTimeout('transaksi', () => listTransactions({ limit: options.limit || DEFAULT_LIMIT })),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTeamMembersQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['teamMembers'],
-    queryFn: () => listTeamMembers({ limit: options.limit || DEFAULT_LIMIT }),
+    queryFn: () => fetchWithTimeout('anggota tim', () => listTeamMembers({ limit: options.limit || DEFAULT_LIMIT })),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useLeadsQuery = (options: DomainQueryOptions & { limit?: number } = {}) => useQuery({
     queryKey: ['leads'],
-    queryFn: () => listLeads({ limit: options.limit || DEFAULT_LIMIT }),
+    queryFn: () => fetchWithTimeout('calon pengantin', () => listLeads({ limit: options.limit || DEFAULT_LIMIT })),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useCardsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['cards'],
-    queryFn: () => listCards().then(res => res.map(normalizeCard)),
+    queryFn: () => fetchWithTimeout('kartu keuangan', () => listCards().then(res => res.map(normalizeCard))),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const usePocketsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['pockets'],
-    queryFn: () => listPockets(),
+    queryFn: () => fetchWithTimeout('kantong keuangan', () => listPockets()),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
@@ -99,28 +100,28 @@ export const usePocketsQuery = (options: DomainQueryOptions = {}) => useQuery({
 // writer cache lokal + Realtime menimpa entry yang sama.
 export const usePackagesQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['packages'],
-    queryFn: () => listPackages(),
+    queryFn: () => fetchWithTimeout('paket', () => listPackages()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useAddOnsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['addOns'],
-    queryFn: () => listAddOns(),
+    queryFn: () => fetchWithTimeout('add-on', () => listAddOns()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useAttireQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['attire'],
-    queryFn: () => listAttire(),
+    queryFn: () => fetchWithTimeout('busana', () => listAttire()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useCalendarEventsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['calendarEvents'],
-    queryFn: () => listCalendarEvents(),
+    queryFn: () => fetchWithTimeout('kalender', () => listCalendarEvents()),
     staleTime: 30 * 1000,
     enabled: options.enabled !== false,
 });
@@ -131,35 +132,35 @@ export const useCalendarEventsQuery = (options: DomainQueryOptions = {}) => useQ
 
 export const usePromoCodesQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['promoCodes'],
-    queryFn: () => listPromoCodes(),
+    queryFn: () => fetchWithTimeout('kode promo', () => listPromoCodes()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useProfileQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['profile'],
-    queryFn: () => getProfile(),
+    queryFn: () => fetchWithTimeout('profil', () => getProfile()),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTeamProjectPaymentsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['teamProjectPayments'],
-    queryFn: () => listAllTeamPayments(),
+    queryFn: () => fetchWithTimeout('pembayaran tim', () => listAllTeamPayments()),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useTeamPaymentRecordsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['teamPaymentRecords'],
-    queryFn: () => listTeamPaymentRecords(),
+    queryFn: () => fetchWithTimeout('riwayat pembayaran tim', () => listTeamPaymentRecords()),
     staleTime: 60 * 1000,
     enabled: options.enabled !== false,
 });
 
 export const useNotificationsQuery = (options: DomainQueryOptions = {}) => useQuery({
     queryKey: ['notifications'],
-    queryFn: () => listNotifications(),
+    queryFn: () => fetchWithTimeout('notifikasi', () => listNotifications()),
     staleTime: 30 * 1000,
     enabled: options.enabled !== false,
 });

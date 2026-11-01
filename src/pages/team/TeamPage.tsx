@@ -24,7 +24,8 @@
  *     └─ Modal (slip, signature, QR, info)
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Share2 } from 'lucide-react';
 import {
   TeamMember,
@@ -63,6 +64,9 @@ import { useTeamFilters } from '../../features/team/hooks/useTeamFilters';
 import { useTeamStats } from '../../features/team/hooks/useTeamStats';
 import { useTeamMembers } from '../../features/team/hooks/useTeamMembers';
 import { useTeamPayments } from '../../features/team/hooks/useTeamPayments';
+import { listTeamMembersPaginated } from '../../services/teamMembers';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import { PageSize } from '../../services/pagination';
 
 // Utils
 import { downloadTeamCSV } from '../../features/team/utils/teamUtils';
@@ -132,6 +136,10 @@ export const Freelancers: React.FC<FreelancersProps> = ({
 }) => {
   // ── Local UI state ───────────────────────────────────────────────────────
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('team');
+  const [memberPage, setMemberPage] = useState(1);
+  const [memberPageSize, setMemberPageSize] = useState<PageSize>(10);
+  const [debouncedMemberSearch, setDebouncedMemberSearch] = useState('');
+  const queryClient = useQueryClient();
   const [showExtendedTeamStats, setShowExtendedTeamStats] = useState(false);
   const [showExtendedVendorStats, setShowExtendedVendorStats] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
@@ -139,6 +147,31 @@ export const Freelancers: React.FC<FreelancersProps> = ({
 
   // ── Filters hook ─────────────────────────────────────────────────────────
   const filters = useTeamFilters({ teamMembers, teamProjectPayments, projects });
+
+  const selectedMemberSearch = activeMainTab === 'vendor' ? filters.vendorSearchQuery : filters.teamSearchQuery;
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedMemberSearch(selectedMemberSearch.trim()), 250);
+    return () => window.clearTimeout(timer);
+  }, [selectedMemberSearch]);
+  useEffect(() => setMemberPage(1), [activeMainTab, debouncedMemberSearch, memberPageSize]);
+
+  const memberPageQuery = useQuery({
+    queryKey: ['teamMembers', 'page', activeMainTab, memberPage, memberPageSize, debouncedMemberSearch],
+    queryFn: () => listTeamMembersPaginated(memberPage, memberPageSize, {
+      category: activeMainTab === 'vendor' ? 'Vendor' : 'Tim',
+      search: debouncedMemberSearch,
+    }),
+    enabled: activeMainTab === 'team' || activeMainTab === 'vendor',
+    staleTime: 30_000,
+  });
+  useEffect(() => {
+    if (!memberPageQuery.data) return;
+    const lastPage = Math.max(1, Math.ceil(memberPageQuery.data.total / memberPageSize));
+    if (memberPage > lastPage) setMemberPage(lastPage);
+  }, [memberPage, memberPageSize, memberPageQuery.data]);
+  useEffect(() => {
+    void queryClient.invalidateQueries({ queryKey: ['teamMembers', 'page'] });
+  }, [teamMembers, queryClient]);
 
   // ── Stats hook ───────────────────────────────────────────────────────────
   const { teamSectionStats, vendorSectionStats, teamStats } = useTeamStats({
@@ -228,17 +261,30 @@ export const Freelancers: React.FC<FreelancersProps> = ({
             placeholder="Cari nama anggota atau posisi tim..."
             value={filters.teamSearchQuery}
             onChange={filters.setTeamSearchQuery}
-            resultCount={filters.uniqueTeamMembers.length}
+            resultCount={memberPageQuery.data?.total ?? 0}
             resultLabel="anggota tim"
           />
           <TeamMemberList
-            members={filters.uniqueTeamMembers}
+            members={memberPageQuery.data?.teamMembers ?? []}
+            startIndex={(memberPage - 1) * memberPageSize}
             teamProjectPaymentsInDateRange={filters.teamProjectPaymentsInDateRange}
             groupLabel="team"
             onViewDetails={members.handleViewDetails}
             onEditMember={(m) => members.handleOpenForm('edit', m)}
             onDeleteMember={members.handleDelete}
           />
+          {memberPageQuery.isError ? (
+            <p role="alert" className="text-center text-xs text-red-600">Gagal memuat daftar anggota. Coba lagi.</p>
+          ) : (
+            <PaginationControls
+              page={memberPage}
+              pageSize={memberPageSize}
+              total={memberPageQuery.data?.total ?? 0}
+              onPageChange={setMemberPage}
+              onPageSizeChange={setMemberPageSize}
+              itemLabel="anggota tim"
+            />
+          )}
         </div>
       )}
 
@@ -256,17 +302,30 @@ export const Freelancers: React.FC<FreelancersProps> = ({
             placeholder="Cari nama vendor atau bidang keahlian..."
             value={filters.vendorSearchQuery}
             onChange={filters.setVendorSearchQuery}
-            resultCount={filters.uniqueVendorMembers.length}
+            resultCount={memberPageQuery.data?.total ?? 0}
             resultLabel="mitra vendor"
           />
           <TeamMemberList
-            members={filters.uniqueVendorMembers}
+            members={memberPageQuery.data?.teamMembers ?? []}
+            startIndex={(memberPage - 1) * memberPageSize}
             teamProjectPaymentsInDateRange={filters.teamProjectPaymentsInDateRange}
             groupLabel="vendor"
             onViewDetails={members.handleViewDetails}
             onEditMember={(m) => members.handleOpenForm('edit', m)}
             onDeleteMember={members.handleDelete}
           />
+          {memberPageQuery.isError ? (
+            <p role="alert" className="text-center text-xs text-red-600">Gagal memuat daftar vendor. Coba lagi.</p>
+          ) : (
+            <PaginationControls
+              page={memberPage}
+              pageSize={memberPageSize}
+              total={memberPageQuery.data?.total ?? 0}
+              onPageChange={setMemberPage}
+              onPageSizeChange={setMemberPageSize}
+              itemLabel="vendor"
+            />
+          )}
         </div>
       )}
 

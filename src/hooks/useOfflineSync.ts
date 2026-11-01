@@ -116,8 +116,34 @@ export function useOfflineSync() {
 
   useEffect(() => {
     updatePendingCount();
-    const interval = setInterval(updatePendingCount, 5000);
-    return () => clearInterval(interval);
+
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const startPolling = () => {
+      if (interval !== undefined) return;
+      interval = setInterval(updatePendingCount, 5000);
+    };
+    const stopPolling = () => {
+      if (interval === undefined) return;
+      clearInterval(interval);
+      interval = undefined;
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        updatePendingCount();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (document.visibilityState === 'visible') startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [updatePendingCount]);
 
   // Manual sync trigger

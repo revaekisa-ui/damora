@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import supabase from '../lib/supabaseClient';
+import { fetchWithTimeout } from '../lib/queryTimeout';
 
 interface DashboardStats {
   projects: number;
@@ -16,69 +17,24 @@ interface DashboardStats {
 }
 
 /**
- * Statistik dashboard diambil dengan query hitung (count) di sisi server,
- * bukan dengan menarik seluruh baris tabel lalu menghitung di klien.
- * `head: true` mengembalikan jumlah baris tanpa payload data, sehingga egress
- * hanya berupa angka — bukan seluruh kolom proyek/klien/leads.
+ * Memanggil RPC agregasi `get_dashboard_stats` secara langsung. Sebelumnya
+ * statistik diambil lewat Edge Function `dashboard-stats`, tetapi function
+ * tersebut tidak ter-deploy (hanya `send-web-push` yang aktif) sehingga
+ * seluruh nilai statistik jatuh ke 0. Memanggil RPC langsung juga menghapus
+ * satu hop jaringan tanpa mengunduh seluruh baris transaksi.
  */
 export const useDashboardStats = (options: { enabled?: boolean } = {}) => useQuery({
   queryKey: ['dashboardStats'],
   enabled: options.enabled !== false,
-  queryFn: async (): Promise<DashboardStats> => {
-    const countOf = async (table: string, apply?: (q: any) => any) => {
-      let query = supabase.from(table).select('id', { count: 'exact', head: true });
-      if (apply) query = apply(query);
-      const { count, error } = await query;
-      if (error) throw error;
-      return count || 0;
-    };
+  queryFn: () => fetchWithTimeout('statistik dashboard', async (): Promise<DashboardStats> => {
+    const { data, error } = await supabase.rpc('get_dashboard_stats');
+    if (error) throw error;
 
-    const [
-      projects,
-      activeProjects,
-      clients,
-      activeClients,
-      leads,
-      discussionLeads,
-      followUpLeads,
-      teamMembers,
-      tData,
-      transactions,
-    ] = await Promise.all([
-      countOf('projects'),
-      countOf('projects', q => q.not('status', 'in', '("Selesai","Dibatalkan")')),
-      countOf('clients'),
-      countOf('clients', q => q.eq('status', 'Aktif')),
-      countOf('leads'),
-      countOf('leads', q => q.in('status', ['Discussion', 'Sedang Diskusi'])),
-      countOf('leads', q => q.in('status', ['Follow Up', 'Menunggu Follow Up'])),
-      countOf('team_members'),
-      supabase.from('transactions').select('type, amount'),
-      countOf('transactions'),
-    ]);
-
-    if (tData.error) throw tData.error;
-
-    let revenue = 0;
-    let expense = 0;
-    (tData.data || []).forEach(row => {
-      if (row.type === 'Pemasukan') revenue += Number(row.amount || 0);
-      else if (row.type === 'Pengeluaran') expense += Number(row.amount || 0);
-    });
-
-    return {
-      projects,
-      activeProjects,
-      clients,
-      activeClients,
-      leads,
-      discussionLeads,
-      followUpLeads,
-      teamMembers,
-      transactions,
-      revenue,
-      expense,
-    };
-  },
+    // Toleran terhadap RPC yang mengembalikan array satu baris, dengan bentuk
+    // objek yang tetap sama seperti yang dikonsumsi dasbor dan analitik.
+    const stats = Array.isArray(data) ? data[0] : data;
+    if (!stats) throw new Error('Dashboard statistics response was empty.');
+    return stats as DashboardStats;
+  }),
   staleTime: 60 * 1000,
 });

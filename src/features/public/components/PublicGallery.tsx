@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { CalendarDays, Image as ImageIcon, X } from 'lucide-react';
 import { Gallery, GalleryImage, Profile } from '../../../types';
 import { getPublicGallery } from '../../../services/galleries';
-import { getProfile } from '../../../services/profile';
+import { getPublicDocumentProfile } from '../../../services/profile';
 import { cleanPhoneNumber } from '../../../constants';
 import { useSupabaseRealtimeRefresh } from '../../../hooks/useSupabaseRealtimeRefresh';
 
@@ -88,7 +88,7 @@ const PublicGallery: React.FC<PublicGalleryProps> = ({ galleryId }) => {
                     console.error('Error fetching gallery:', err);
                     return null;
                 }),
-                getProfile().catch((): null => null)
+                getPublicDocumentProfile().catch((): null => null)
             ]);
 
             if (!galleryData) {

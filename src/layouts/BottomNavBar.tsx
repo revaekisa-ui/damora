@@ -1,7 +1,9 @@
 import React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { LayoutGrid as MoreGridIcon, ChevronDown as ChevronDownIcon, Link as LinkIcon } from "lucide-react";
 import { ViewType } from "../types";
 import { customizeNavigationLabel, useUiTextOverrides } from "../utils/uiTextCustomization";
+import { prefetchViewData } from "../lib/prefetchViewData";
 import {
   HomeIcon,
   UsersIcon,
@@ -28,6 +30,35 @@ export const MoreMenuSheet: React.FC<{
   activeView: ViewType;
   handleNavigation: (view: ViewType) => void;
 }> = ({ isOpen, onClose, activeView, handleNavigation }) => {
+  const queryClient = useQueryClient();
+  const prefetch = (view: ViewType) => {
+    prefetchViewData(queryClient, view);
+    switch (view) {
+      case ViewType.DASHBOARD:
+        import("../pages/dashboard/DashboardPage");
+        break;
+      case ViewType["Calon Pengantin"]:
+        import("../pages/leads/LeadsPage");
+        break;
+      case ViewType.BOOKING:
+        import("../pages/booking/BookingPage");
+        break;
+      case ViewType.CLIENTS:
+        import("../pages/clients/ClientsPage");
+        break;
+      case ViewType.TEAM:
+        import("../pages/team/TeamPage");
+        break;
+      case ViewType.FINANCE:
+        import("../pages/finance/FinancePage");
+        break;
+      case ViewType.PACKAGES:
+        import("../features/packages/Packages");
+        break;
+      default:
+        break;
+    }
+  };
   const uiTextOverrides = useUiTextOverrides();
   const menuGroups = [
     {
@@ -124,6 +155,8 @@ export const MoreMenuSheet: React.FC<{
                     <button
                       key={item.view}
                       onClick={() => navigate(item.view)}
+                      onMouseEnter={() => prefetch(item.view)}
+                      onTouchStart={() => prefetch(item.view)}
                       className={`more-menu-item
                         flex flex-col items-center justify-center gap-1.5
                         p-3 rounded-xl
@@ -161,9 +194,12 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   handleNavigation,
 }) => {
   const uiTextOverrides = useUiTextOverrides();
+  const queryClient = useQueryClient();
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
 
   const prefetchView = (view: ViewType) => {
+    // Prefetch data (React Query cache) sekaligus chunk kode halaman tujuan.
+    prefetchViewData(queryClient, view);
     switch (view) {
       case ViewType.DASHBOARD:
         import("../pages/dashboard/DashboardPage");
@@ -258,6 +294,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               key={item.view}
               onClick={() => handleNavigation(item.view)}
               onMouseEnter={() => prefetchView(item.view)}
+              onTouchStart={() => prefetchView(item.view)}
               className={`
                 flex flex-col items-center justify-center
                 w-full h-full

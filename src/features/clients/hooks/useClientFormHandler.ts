@@ -392,7 +392,10 @@ export const useClientFormHandler = ({
                         homeAddress: formData.homeAddress || undefined,
                     } as Omit<Client, 'id'>);
                     clientId = created.id;
-                    setClients(prev => [created, ...prev]);
+                    // Idempotent: event Realtime INSERT bisa tiba lebih dulu daripada
+                    // respons insert HTTP, sehingga tanpa cek ini entri yang sama
+                    // tampil dua kali di daftar pengantin.
+                    setClients(prev => prev.some(c => c.id === created.id) ? prev : [created, ...prev]);
                 } catch (err) {
                     showNotification(
                         !navigator.onLine

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PromoCode, Project } from '../../types';
 import PageHeader from '../../layouts/PageHeader';
 import Modal from '../../shared/ui/Modal';
 import { PlusIcon, PencilIcon, Trash2Icon, PackageIcon, DollarSignIcon, CalendarIcon } from '../../constants';
-import { createPromoCode, updatePromoCode, deletePromoCode } from '../../services/promoCodes';
+import { createPromoCode, updatePromoCode, deletePromoCode, listPromoCodesPaginated } from '../../services/promoCodes';
 import { MobileExpandableExtra } from '../../components/ui/MobileProgressiveDisclosure';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import { PageSize } from '../../services/pagination';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -31,6 +34,21 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
     const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
     const [selectedCode, setSelectedCode] = useState<PromoCode | null>(null);
     const [formData, setFormData] = useState(emptyFormState);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState<PageSize>(10);
+    const queryClient = useQueryClient();
+    const promoPageQuery = useQuery({
+        queryKey: ['promoCodes', 'page', page, pageSize],
+        queryFn: () => listPromoCodesPaginated(page, pageSize),
+        staleTime: 30_000,
+    });
+    const displayPromoCodes = promoPageQuery.data?.items ?? [];
+    const promoTotal = promoPageQuery.data?.total ?? 0;
+    React.useEffect(() => {
+        if (!promoPageQuery.data) return;
+        const lastPage = Math.max(1, Math.ceil(promoPageQuery.data.total / pageSize));
+        if (page > lastPage) setPage(lastPage);
+    }, [page, pageSize, promoPageQuery.data]);
 
     const handleOpenModal = (mode: 'add' | 'edit', code?: PromoCode) => {
         setModalMode(mode);
@@ -80,6 +98,7 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
                     expiryDate: formData.expiryDate || undefined,
                 } as any);
                 setPromoCodes(prev => [...prev, created]);
+                void queryClient.invalidateQueries({ queryKey: ['promoCodes', 'page'] });
                 showNotification(`Kode promo "${created.code}" berhasil dibuat.`);
             } else if (selectedCode) {
                 const updated = await updatePromoCode(selectedCode.id, {
@@ -91,6 +110,7 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
                     expiryDate: formData.expiryDate || undefined,
                 } as any);
                 setPromoCodes(prev => prev.map(c => c.id === selectedCode.id ? updated : c));
+                void queryClient.invalidateQueries({ queryKey: ['promoCodes', 'page'] });
                 showNotification(`Kode promo "${updated.code}" berhasil diperbarui.`);
             }
         } catch (err) {
@@ -110,6 +130,7 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
         try {
             await deletePromoCode(codeId);
             setPromoCodes(prev => prev.filter(c => c.id !== codeId));
+            void queryClient.invalidateQueries({ queryKey: ['promoCodes', 'page'] });
             showNotification('Kode promo berhasil dihapus.');
         } catch (err) {
             alert('Gagal menghapus kode promo di database. Coba lagi.');
@@ -141,7 +162,16 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-border">
-                            {promoCodes.map((code, index) => (
+                            {promoPageQuery.isLoading ? (
+                                <tr>
+                                    <td colSpan={7} className="px-4 py-10 text-center text-brand-text-secondary">
+                                        <span className="inline-flex items-center gap-2">
+                                            <span className="w-4 h-4 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+                                            Memuat kode promo...
+                                        </span>
+                                    </td>
+                                </tr>
+                            ) : displayPromoCodes.map((code, index) => (
                                 <tr key={code.id} className="hover:bg-brand-bg">
                                     <td className="px-4 py-3 text-center font-medium text-brand-text-secondary">{index + 1}</td>
                                     <td className="px-4 py-3 font-semibold text-brand-text-light">{code.code}</td>
@@ -170,15 +200,35 @@ const PromoCodes: React.FC<PromoCodesProps> = ({ promoCodes, setPromoCodes, proj
                 </div>
             </div>
 
+            {promoPageQuery.isError ? (
+                <p role="alert" className="text-center text-xs text-red-600">Gagal memuat daftar kode promo.</p>
+            ) : (
+                <PaginationControls
+                    page={page}
+                    pageSize={pageSize}
+                    total={promoTotal}
+                    onPageChange={setPage}
+                    onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                    itemLabel="kode promo"
+                />
+            )}
+
             {/* Mobile Card View */}
             <div className="md:hidden space-y-2.5">
-                {promoCodes.length === 0 ? (
+                {promoPageQuery.isLoading ? (
+                    <div className="bg-brand-surface p-8 rounded-xl text-center border border-brand-border">
+                        <span className="inline-flex items-center gap-2 text-brand-text-secondary">
+                            <span className="w-4 h-4 border-2 border-brand-accent border-t-transparent rounded-full animate-spin" />
+                            Memuat kode promo...
+                        </span>
+                    </div>
+                ) : displayPromoCodes.length === 0 ? (
                     <div className="bg-brand-surface p-8 rounded-xl text-center border border-brand-border">
                         <PackageIcon className="w-12 h-12 text-brand-text-secondary mx-auto mb-3 opacity-50" />
                         <p className="text-brand-text-secondary">Belum ada kode promo. Klik tombol "Buat Kode Baru" untuk memulai.</p>
                     </div>
                 ) : (
-                    promoCodes.map(code => (
+                    displayPromoCodes.map(code => (
                         <div key={code.id} className="bg-brand-surface rounded-xl shadow-sm border border-brand-border p-3.5">
                             <div className="flex items-center justify-between gap-2">
                                 <div className="min-w-0">

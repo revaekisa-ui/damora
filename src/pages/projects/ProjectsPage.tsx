@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Project,
     TeamMember,
@@ -36,11 +36,13 @@ import { useProjectForm } from '../../features/projects/hooks/useProjectForm';
 import { useProjectEditMode } from '../../features/projects/hooks/useProjectEditMode';
 import { useProjectOperations } from '../../features/projects/hooks/useProjectOperations';
 import { calculateProjectsModalStats } from '../../features/projects/utils/projectCalculations';
-import { getProjectWithRelations } from '../../services/projects';
+import { countProjectsForTable, getProjectWithRelations, listProjectsTablePage } from '../../services/projects';
 import { createTransaction } from '../../services/transactions';
 import { updatePocket as updatePocketRow } from '../../services/pockets';
 import { updateTeamProjectPayments as updateTeamProjectPaymentsApi } from '../../services/teamProjectPayments';
 import { createTeamPaymentRecord } from '../../services/teamPaymentRecords';
+import PaginationControls from '../../shared/ui/PaginationControls';
+import { PageSize } from '../../services/pagination';
 
 export interface ProjectsProps {
     projects: Project[];
@@ -142,6 +144,59 @@ export const Projects: React.FC<ProjectsProps> = ({
         completedAndCancelledProjects,
         displayProjects
     } = useProjectFilters(projects);
+
+    const [projectPage, setProjectPage] = useState(1);
+    const [projectPageSize, setProjectPageSize] = useState<PageSize>(10);
+    const [debouncedProjectSearch, setDebouncedProjectSearch] = useState(searchTerm.trim());
+    const previousProjectsForPageRef = useRef<Project[] | null>(null);
+    useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedProjectSearch(searchTerm.trim()), 250);
+        return () => window.clearTimeout(timer);
+    }, [searchTerm]);
+    useEffect(() => setProjectPage(1), [debouncedProjectSearch, statusFilter, dateFrom, dateTo, projectListTab, projectPageSize]);
+    useEffect(() => {
+        if (previousProjectsForPageRef.current === null) {
+            previousProjectsForPageRef.current = projects;
+            return;
+        }
+        if (previousProjectsForPageRef.current !== projects) {
+            previousProjectsForPageRef.current = projects;
+            void Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['projects', 'tablePage'] }),
+                queryClient.invalidateQueries({ queryKey: ['projects', 'tableCounts'] }),
+            ]);
+        }
+    }, [projects, queryClient]);
+
+    const tableFilters = {
+        search: debouncedProjectSearch,
+        status: statusFilter,
+        dateFrom,
+        dateTo,
+    };
+    const projectTableCountsQuery = useQuery({
+        queryKey: ['projects', 'tableCounts', tableFilters],
+        queryFn: () => countProjectsForTable(tableFilters),
+        enabled: viewMode === 'list',
+        staleTime: 30_000,
+    });
+    const projectTableQuery = useQuery({
+        queryKey: ['projects', 'tablePage', projectPage, projectPageSize, tableFilters, projectListTab],
+        queryFn: () => listProjectsTablePage({
+            ...tableFilters,
+            page: projectPage,
+            pageSize: projectPageSize,
+            tab: projectListTab,
+        }),
+        enabled: viewMode === 'list',
+        placeholderData: keepPreviousData,
+        staleTime: 30_000,
+    });
+    useEffect(() => {
+        if (!projectTableQuery.data) return;
+        const lastPage = Math.max(1, Math.ceil(projectTableQuery.data.total / projectPageSize));
+        if (projectPage > lastPage) setProjectPage(lastPage);
+    }, [projectPage, projectPageSize, projectTableQuery.data]);
 
     const {
         isBriefingModalOpen,
@@ -645,7 +700,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                                             : 'text-[#5A6A85] hover:text-[#2A3547]'
                                     }`}
                                 >
-                                    Aktif ({activeProjects.length})
+                                    Aktif ({projectTableCountsQuery.data?.active ?? activeProjects.length})
                                 </button>
                                 <button
                                     type="button"
@@ -656,7 +711,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                                             : 'text-[#5A6A85] hover:text-[#2A3547]'
                                     }`}
                                 >
-                                    Selesai ({completedAndCancelledProjects.length})
+                                    Selesai ({projectTableCountsQuery.data?.completed ?? completedAndCancelledProjects.length})
                                 </button>
                                 <button
                                     type="button"
@@ -667,17 +722,18 @@ export const Projects: React.FC<ProjectsProps> = ({
                                             : 'text-[#5A6A85] hover:text-[#2A3547]'
                                     }`}
                                 >
-                                    Semua ({filteredProjects.length})
+                                    Semua ({projectTableCountsQuery.data?.all ?? filteredProjects.length})
                                 </button>
                             </div>
                             <div className="text-xs text-[#5A6A85] text-right">
                                 Menampilkan <span className="font-bold text-[#2A3547]">
-                                    {displayProjects.length}
+                                    {projectTableQuery.data?.total ?? displayProjects.length}
                                 </span> Acara
                             </div>
                         </div>
                         <ProjectListView
-                            projects={displayProjects}
+                            projects={projectTableQuery.data?.items ?? []}
+                            startIndex={(projectPage - 1) * projectPageSize}
                             handleOpenDetailModal={handleOpenDetailModal}
                             handleOpenForm={handleOpenForm}
                             handleProjectDelete={handleProjectDelete}
@@ -686,6 +742,18 @@ export const Projects: React.FC<ProjectsProps> = ({
                             handleQuickStatusChange={handleQuickStatusChange}
                             handleSendMessage={handleSendMessage}
                         />
+                        {projectTableQuery.isError ? (
+                            <p role="alert" className="px-4 py-3 text-center text-xs text-red-600">Gagal memuat daftar acara. Coba lagi.</p>
+                        ) : (
+                            <PaginationControls
+                                page={projectPage}
+                                pageSize={projectPageSize}
+                                total={projectTableQuery.data?.total ?? 0}
+                                onPageChange={setProjectPage}
+                                onPageSizeChange={(size) => { setProjectPageSize(size); setProjectPage(1); }}
+                                itemLabel="acara"
+                            />
+                        )}
                     </div>
                 ) : (
                     <ProjectKanbanView

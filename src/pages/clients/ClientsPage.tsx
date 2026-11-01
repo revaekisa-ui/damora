@@ -159,7 +159,7 @@ export const Clients: React.FC<ClientsProps> = ({
 
     // Navigation and View Section States
     const [activeViewSection, setActiveViewSection] = useState<'clients' | 'dues' | 'analytics'>('clients');
-    const [clientTab, setClientTab] = useState<ClientTabType>('active');
+    const [clientTab, setClientTab] = useState<ClientTabType>('this-month');
     const [activeStatModal, setActiveStatModal] = useState<StatModalType>(null);
     const [showAllDues, setShowAllDues] = useState(false);
     const [isExporting, setIsExporting] = useState(false);

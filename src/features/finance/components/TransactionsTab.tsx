@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FinancialPocket, Transaction, TransactionType } from '../../../types';
 import { formatCurrency } from '../../../utils/currency';
 import { DownloadIcon, PencilIcon, Trash2Icon, ArrowDownIcon } from '../../../constants';
 import { SlidersHorizontal, ChevronDown, ChevronUp, Eye, X, FileSpreadsheet } from 'lucide-react';
 import { MobileCollapsibleSection } from '../../../components/ui/MobileProgressiveDisclosure';
+import { listTransactionsPaginated } from '../../../services/transactions';
+import PaginationControls from '../../../shared/ui/PaginationControls';
+import { PageSize } from '../../../services/pagination';
 
 interface CategoryTotals {
     income: { [key: string]: number };
@@ -22,6 +26,7 @@ interface TransactionsTabProps {
     handleDownloadTransactionsExcel: () => void;
     filteredSummary: { income: number; expense: number; net: number };
     filteredTransactions: Transaction[];
+    sourceTransactions: Transaction[];
     getTransactionSubDescription: (t: Transaction) => string | null;
     onOpenModal: (type: 'transaction', mode: 'add' | 'edit', data?: any) => void;
     onDeleteTransaction: (id: string) => void;
@@ -76,15 +81,58 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({
     handleDownloadTransactionsExcel,
     filteredSummary,
     filteredTransactions,
+    sourceTransactions,
     getTransactionSubDescription,
     onOpenModal,
     onDeleteTransaction,
     hasMore,
     loadMoreTransactions,
-    isLoadingMore
+    isLoadingMore,
 }) => {
     const [mobileDateFilterOpen, setMobileDateFilterOpen] = useState(false);
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState<PageSize>(10);
+    const [debouncedSearch, setDebouncedSearch] = useState(filters.searchTerm.trim());
+    const queryClient = useQueryClient();
+    const previousTransactionsRef = useRef<Transaction[] | null>(null);
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedSearch(filters.searchTerm.trim()), 250);
+        return () => window.clearTimeout(timer);
+    }, [filters.searchTerm]);
+    useEffect(() => setPage(1), [debouncedSearch, filters.dateFrom, filters.dateTo, categoryFilter, pageSize]);
+    useEffect(() => {
+        if (previousTransactionsRef.current === null) {
+            previousTransactionsRef.current = sourceTransactions;
+            return;
+        }
+        if (previousTransactionsRef.current !== sourceTransactions) {
+            previousTransactionsRef.current = sourceTransactions;
+            void queryClient.invalidateQueries({ queryKey: ['transactions', 'page'] });
+        }
+    }, [sourceTransactions, queryClient]);
+
+    const transactionPageQuery = useQuery({
+        queryKey: ['transactions', 'page', page, pageSize, debouncedSearch, filters.dateFrom, filters.dateTo, categoryFilter.type, categoryFilter.category],
+        queryFn: () => listTransactionsPaginated({
+            page,
+            pageSize,
+            search: debouncedSearch,
+            dateFrom: filters.dateFrom,
+            dateTo: filters.dateTo,
+            type: categoryFilter.type,
+            category: categoryFilter.category,
+        }),
+        staleTime: 30_000,
+    });
+    const pageTransactions = transactionPageQuery.data?.items ?? [];
+    const pageTotal = transactionPageQuery.data?.total ?? 0;
+    useEffect(() => {
+        if (!transactionPageQuery.data) return;
+        const lastPage = Math.max(1, Math.ceil(transactionPageQuery.data.total / pageSize));
+        if (page > lastPage) setPage(lastPage);
+    }, [page, pageSize, transactionPageQuery.data]);
 
     const allIncomeTotal: number = Object.keys(categoryTotals.income).reduce(
         (sum: number, key: string) => sum + categoryTotals.income[key],
@@ -305,7 +353,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredTransactions.map(t => {
+                            {pageTransactions.map(t => {
                                 const subDescription = getTransactionSubDescription(t);
                                 return (
                                     <tr key={t.id} className="border-t border-[#EAEFF4]">
@@ -357,7 +405,7 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({
                                     </tr>
                                 );
                             })}
-                            {filteredTransactions.length === 0 && (
+                            {!transactionPageQuery.isLoading && pageTransactions.length === 0 && (
                                 <tr>
                                     <td colSpan={4} className="!px-3 !py-5 text-center !text-[11px] text-[#5A6A85]">Tidak ada transaksi yang cocok.</td>
                                 </tr>
@@ -379,11 +427,11 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#EAEFF4]">
-                            {filteredTransactions.map((t, index) => {
+                            {pageTransactions.map((t, index) => {
                                 const subDescription = getTransactionSubDescription(t);
                                 return (
                                     <tr key={t.id} className="hover:bg-[#F4F6F9]/50 transition-colors">
-                                        <td className="p-3 text-center text-[#5A6A85] font-bold">{index + 1}</td>
+                                        <td className="p-3 text-center text-[#5A6A85] font-bold">{(page - 1) * pageSize + index + 1}</td>
                                         <td className="p-3 text-[#5A6A85] font-medium whitespace-nowrap">{new Date(t.date).toLocaleDateString('id-ID')}</td>
                                         <td className="p-3">
                                             <p className="font-bold text-[#2A3547]">{t.description}</p>
@@ -435,29 +483,35 @@ const TransactionsTab: React.FC<TransactionsTabProps> = ({
                             })}
                         </tbody>
                     </table>
-                    {filteredTransactions.length === 0 && (
+                    {!transactionPageQuery.isLoading && pageTransactions.length === 0 && (
                         <p className="text-center py-10 text-[#5A6A85] text-sm">Tidak ada transaksi yang cocok.</p>
                     )}
                 </div>
 
+                {transactionPageQuery.isError ? (
+                    <div role="alert" className="py-4 text-center text-xs text-red-600">
+                        <p>Gagal memuat transaksi.</p>
+                        <button type="button" onClick={() => void transactionPageQuery.refetch()} className="mt-1 underline">Coba lagi</button>
+                    </div>
+                ) : (
+                    <PaginationControls
+                        page={page}
+                        pageSize={pageSize}
+                        total={pageTotal}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                        itemLabel="transaksi"
+                    />
+                )}
                 {hasMore && filteredTransactions.length >= 10 && (
-                    <div className="mt-6 flex justify-center pb-2">
+                    <div className="flex justify-center pb-2">
                         <button
+                            type="button"
                             onClick={loadMoreTransactions}
                             disabled={isLoadingMore}
                             className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-bold text-xs sm:text-sm transition-all disabled:opacity-50"
                         >
-                            {isLoadingMore ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Loading...
-                                </>
-                            ) : (
-                                <>
-                                    <ArrowDownIcon className="w-4 h-4" />
-                                    Muat Lebih Banyak
-                                </>
-                            )}
+                            {isLoadingMore ? 'Memuat…' : <><ArrowDownIcon className="w-4 h-4" /> Muat data tambahan untuk ringkasan</>}
                         </button>
                     </div>
                 )}

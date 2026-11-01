@@ -22,6 +22,8 @@ import {
   useTeamPaymentRecordsQuery,
   useNotificationsQuery,
 } from "./queries";
+import { useCurrentAuthenticatedView } from "./useCurrentAuthenticatedView";
+import { ViewType } from "../types";
 
 export interface UseAuxiliaryDataProps {
   appDataClientFeedback?: ClientFeedback[];
@@ -33,6 +35,10 @@ export interface UseAuxiliaryDataProps {
    * data yang benar-benar ditampilkan.
    */
   skipVendorOnlyData?: boolean;
+  /** Avoid loading catalog promotions on public pages that fetch their own records. */
+  skipCatalogData?: boolean;
+  /** Avoid loading the full vendor profile when a public detail page fetches it directly. */
+  skipProfileData?: boolean;
 }
 
 export interface UseAuxiliaryDataReturn {
@@ -77,16 +83,21 @@ export function useAuxiliaryData({
   appDataLoadedClientFeedback,
   setClientFeedback,
   skipVendorOnlyData = false,
+  skipCatalogData = false,
+  skipProfileData = false,
 }: UseAuxiliaryDataProps = {}): UseAuxiliaryDataReturn {
   const queryClient = useQueryClient();
+  const activeView = useCurrentAuthenticatedView();
 
   // ─── Domain data via React Query ───────────────────────────────────────
-  const vendorOnly = { enabled: !skipVendorOnlyData };
-  const { data: promoCodesData } = usePromoCodesQuery();
-  const { data: profileData } = useProfileQuery();
-  const { data: teamPaymentsData, isLoading: teamPaymentsLoading } = useTeamProjectPaymentsQuery(vendorOnly);
-  const { data: teamPaymentRecordsData } = useTeamPaymentRecordsQuery(vendorOnly);
-  const { data: notificationsData } = useNotificationsQuery(vendorOnly);
+  const isView = (...views: ViewType[]) => views.includes(activeView);
+  const vendorOnly = !skipVendorOnlyData;
+  const { data: promoCodesData } = usePromoCodesQuery({ enabled: !skipCatalogData && isView(ViewType.DASHBOARD, ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PROMO_CODES) });
+  const { data: profileData } = useProfileQuery({ enabled: !skipProfileData });
+  const paymentsEnabled = vendorOnly && isView(ViewType.DASHBOARD, ViewType.CLIENTS, ViewType.TEAM, ViewType.FINANCE, ViewType.CLIENT_REPORTS);
+  const { data: teamPaymentsData, isLoading: teamPaymentsLoading } = useTeamProjectPaymentsQuery({ enabled: paymentsEnabled });
+  const { data: teamPaymentRecordsData } = useTeamPaymentRecordsQuery({ enabled: vendorOnly && isView(ViewType.DASHBOARD, ViewType.TEAM, ViewType.FINANCE, ViewType.CLIENT_REPORTS) });
+  const { data: notificationsData } = useNotificationsQuery({ enabled: vendorOnly });
 
   const promoCodes = promoCodesData ?? [];
   const profile = profileData ?? EMPTY_PROFILE;

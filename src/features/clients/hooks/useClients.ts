@@ -64,23 +64,32 @@ export const useClients = (
             }
         });
 
-        return clients.map(client => {
-            const summary = projectsByClient.get(client.id);
-            const clientProjects = summary?.projects ?? [];
-            const mostRecentProject = summary?.mostRecentProject ?? null;
-            const totalValue = summary?.totalValue ?? 0;
-            const totalPaid = summary?.totalPaid ?? 0;
+        // Jaring keamanan: buang entri dengan id yang sama bila cache React Query
+        // sempat menerima baris kembar (optimistic update + event Realtime).
+        const seenClientIds = new Set<string>();
+        return clients
+            .filter(client => {
+                if (seenClientIds.has(client.id)) return false;
+                seenClientIds.add(client.id);
+                return true;
+            })
+            .map(client => {
+                const summary = projectsByClient.get(client.id);
+                const clientProjects = summary?.projects ?? [];
+                const mostRecentProject = summary?.mostRecentProject ?? null;
+                const totalValue = summary?.totalValue ?? 0;
+                const totalPaid = summary?.totalPaid ?? 0;
 
-            return {
-                ...client,
-                projects: clientProjects,
-                totalProjectValue: totalValue,
-                balanceDue: totalValue - totalPaid,
-                PackageTerbaru: mostRecentProject ? `${mostRecentProject.packageName}${mostRecentProject.addOns.length > 0 ? ` + ${mostRecentProject.addOns.length} Add-on` : ''}` : 'Belum ada Acara Pernikahan',
-                overallPaymentStatus: mostRecentProject ? mostRecentProject.paymentStatus : null,
-                mostRecentProject: mostRecentProject,
-            };
-        });
+                return {
+                    ...client,
+                    projects: clientProjects,
+                    totalProjectValue: totalValue,
+                    balanceDue: totalValue - totalPaid,
+                    PackageTerbaru: mostRecentProject ? `${mostRecentProject.packageName}${mostRecentProject.addOns.length > 0 ? ` + ${mostRecentProject.addOns.length} Add-on` : ''}` : 'Belum ada Acara Pernikahan',
+                    overallPaymentStatus: mostRecentProject ? mostRecentProject.paymentStatus : null,
+                    mostRecentProject: mostRecentProject,
+                };
+            });
     }, [clients, projects]);
 
     const filteredClientData = useMemo(() => {

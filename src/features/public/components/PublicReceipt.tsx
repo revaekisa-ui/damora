@@ -3,8 +3,8 @@ import { Transaction, Profile, Project, Client, TransactionType } from '../../..
 import { DownloadIcon } from '../../../constants';
 import { getTransaction } from '../../../services/transactions';
 import { getProjectWithRelations } from '../../../services/projects';
-import { getProfile } from '../../../services/profile';
-import { getClient } from '../../../services/clients';
+import { getPublicDocumentProfile } from '../../../services/profile';
+import { getPublicDocumentClient } from '../../../services/clients';
 import { useSupabaseRealtimeRefresh } from '../../../hooks/useSupabaseRealtimeRefresh';
 import { downloadReceiptPdf } from '../../clients/utils/receiptPdf';
 
@@ -40,7 +40,7 @@ const PublicReceipt: React.FC<PublicReceiptProps> = ({ transactionId }) => {
 
                 const [fetchedTx, fetchedProfile] = await Promise.all([
                     getTransaction(transactionId),
-                    getProfile()
+                    getPublicDocumentProfile()
                 ]);
 
                 if (cancelled) return;
@@ -56,12 +56,18 @@ const PublicReceipt: React.FC<PublicReceiptProps> = ({ transactionId }) => {
 
                 // Fetch project if related
                 if (fetchedTx.projectId) {
-                    const fetchedProj = await getProjectWithRelations(fetchedTx.projectId);
+                    const fetchedProj = await getProjectWithRelations(fetchedTx.projectId, {
+                        columns: 'id, project_name, client_name, client_id, total_cost, amount_paid',
+                        includeTeam: false,
+                        includeChecklist: false,
+                        includeAddOns: false,
+                        includeAttire: false,
+                    });
                     if (!cancelled) {
                         setProject(fetchedProj);
                         // Fetch client from project's clientId
                         if (fetchedProj?.clientId) {
-                            const fetchedClient = await getClient(fetchedProj.clientId);
+                            const fetchedClient = await getPublicDocumentClient(fetchedProj.clientId);
                             if (!cancelled) setClient(fetchedClient);
                         }
                     }

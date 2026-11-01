@@ -22,6 +22,8 @@ import {
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useClientFeedback } from '../hooks/useClientFeedback';
 import { useIsLightweightPublicRoute } from '../hooks/useIsLightweightPublicRoute';
+import { useCurrentAuthenticatedView } from '../hooks/useCurrentAuthenticatedView';
+import { isCatalogPublicRouteNow } from '../routes/publicRoutePath';
 import {
   Client,
   Project,
@@ -36,6 +38,7 @@ import {
   ClientFeedback,
   CalendarEvent,
   Profile,
+  ViewType,
 } from '../types';
 
 interface SimplifiedDataContextType {
@@ -60,19 +63,46 @@ interface SimplifiedDataContextType {
     projects: boolean;
     teamMembers: boolean;
     transactions: boolean;
+    leads: boolean;
+    cards: boolean;
+    pockets: boolean;
+    calendarEvents: boolean;
     clientFeedback: boolean;
     totals: boolean;
+    packages: boolean;
+    addOns: boolean;
+    attire: boolean;
   };
   isError: boolean;
   error: Error | null;
+  errors: {
+    clients: Error | null;
+    projects: Error | null;
+    teamMembers: Error | null;
+    transactions: Error | null;
+    leads: Error | null;
+    cards: Error | null;
+    pockets: Error | null;
+    calendarEvents: Error | null;
+    packages: Error | null;
+    addOns: Error | null;
+    attire: Error | null;
+  };
 
   refetchAll: () => Promise<void>;
   refetchClients: () => Promise<void>;
   refetchProjects: () => Promise<void>;
   refetchTeamMembers: () => Promise<void>;
   refetchTransactions: () => Promise<void>;
+  refetchLeads: () => Promise<void>;
+  refetchCards: () => Promise<void>;
+  refetchPockets: () => Promise<void>;
+  refetchCalendarEvents: () => Promise<void>;
   refetchClientFeedback: () => Promise<void>;
   refetchDashboardStats: () => Promise<void>;
+  refetchPackages: () => Promise<void>;
+  refetchAddOns: () => Promise<void>;
+  refetchAttire: () => Promise<void>;
 
   // Cache writers — exposed as React.Dispatch<SetStateAction<T[]>> so the
   // existing 525 call-sites that perform optimistic updates keep working.
@@ -120,27 +150,40 @@ function makeCacheSetter<T>(
 export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
 
-  // Halaman publik ringan (Public Packages / Public Booking) hanya memakai
-  // profile, packages, addOns, leads, cards, promoCodes. Dataset vendor (termasuk
-  // seluruh kolom + relasi proyek) tidak dikirim; lencana "Paling Populer" memakai
-  // useProjectPackageIdsQuery yang hanya mengambil package_id.
+  // Route publik yang mengambil record secara langsung tidak perlu memuat
+  // dataset vendor. Katalog/booking tetap mengaktifkan query katalog spesifik.
   const isLightPublic = useIsLightweightPublicRoute();
-  const vendorOnly = { enabled: !isLightPublic };
+  const isCatalogPublic = isCatalogPublicRouteNow();
+  const activeView = useCurrentAuthenticatedView();
+  const catalogQueriesEnabled = !isLightPublic || isCatalogPublic;
+  const isView = (...views: ViewType[]) => views.includes(activeView);
+  const dashboard = isView(ViewType.DASHBOARD);
+  const clientsEnabled = !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.BOOKING, ViewType.CALENDAR, ViewType.CLIENT_REPORTS, ViewType.SETTINGS, ViewType.MARKETING));
+  const projectsEnabled = !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.TEAM, ViewType.FINANCE, ViewType.BOOKING, ViewType.PACKAGES, ViewType.CALENDAR, ViewType.CLIENT_REPORTS, ViewType.PROMO_CODES, ViewType.SETTINGS, ViewType.MARKETING));
+  const teamEnabled = !isLightPublic && (dashboard || isView(ViewType.TEAM, ViewType.FINANCE, ViewType.CALENDAR, ViewType.CLIENT_REPORTS));
+  const transactionsEnabled = !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.TEAM, ViewType.FINANCE, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
+  const leadsEnabled = catalogQueriesEnabled && (isLightPublic || dashboard || isView(ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
+  const financeEnabled = !isLightPublic && (dashboard || isView(ViewType.TEAM, ViewType.FINANCE));
+  const packageDataEnabled = catalogQueriesEnabled && (isLightPublic || dashboard || isView(ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PACKAGES, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
 
   // ─── Domain queries (single source of truth) ────────────────────────────
-  const { data: clients, isLoading: loadingClients, error: errorClients } = useClientsQuery(vendorOnly);
-  const { data: projects, isLoading: loadingProjects, error: errorProjects } = useProjectsQuery(vendorOnly);
-  const { data: teamMembers, isLoading: loadingTeamMembers, error: errorTeamMembers } = useTeamMembersQuery(vendorOnly);
-  const { data: transactions, isLoading: loadingTransactions, error: errorTransactions } = useTransactionsQuery(vendorOnly);
-  const { data: leads, isLoading: loadingLeads, error: errorLeads } = useLeadsQuery();
-  const { data: cards, isLoading: loadingCards, error: errorCards } = useCardsQuery();
-  const { data: pockets, isLoading: loadingPockets, error: errorPockets } = usePocketsQuery(vendorOnly);
-  const { data: packages, isLoading: loadingPackages, error: errorPackages } = usePackagesQuery();
-  const { data: addOns, isLoading: loadingAddOns, error: errorAddOns } = useAddOnsQuery();
-  const { data: attire, isLoading: loadingAttire, error: errorAttire } = useAttireQuery();
-  const { data: calendarEvents, isLoading: loadingCalendarEvents, error: errorCalendarEvents } = useCalendarEventsQuery(vendorOnly);
-  const { data: clientFeedback, isLoading: loadingClientFeedback, error: errorClientFeedback } = useClientFeedback({ enabled: !isLightPublic });
-  const { data: totals, isLoading: loadingTotals, error: errorTotals } = useDashboardStats({ enabled: !isLightPublic });
+  const { data: clients, isLoading: loadingClients, error: errorClients } = useClientsQuery({ enabled: clientsEnabled });
+  const { data: projects, isLoading: loadingProjects, error: errorProjects } = useProjectsQuery({ enabled: projectsEnabled });
+  const { data: teamMembers, isLoading: loadingTeamMembers, error: errorTeamMembers } = useTeamMembersQuery({ enabled: teamEnabled });
+  const { data: transactions, isLoading: loadingTransactions, error: errorTransactions } = useTransactionsQuery({ enabled: transactionsEnabled });
+  const { data: leads, isLoading: loadingLeads, error: errorLeads } = useLeadsQuery({ enabled: leadsEnabled });
+  const { data: cards, isLoading: loadingCards, error: errorCards } = useCardsQuery({ enabled: !isLightPublic && (dashboard || isView(ViewType['Calon Pengantin'], ViewType.TEAM, ViewType.FINANCE, ViewType.BOOKING)) || (isLightPublic && catalogQueriesEnabled) });
+  const { data: pockets, isLoading: loadingPockets, error: errorPockets } = usePocketsQuery({ enabled: financeEnabled });
+  const { data: packages, isLoading: loadingPackages, error: errorPackages } = usePackagesQuery({ enabled: packageDataEnabled });
+  const { data: addOns, isLoading: loadingAddOns, error: errorAddOns } = useAddOnsQuery({ enabled: packageDataEnabled });
+  const { data: attire, isLoading: loadingAttire, error: errorAttire } = useAttireQuery({ enabled: packageDataEnabled });
+  const { data: calendarEvents, isLoading: loadingCalendarEvents, error: errorCalendarEvents } = useCalendarEventsQuery({ enabled: !isLightPublic && (dashboard || isView(ViewType.CALENDAR)) });
+  const { data: clientFeedback, isLoading: loadingClientFeedback, error: errorClientFeedback } = useClientFeedback({ enabled: !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.CLIENT_REPORTS)) });
+  // These screens display aggregate totals that are not derivable from the
+  // paged/list datasets; fetch the compact stats RPC when the screen needs it.
+  const { data: totals, isLoading: loadingTotals, error: errorTotals } = useDashboardStats({
+    enabled: !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.TEAM)),
+  });
 
   const isLoading =
     loadingClients || loadingProjects || loadingTeamMembers ||
@@ -181,11 +224,32 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
   const refetchTransactions = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['transactions'] });
   }, [queryClient]);
+  const refetchLeads = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['leads'] });
+  }, [queryClient]);
+  const refetchCards = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['cards'] });
+  }, [queryClient]);
+  const refetchPockets = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['pockets'] });
+  }, [queryClient]);
+  const refetchCalendarEvents = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
+  }, [queryClient]);
   const refetchClientFeedback = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['clientFeedback'] });
   }, [queryClient]);
   const refetchDashboardStats = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+  }, [queryClient]);
+  const refetchPackages = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['packages'] });
+  }, [queryClient]);
+  const refetchAddOns = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['addOns'] });
+  }, [queryClient]);
+  const refetchAttire = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['attire'] });
   }, [queryClient]);
 
   const refetchAll = useCallback(async () => {
@@ -194,13 +258,13 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       refetchProjects(),
       refetchTeamMembers(),
       refetchTransactions(),
-      queryClient.invalidateQueries({ queryKey: ['leads'] }),
-      queryClient.invalidateQueries({ queryKey: ['cards'] }),
-      queryClient.invalidateQueries({ queryKey: ['pockets'] }),
-      queryClient.invalidateQueries({ queryKey: ['packages'] }),
-      queryClient.invalidateQueries({ queryKey: ['addOns'] }),
-      queryClient.invalidateQueries({ queryKey: ['attire'] }),
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] }),
+      refetchLeads(),
+      refetchCards(),
+      refetchPockets(),
+      refetchPackages(),
+      refetchAddOns(),
+      refetchAttire(),
+      refetchCalendarEvents(),
       refetchClientFeedback(),
       refetchDashboardStats(),
       queryClient.invalidateQueries({ queryKey: ['promoCodes'] }),
@@ -209,7 +273,7 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       queryClient.invalidateQueries({ queryKey: ['teamPaymentRecords'] }),
       queryClient.invalidateQueries({ queryKey: ['notifications'] }),
     ]);
-  }, [queryClient, refetchClients, refetchProjects, refetchTeamMembers, refetchTransactions, refetchClientFeedback, refetchDashboardStats]);
+  }, [queryClient, refetchClients, refetchProjects, refetchTeamMembers, refetchTransactions, refetchLeads, refetchCards, refetchPockets, refetchCalendarEvents, refetchClientFeedback, refetchDashboardStats, refetchPackages, refetchAddOns, refetchAttire]);
 
   // ─── Realtime: Supabase → React Query cache (Optimized: Selective & Idle Disconnect) ──
   useEffect(() => {
@@ -393,18 +457,45 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
       projects: loadingProjects,
       teamMembers: loadingTeamMembers,
       transactions: loadingTransactions,
+      leads: loadingLeads,
+      cards: loadingCards,
+      pockets: loadingPockets,
+      calendarEvents: loadingCalendarEvents,
       clientFeedback: loadingClientFeedback,
       totals: loadingTotals,
+      packages: loadingPackages,
+      addOns: loadingAddOns,
+      attire: loadingAttire,
     },
     isError,
     error,
+    errors: {
+      clients: errorClients as Error | null,
+      projects: errorProjects as Error | null,
+      teamMembers: errorTeamMembers as Error | null,
+      transactions: errorTransactions as Error | null,
+      leads: errorLeads as Error | null,
+      cards: errorCards as Error | null,
+      pockets: errorPockets as Error | null,
+      calendarEvents: errorCalendarEvents as Error | null,
+      packages: errorPackages as Error | null,
+      addOns: errorAddOns as Error | null,
+      attire: errorAttire as Error | null,
+    },
     refetchAll,
     refetchClients,
     refetchProjects,
     refetchTeamMembers,
     refetchTransactions,
+    refetchLeads,
+    refetchCards,
+    refetchPockets,
+    refetchCalendarEvents,
     refetchClientFeedback,
     refetchDashboardStats,
+    refetchPackages,
+    refetchAddOns,
+    refetchAttire,
     setClients,
     setProjects,
     setTeamMembers,
@@ -420,9 +511,14 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
     clients, projects, teamMembers, transactions, leads, cards, pockets,
     packages, addOns, attire, clientFeedback, calendarEvents, totals,
     isLoading, loadingClients, loadingProjects, loadingTeamMembers, loadingTransactions,
-    loadingClientFeedback, loadingTotals, isError, error, refetchAll,
+    loadingLeads, loadingCards, loadingPockets, loadingCalendarEvents,
+    loadingClientFeedback, loadingTotals, loadingPackages, loadingAddOns, loadingAttire,
+    isError, error, errorClients, errorProjects, errorTeamMembers, errorTransactions,
+    errorLeads, errorCards, errorPockets, errorCalendarEvents,
+    errorPackages, errorAddOns, errorAttire, refetchAll,
     refetchClients, refetchProjects, refetchTeamMembers, refetchTransactions,
-    refetchClientFeedback, refetchDashboardStats,
+    refetchLeads, refetchCards, refetchPockets, refetchCalendarEvents,
+    refetchClientFeedback, refetchDashboardStats, refetchPackages, refetchAddOns, refetchAttire,
     setClients, setProjects, setTeamMembers, setTransactions, setLeads,
     setCards, setPockets, setPackages, setAddOns, setAttire, setClientFeedback,
   ]);
