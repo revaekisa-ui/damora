@@ -14,9 +14,11 @@ vi.mock('../services/offlineStorage', () => ({
 }));
 
 import {
+  CACHE_RESTORE_TIMEOUT_MS,
   getCurrentCacheScope,
   persistQueryCache,
   restoreQueryCache,
+  restoreQueryCacheWithTimeout,
 } from './queryCachePersistence';
 
 describe('query cache persistence', () => {
@@ -53,8 +55,19 @@ describe('query cache persistence', () => {
 
     await expect(restoreQueryCache(queryClient, 'user-1')).resolves.toBe(true);
     expect(queryClient.getQueryData(['clients'])).toEqual([{ id: 'client-1' }]);
+    expect(queryClient.getQueryCache().find({ queryKey: ['clients'] })?.state.isInvalidated).toBe(true);
     expect(getCachedDataMock).toHaveBeenCalledWith('react-query-cache:user-1');
     sourceClient.clear();
+  });
+
+  it('continues startup when the local cache read stalls', async () => {
+    vi.useFakeTimers();
+    getCachedDataMock.mockReturnValue(new Promise(() => {}));
+
+    const restorePromise = restoreQueryCacheWithTimeout(queryClient, 'user-1');
+    await vi.advanceTimersByTimeAsync(CACHE_RESTORE_TIMEOUT_MS);
+
+    await expect(restorePromise).resolves.toBe(false);
   });
 
   it('persists successful domain queries while excluding unrelated query data', async () => {

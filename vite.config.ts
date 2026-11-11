@@ -73,6 +73,11 @@ export default defineConfig(({ mode }) => {
               if (id.includes('zustand')) return 'vendor-zustand';
               if (id.includes('@capacitor')) return 'vendor-capacitor';
               if (id.includes('qrcode.react')) return 'vendor-qrcode';
+              if (id.includes('/node_modules/@mui/icons-material/')) return 'vendor-mui-icons';
+              if (id.includes('/node_modules/@mui/') || id.includes('/node_modules/@emotion/')) return 'vendor-mui';
+              if (id.includes('/node_modules/@tabler/icons-react/')) return 'vendor-tabler-icons';
+              if (id.includes('/node_modules/exceljs/')) return 'vendor-exceljs';
+              if (id.includes('/node_modules/jspdf/')) return 'vendor-jspdf';
               if (id.includes('/node_modules/xlsx/')) return 'vendor-xlsx';
               if (id.includes('/node_modules/pdfjs-dist/')) return 'vendor-pdfjs';
               if (id.includes('/node_modules/html2canvas/')) return 'vendor-html2canvas';

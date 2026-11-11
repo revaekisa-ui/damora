@@ -33,7 +33,6 @@ import BillingChatModal from '../../features/clients/components/BillingChatModal
 import NewClientsChart from '../../features/clients/components/NewClientsChart';
 import { useClients } from '../../features/clients/hooks/useClients';
 import { ensureOnlineOrNotify } from '../../features/clients/utils/clientHelpers';
-import { exportClientsToExcel } from '../../features/clients/utils/clientExport';
 import { deleteProject as deleteProjectRow, updateProject as updateProjectInDb } from '../../services/projects';
 import { updateTransaction as updateTransactionInDb } from '../../services/transactions';
 import { toPublicNameSlug } from '../../utils/publicRouting';
@@ -312,6 +311,7 @@ export const Clients: React.FC<ClientsProps> = ({
         if (isExporting) return;
         setIsExporting(true);
         try {
+            const { exportClientsToExcel } = await import('../../features/clients/utils/clientExport');
             await exportClientsToExcel(
                 filteredClientData,
                 transactions,

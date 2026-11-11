@@ -37,6 +37,7 @@ import { useProjectEditMode } from '../../features/projects/hooks/useProjectEdit
 import { useProjectOperations } from '../../features/projects/hooks/useProjectOperations';
 import { calculateProjectsModalStats } from '../../features/projects/utils/projectCalculations';
 import { countProjectsForTable, getProjectWithRelations, listProjectsTablePage } from '../../services/projects';
+import { listChecklistByProject } from '../../services/weddingDayChecklist';
 import { createTransaction } from '../../services/transactions';
 import { updatePocket as updatePocketRow } from '../../services/pockets';
 import { updateTeamProjectPayments as updateTeamProjectPaymentsApi } from '../../services/teamProjectPayments';
@@ -155,6 +156,7 @@ export const Projects: React.FC<ProjectsProps> = ({
     }, [searchTerm]);
     useEffect(() => setProjectPage(1), [debouncedProjectSearch, statusFilter, dateFrom, dateTo, projectListTab, projectPageSize]);
     useEffect(() => {
+        if (embeddedForClient) return;
         if (previousProjectsForPageRef.current === null) {
             previousProjectsForPageRef.current = projects;
             return;
@@ -166,7 +168,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                 queryClient.invalidateQueries({ queryKey: ['projects', 'tableCounts'] }),
             ]);
         }
-    }, [projects, queryClient]);
+    }, [projects, queryClient, embeddedForClient]);
 
     const tableFilters = {
         search: debouncedProjectSearch,
@@ -177,7 +179,7 @@ export const Projects: React.FC<ProjectsProps> = ({
     const projectTableCountsQuery = useQuery({
         queryKey: ['projects', 'tableCounts', tableFilters],
         queryFn: () => countProjectsForTable(tableFilters),
-        enabled: viewMode === 'list',
+        enabled: !embeddedForClient && viewMode === 'list',
         staleTime: 30_000,
     });
     const projectTableQuery = useQuery({
@@ -188,7 +190,7 @@ export const Projects: React.FC<ProjectsProps> = ({
             pageSize: projectPageSize,
             tab: projectListTab,
         }),
-        enabled: viewMode === 'list',
+        enabled: !embeddedForClient && viewMode === 'list',
         placeholderData: keepPreviousData,
         staleTime: 30_000,
     });
@@ -348,7 +350,9 @@ export const Projects: React.FC<ProjectsProps> = ({
 
         (async () => {
             try {
-                const fresh = await getProjectWithRelations(project.id);
+                const fresh = embeddedForClient
+                    ? { ...project, weddingDayChecklist: await listChecklistByProject(project.id) }
+                    : await getProjectWithRelations(project.id);
                 if (fresh) {
                     setSelectedProject(fresh);
                     setProjects(prev => prev.map(p => p.id === project.id ? fresh : p));
@@ -357,7 +361,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                 console.warn('[Projects] Background fetch failed for detail:', err);
             }
         })();
-    }, [setProjects]);
+    }, [embeddedForClient, setProjects]);
 
     const handlePayTeamAssignment = useCallback(async (payment: TeamProjectPayment, sourceId: string) => {
         const currentPayment = teamProjectPayments.find(item => item.id === payment.id);

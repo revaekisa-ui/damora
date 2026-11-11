@@ -92,7 +92,7 @@ export function useAuxiliaryData({
   // ─── Domain data via React Query ───────────────────────────────────────
   const isView = (...views: ViewType[]) => views.includes(activeView);
   const vendorOnly = !skipVendorOnlyData;
-  const { data: promoCodesData } = usePromoCodesQuery({ enabled: !skipCatalogData && isView(ViewType.DASHBOARD, ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PROMO_CODES) });
+  const { data: promoCodesData } = usePromoCodesQuery({ enabled: !skipCatalogData && isView(ViewType.DASHBOARD, ViewType.CLIENTS, ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PROMO_CODES) });
   const { data: profileData } = useProfileQuery({ enabled: !skipProfileData });
   const paymentsEnabled = vendorOnly && isView(ViewType.DASHBOARD, ViewType.CLIENTS, ViewType.TEAM, ViewType.FINANCE, ViewType.CLIENT_REPORTS);
   const { data: teamPaymentsData, isLoading: teamPaymentsLoading } = useTeamProjectPaymentsQuery({ enabled: paymentsEnabled });

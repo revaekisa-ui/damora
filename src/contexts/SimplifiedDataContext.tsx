@@ -164,7 +164,7 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
   const transactionsEnabled = !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType.TEAM, ViewType.FINANCE, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
   const leadsEnabled = catalogQueriesEnabled && (isLightPublic || dashboard || isView(ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
   const financeEnabled = !isLightPublic && (dashboard || isView(ViewType.TEAM, ViewType.FINANCE));
-  const packageDataEnabled = catalogQueriesEnabled && (isLightPublic || dashboard || isView(ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PACKAGES, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
+  const packageDataEnabled = catalogQueriesEnabled && (isLightPublic || dashboard || isView(ViewType.CLIENTS, ViewType['Calon Pengantin'], ViewType.BOOKING, ViewType.PACKAGES, ViewType.CLIENT_REPORTS, ViewType.SETTINGS));
 
   // ─── Domain queries (single source of truth) ────────────────────────────
   const { data: clients, isLoading: loadingClients, error: errorClients } = useClientsQuery({ enabled: clientsEnabled });
@@ -172,7 +172,7 @@ export const SimplifiedDataProvider: React.FC<{ children: React.ReactNode }> = (
   const { data: teamMembers, isLoading: loadingTeamMembers, error: errorTeamMembers } = useTeamMembersQuery({ enabled: teamEnabled });
   const { data: transactions, isLoading: loadingTransactions, error: errorTransactions } = useTransactionsQuery({ enabled: transactionsEnabled });
   const { data: leads, isLoading: loadingLeads, error: errorLeads } = useLeadsQuery({ enabled: leadsEnabled });
-  const { data: cards, isLoading: loadingCards, error: errorCards } = useCardsQuery({ enabled: !isLightPublic && (dashboard || isView(ViewType['Calon Pengantin'], ViewType.TEAM, ViewType.FINANCE, ViewType.BOOKING)) || (isLightPublic && catalogQueriesEnabled) });
+  const { data: cards, isLoading: loadingCards, error: errorCards } = useCardsQuery({ enabled: !isLightPublic && (dashboard || isView(ViewType.CLIENTS, ViewType['Calon Pengantin'], ViewType.TEAM, ViewType.FINANCE, ViewType.BOOKING)) || (isLightPublic && catalogQueriesEnabled) });
   const { data: pockets, isLoading: loadingPockets, error: errorPockets } = usePocketsQuery({ enabled: financeEnabled });
   const { data: packages, isLoading: loadingPackages, error: errorPackages } = usePackagesQuery({ enabled: packageDataEnabled });
   const { data: addOns, isLoading: loadingAddOns, error: errorAddOns } = useAddOnsQuery({ enabled: packageDataEnabled });

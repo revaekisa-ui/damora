@@ -1,11 +1,11 @@
-import { mobileUiScaleReady } from './init';
+import './init';
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import ErrorBoundary from './shared/ui/ErrorBoundary';
 import { SimplifiedDataProvider } from './contexts/SimplifiedDataContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getCurrentCacheScope, restoreQueryCache } from './lib/queryCachePersistence';
+import { getCurrentCacheScope, restoreQueryCacheWithTimeout } from './lib/queryCachePersistence';
 import { shouldRetryQuery } from './lib/queryTimeout';
 import './index.css';
 import '../app/index.css';
@@ -43,19 +43,7 @@ const root = ReactDOM.createRoot(rootElement);
 async function startApp() {
   const cacheScope = getCurrentCacheScope();
   if (cacheScope) {
-    try {
-      await restoreQueryCache(queryClient, cacheScope);
-    } catch (error) {
-      console.warn('[QueryCache] Failed to restore local cache; loading from Supabase.', error);
-    }
-  }
-
-  // The account's saved mobile UI scale must be active before the first paint,
-  // so a logged-in user never sees the default 100% after a reload.
-  try {
-    await mobileUiScaleReady;
-  } catch (error) {
-    console.warn('[MobileUiScale] Failed to initialize the mobile UI scale preference.', error);
+    await restoreQueryCacheWithTimeout(queryClient, cacheScope);
   }
 
   root.render(

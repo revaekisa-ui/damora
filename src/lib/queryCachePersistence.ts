@@ -3,6 +3,7 @@ import { offlineStorage } from '../services/offlineStorage';
 
 const CACHE_VERSION = 1;
 const CACHE_TTL_MINUTES = 12 * 60;
+export const CACHE_RESTORE_TIMEOUT_MS = 500;
 const PERSISTED_QUERY_KEYS = new Set([
   'clients',
   'projects',
@@ -48,7 +49,37 @@ export async function restoreQueryCache(queryClient: QueryClient, userId: string
   const persisted = await offlineStorage.getCachedData<PersistedQueryCache>(getCacheKey(userId));
   if (!persisted || persisted.version !== CACHE_VERSION) return false;
   hydrate(queryClient, persisted.cache);
+  await queryClient.invalidateQueries({ refetchType: 'active' });
   return true;
+}
+
+export async function restoreQueryCacheWithTimeout(
+  queryClient: QueryClient,
+  userId: string,
+  timeoutMs = CACHE_RESTORE_TIMEOUT_MS,
+): Promise<boolean> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  const restorePromise = restoreQueryCache(queryClient, userId).catch((error) => {
+    console.warn('[QueryCache] Failed to restore local cache; loading from Supabase.', error);
+    return false;
+  });
+  const timeoutPromise = new Promise<boolean>((resolve) => {
+    timeoutId = setTimeout(() => {
+      timedOut = true;
+      resolve(false);
+    }, timeoutMs);
+  });
+
+  try {
+    const restored = await Promise.race([restorePromise, timeoutPromise]);
+    if (timedOut) {
+      console.warn(`[QueryCache] Restore exceeded ${timeoutMs} ms; continuing startup.`);
+    }
+    return restored;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 }
 
 export function persistQueryCache(queryClient: QueryClient, userId: string): () => void {
